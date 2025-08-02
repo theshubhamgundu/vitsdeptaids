@@ -254,12 +254,6 @@ const AdminTools = () => {
     return matchesSearch && matchesYear;
   });
 
-  const filteredLeaveRequests = leaveRequests.filter(leave => {
-    const matchesSearch = leave.applicantName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === "all" || leave.status === filterStatus;
-    return matchesSearch && matchesStatus;
-  });
-
   return (
     <DashboardLayout userType="admin" userName="Admin User">
       <div className="space-y-6">
