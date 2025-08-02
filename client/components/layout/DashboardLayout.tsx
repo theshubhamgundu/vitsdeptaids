@@ -32,7 +32,9 @@ import {
   Cpu,
   Crown,
   Shield,
-  GraduationCap
+  GraduationCap,
+  CreditCard,
+  Tool
 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -60,6 +62,7 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
         { name: "Study Materials", href: "/dashboard/student/materials", icon: BookOpen },
         { name: "Timetable", href: "/dashboard/student/timetable", icon: Clock },
         { name: "Leave Applications", href: "/dashboard/student/leave", icon: Plane },
+        { name: "Fee Payment", href: "/dashboard/student/fees", icon: CreditCard },
       ]
     },
     faculty: {
@@ -85,6 +88,7 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
         { name: "Students", href: "/dashboard/admin/students", icon: Users },
         { name: "Faculty", href: "/dashboard/admin/faculty", icon: Users },
         { name: "Content Management", href: "/dashboard/admin/content", icon: Settings },
+        { name: "Admin Tools", href: "/dashboard/admin/tools", icon: Tool },
       ]
     },
     hod: {
@@ -95,6 +99,8 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
         { name: "Dashboard", href: "/dashboard/hod", icon: Home },
         { name: "Students", href: "/dashboard/hod/students", icon: Users },
         { name: "Faculty Leaves", href: "/dashboard/hod/faculty-leaves", icon: FileText },
+        { name: "Timetables", href: "/dashboard/hod/timetables", icon: Clock },
+        { name: "Messages", href: "/dashboard/hod/messages", icon: MessageSquare },
         { name: "Analytics", href: "/dashboard/hod/analytics", icon: BarChart3 },
       ]
     }
@@ -113,7 +119,7 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
@@ -123,8 +129,8 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:relative lg:block ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}>
         <div className="flex items-center justify-between h-16 px-6 border-b">
           <div className="flex items-center space-x-3">
@@ -186,11 +192,11 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="lg:pl-64">
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Top header */}
-        <header className="bg-white shadow-sm border-b">
-          <div className="flex items-center justify-between h-16 px-6">
+        <header className="bg-white shadow-sm border-b h-16 flex-shrink-0">
+          <div className="flex items-center justify-between h-full px-6">
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
@@ -255,7 +261,7 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
         </header>
 
         {/* Page content */}
-        <main className="p-6">
+        <main className="flex-1 p-6 overflow-auto">
           {children}
         </main>
       </div>
