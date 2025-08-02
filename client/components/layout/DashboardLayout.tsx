@@ -88,7 +88,7 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
         { name: "Students", href: "/dashboard/admin/students", icon: Users },
         { name: "Faculty", href: "/dashboard/admin/faculty", icon: Users },
         { name: "Content Management", href: "/dashboard/admin/content", icon: Settings },
-        { name: "Admin Tools", href: "/dashboard/admin/tools", icon: Tool },
+        { name: "Admin Tools", href: "/dashboard/admin/tools", icon: Wrench },
       ]
     },
     hod: {
