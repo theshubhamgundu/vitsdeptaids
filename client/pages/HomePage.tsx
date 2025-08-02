@@ -181,17 +181,12 @@ const HomePage = () => {
               Shaping the future with cutting-edge AI and Data Science education. 
               Empowering students to become tomorrow's tech leaders.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex justify-center">
               <Link to="/admissions">
                 <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
                   Apply Now <ChevronRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <a href="https://vignanits.ac.in/" target="_blank" rel="noopener noreferrer">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
-                  Visit College Website <ExternalLink className="ml-2 h-5 w-5" />
-                </Button>
-              </a>
             </div>
           </div>
         </div>
