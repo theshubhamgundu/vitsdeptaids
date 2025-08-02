@@ -99,17 +99,13 @@ const AdminTools = () => {
 
 
 
-  const [searchTerm, setSearchTerm] = useState("");
   const [studentSearchTerm, setStudentSearchTerm] = useState("");
   const [filterYear, setFilterYear] = useState("all");
-  const [filterStatus, setFilterStatus] = useState("all");
 
   // Dialog states
   const [showTimetableDialog, setShowTimetableDialog] = useState(false);
   const [showResultsDialog, setShowResultsDialog] = useState(false);
   const [showAttendanceDialog, setShowAttendanceDialog] = useState(false);
-  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
-  const [selectedLeave, setSelectedLeave] = useState(null);
 
   // Form states
   const [newTimetable, setNewTimetable] = useState({
