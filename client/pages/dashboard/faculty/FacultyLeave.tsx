@@ -44,10 +44,13 @@ import {
   Trash2,
   Eye,
   Search,
-  Filter
+  Filter,
+  User,
+  Users
 } from "lucide-react";
 
 const FacultyLeave = () => {
+  // Personal leave applications
   const [leaveApplications, setLeaveApplications] = useState([
     {
       id: 1,
@@ -78,27 +81,72 @@ const FacultyLeave = () => {
       approvedDate: null,
       documents: [],
       emergencyContact: "+91 9876543210"
+    }
+  ]);
+
+  // Student leave applications that need faculty approval
+  const [studentLeaveRequests, setStudentLeaveRequests] = useState([
+    {
+      id: 1,
+      studentName: "Rahul Sharma",
+      hallTicket: "20AI001",
+      year: "3rd Year",
+      semester: "6th Semester",
+      type: "Medical Leave",
+      fromDate: "2025-03-16",
+      toDate: "2025-03-18",
+      days: 3,
+      reason: "Fever and cold",
+      description: "Doctor advised rest for 3 days",
+      status: "Pending",
+      appliedDate: "2025-03-14",
+      documents: ["medical_certificate.pdf"],
+      parentContact: "+91 9876543200",
+      studentContact: "+91 9876543201"
+    },
+    {
+      id: 2,
+      studentName: "Priya Reddy", 
+      hallTicket: "20AI002",
+      year: "3rd Year",
+      semester: "6th Semester",
+      type: "Personal Leave",
+      fromDate: "2025-03-20",
+      toDate: "2025-03-21",
+      days: 2,
+      reason: "Family emergency",
+      description: "Grandmother hospitalized",
+      status: "Pending",
+      appliedDate: "2025-03-15",
+      documents: [],
+      parentContact: "+91 9876543202",
+      studentContact: "+91 9876543203"
     },
     {
       id: 3,
+      studentName: "Amit Kumar",
+      hallTicket: "20AI003",
+      year: "3rd Year",
+      semester: "6th Semester",
       type: "Conference Leave",
-      fromDate: "2025-02-20",
-      toDate: "2025-02-22",
+      fromDate: "2025-03-25",
+      toDate: "2025-03-27",
       days: 3,
-      reason: "Attending AI/ML Conference",
-      description: "International Conference on Machine Learning",
+      reason: "Technical conference participation",
+      description: "Presenting paper at IEEE conference",
       status: "Approved",
-      appliedDate: "2025-02-15",
-      approvedBy: "Dr. Head of Department",
-      approvedDate: "2025-02-16",
+      appliedDate: "2025-03-10",
       documents: ["conference_invitation.pdf"],
-      emergencyContact: "+91 9876543210"
+      parentContact: "+91 9876543204",
+      studentContact: "+91 9876543205"
     }
   ]);
 
   const [showApplyDialog, setShowApplyDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
+  const [showStudentViewDialog, setShowStudentViewDialog] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
+  const [selectedStudentRequest, setSelectedStudentRequest] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterType, setFilterType] = useState("all");
@@ -159,6 +207,18 @@ const FacultyLeave = () => {
     });
   };
 
+  const handleApproveStudentLeave = (id) => {
+    setStudentLeaveRequests(prev => prev.map(request =>
+      request.id === id ? { ...request, status: "Approved", approvedBy: "Dr. Anita Verma", approvedDate: new Date().toISOString().split('T')[0] } : request
+    ));
+  };
+
+  const handleRejectStudentLeave = (id) => {
+    setStudentLeaveRequests(prev => prev.map(request =>
+      request.id === id ? { ...request, status: "Rejected", approvedBy: "Dr. Anita Verma", approvedDate: new Date().toISOString().split('T')[0] } : request
+    ));
+  };
+
   const handleCancelApplication = (id) => {
     setLeaveApplications(prev => prev.map(app => 
       app.id === id ? { ...app, status: "Cancelled" } : app
@@ -174,6 +234,16 @@ const FacultyLeave = () => {
                          app.type.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === "all" || app.status === filterStatus;
     const matchesType = filterType === "all" || app.type === filterType;
+    
+    return matchesSearch && matchesStatus && matchesType;
+  });
+
+  const filteredStudentRequests = studentLeaveRequests.filter(request => {
+    const matchesSearch = request.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         request.hallTicket.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         request.reason.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === "all" || request.status === filterStatus;
+    const matchesType = filterType === "all" || request.type === filterType;
     
     return matchesSearch && matchesStatus && matchesType;
   });
@@ -208,11 +278,18 @@ const FacultyLeave = () => {
     }
   };
 
-  const stats = {
+  const personalStats = {
     totalApplications: leaveApplications.length,
     approved: leaveApplications.filter(app => app.status === "Approved").length,
     pending: leaveApplications.filter(app => app.status === "Pending").length,
     totalDays: leaveApplications.filter(app => app.status === "Approved").reduce((acc, app) => acc + app.days, 0)
+  };
+
+  const studentStats = {
+    totalRequests: studentLeaveRequests.length,
+    pending: studentLeaveRequests.filter(req => req.status === "Pending").length,
+    approved: studentLeaveRequests.filter(req => req.status === "Approved").length,
+    rejected: studentLeaveRequests.filter(req => req.status === "Rejected").length
   };
 
   const leaveBalance = {
@@ -229,7 +306,7 @@ const FacultyLeave = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Leave Management</h1>
-            <p className="text-gray-600">Apply for and manage your leave requests</p>
+            <p className="text-gray-600">Manage your leave applications and approve student requests</p>
           </div>
           <Dialog open={showApplyDialog} onOpenChange={setShowApplyDialog}>
             <DialogTrigger asChild>
@@ -336,270 +413,475 @@ const FacultyLeave = () => {
           </Dialog>
         </div>
 
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
-              <FileText className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalApplications}</div>
-              <p className="text-xs text-muted-foreground">All time</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Approved</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.approved}</div>
-              <p className="text-xs text-muted-foreground">Applications approved</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
-              <Clock className="h-4 w-4 text-yellow-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.pending}</div>
-              <p className="text-xs text-muted-foreground">Awaiting approval</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Days Taken</CardTitle>
-              <Calendar className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalDays}</div>
-              <p className="text-xs text-muted-foreground">This academic year</p>
-            </CardContent>
-          </Card>
-        </div>
+        <Tabs defaultValue="personal" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="personal" className="flex items-center space-x-2">
+              <User className="h-4 w-4" />
+              <span>My Leave Applications</span>
+            </TabsTrigger>
+            <TabsTrigger value="students" className="flex items-center space-x-2">
+              <Users className="h-4 w-4" />
+              <span>Student Leave Requests</span>
+              {studentStats.pending > 0 && (
+                <Badge variant="destructive" className="ml-1 text-xs">
+                  {studentStats.pending}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Leave Balance */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Leave Balance</CardTitle>
-            <CardDescription>Your remaining leave balance by category</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="p-4 border rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">Medical Leave</span>
-                  <span className="text-sm text-gray-600">{leaveBalance.medical.used}/{leaveBalance.medical.total}</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-red-500 h-2 rounded-full"
-                    style={{ width: `${(leaveBalance.medical.used / leaveBalance.medical.total) * 100}%` }}
-                  />
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {leaveBalance.medical.total - leaveBalance.medical.used} days remaining
-                </div>
-              </div>
-
-              <div className="p-4 border rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">Personal Leave</span>
-                  <span className="text-sm text-gray-600">{leaveBalance.personal.used}/{leaveBalance.personal.total}</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-500 h-2 rounded-full"
-                    style={{ width: `${(leaveBalance.personal.used / leaveBalance.personal.total) * 100}%` }}
-                  />
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {leaveBalance.personal.total - leaveBalance.personal.used} days remaining
-                </div>
-              </div>
-
-              <div className="p-4 border rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">Conference Leave</span>
-                  <span className="text-sm text-gray-600">{leaveBalance.conference.used}/{leaveBalance.conference.total}</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-green-500 h-2 rounded-full"
-                    style={{ width: `${(leaveBalance.conference.used / leaveBalance.conference.total) * 100}%` }}
-                  />
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {leaveBalance.conference.total - leaveBalance.conference.used} days remaining
-                </div>
-              </div>
-
-              <div className="p-4 border rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium">Emergency Leave</span>
-                  <span className="text-sm text-gray-600">{leaveBalance.emergency.used}/{leaveBalance.emergency.total}</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-orange-500 h-2 rounded-full"
-                    style={{ width: `${(leaveBalance.emergency.used / leaveBalance.emergency.total) * 100}%` }}
-                  />
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {leaveBalance.emergency.total - leaveBalance.emergency.used} days remaining
-                </div>
-              </div>
+          {/* Personal Leave Applications Tab */}
+          <TabsContent value="personal" className="space-y-6">
+            {/* Statistics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
+                  <FileText className="h-4 w-4 text-blue-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{personalStats.totalApplications}</div>
+                  <p className="text-xs text-muted-foreground">All time</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Approved</CardTitle>
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{personalStats.approved}</div>
+                  <p className="text-xs text-muted-foreground">Applications approved</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Pending</CardTitle>
+                  <Clock className="h-4 w-4 text-yellow-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{personalStats.pending}</div>
+                  <p className="text-xs text-muted-foreground">Awaiting approval</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Days Taken</CardTitle>
+                  <Calendar className="h-4 w-4 text-purple-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{personalStats.totalDays}</div>
+                  <p className="text-xs text-muted-foreground">This academic year</p>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Search and Filters */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search applications..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Approved">Approved</SelectItem>
-                  <SelectItem value="Rejected">Rejected</SelectItem>
-                  <SelectItem value="Cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Leave Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  {leaveTypes.map(type => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+            {/* Leave Balance */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Leave Balance</CardTitle>
+                <CardDescription>Your remaining leave balance by category</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="p-4 border rounded-lg">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium">Medical Leave</span>
+                      <span className="text-sm text-gray-600">{leaveBalance.medical.used}/{leaveBalance.medical.total}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-red-500 h-2 rounded-full"
+                        style={{ width: `${(leaveBalance.medical.used / leaveBalance.medical.total) * 100}%` }}
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {leaveBalance.medical.total - leaveBalance.medical.used} days remaining
+                    </div>
+                  </div>
 
-        {/* Leave Applications Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Leave Applications</CardTitle>
-            <CardDescription>Track your leave application status</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Type & Reason</TableHead>
-                  <TableHead>Duration</TableHead>
-                  <TableHead>Applied Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Approved By</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredApplications.map((application) => {
-                  const StatusIcon = getStatusIcon(application.status);
-                  return (
-                    <TableRow key={application.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{application.type}</div>
-                          <div className="text-sm text-gray-600">{application.reason}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{application.days} days</div>
-                          <div className="text-sm text-gray-600">
-                            {new Date(application.fromDate).toLocaleDateString()} - {new Date(application.toDate).toLocaleDateString()}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{new Date(application.appliedDate).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <StatusIcon className="h-4 w-4" />
-                          <Badge className={getStatusColor(application.status)}>
-                            {application.status}
-                          </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {application.approvedBy ? (
-                          <div>
-                            <div className="text-sm">{application.approvedBy}</div>
-                            <div className="text-xs text-gray-600">
-                              {application.approvedDate && new Date(application.approvedDate).toLocaleDateString()}
+                  <div className="p-4 border rounded-lg">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium">Personal Leave</span>
+                      <span className="text-sm text-gray-600">{leaveBalance.personal.used}/{leaveBalance.personal.total}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-blue-500 h-2 rounded-full"
+                        style={{ width: `${(leaveBalance.personal.used / leaveBalance.personal.total) * 100}%` }}
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {leaveBalance.personal.total - leaveBalance.personal.used} days remaining
+                    </div>
+                  </div>
+
+                  <div className="p-4 border rounded-lg">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium">Conference Leave</span>
+                      <span className="text-sm text-gray-600">{leaveBalance.conference.used}/{leaveBalance.conference.total}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-green-500 h-2 rounded-full"
+                        style={{ width: `${(leaveBalance.conference.used / leaveBalance.conference.total) * 100}%` }}
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {leaveBalance.conference.total - leaveBalance.conference.used} days remaining
+                    </div>
+                  </div>
+
+                  <div className="p-4 border rounded-lg">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium">Emergency Leave</span>
+                      <span className="text-sm text-gray-600">{leaveBalance.emergency.used}/{leaveBalance.emergency.total}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-orange-500 h-2 rounded-full"
+                        style={{ width: `${(leaveBalance.emergency.used / leaveBalance.emergency.total) * 100}%` }}
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {leaveBalance.emergency.total - leaveBalance.emergency.used} days remaining
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Search and Filters */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Search applications..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Approved">Approved</SelectItem>
+                      <SelectItem value="Rejected">Rejected</SelectItem>
+                      <SelectItem value="Cancelled">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={filterType} onValueChange={setFilterType}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Leave Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      {leaveTypes.map(type => (
+                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Personal Leave Applications Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>My Leave Applications</CardTitle>
+                <CardDescription>Track your personal leave application status</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Type & Reason</TableHead>
+                      <TableHead>Duration</TableHead>
+                      <TableHead>Applied Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Approved By</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredApplications.map((application) => {
+                      const StatusIcon = getStatusIcon(application.status);
+                      return (
+                        <TableRow key={application.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{application.type}</div>
+                              <div className="text-sm text-gray-600">{application.reason}</div>
                             </div>
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            onClick={() => {
-                              setSelectedApplication(application);
-                              setShowViewDialog(true);
-                            }}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          {application.status === "Pending" && (
-                            <>
-                              <Button size="sm" variant="ghost">
-                                <Edit className="h-4 w-4" />
-                              </Button>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{application.days} days</div>
+                              <div className="text-sm text-gray-600">
+                                {new Date(application.fromDate).toLocaleDateString()} - {new Date(application.toDate).toLocaleDateString()}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>{new Date(application.appliedDate).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <StatusIcon className="h-4 w-4" />
+                              <Badge className={getStatusColor(application.status)}>
+                                {application.status}
+                              </Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {application.approvedBy ? (
+                              <div>
+                                <div className="text-sm">{application.approvedBy}</div>
+                                <div className="text-xs text-gray-600">
+                                  {application.approvedDate && new Date(application.approvedDate).toLocaleDateString()}
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
                               <Button 
                                 size="sm" 
                                 variant="ghost" 
-                                onClick={() => handleCancelApplication(application.id)}
+                                onClick={() => {
+                                  setSelectedApplication(application);
+                                  setShowViewDialog(true);
+                                }}
                               >
-                                <XCircle className="h-4 w-4 text-red-600" />
+                                <Eye className="h-4 w-4" />
                               </Button>
-                            </>
-                          )}
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            onClick={() => handleDeleteApplication(application.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-red-600" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                              {application.status === "Pending" && (
+                                <>
+                                  <Button size="sm" variant="ghost">
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost" 
+                                    onClick={() => handleCancelApplication(application.id)}
+                                  >
+                                    <XCircle className="h-4 w-4 text-red-600" />
+                                  </Button>
+                                </>
+                              )}
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                onClick={() => handleDeleteApplication(application.id)}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-600" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        {/* View Application Dialog */}
+          {/* Student Leave Requests Tab */}
+          <TabsContent value="students" className="space-y-6">
+            {/* Student Statistics Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
+                  <Users className="h-4 w-4 text-blue-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{studentStats.totalRequests}</div>
+                  <p className="text-xs text-muted-foreground">Student applications</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Pending</CardTitle>
+                  <Clock className="h-4 w-4 text-orange-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{studentStats.pending}</div>
+                  <p className="text-xs text-muted-foreground">Need approval</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Approved</CardTitle>
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{studentStats.approved}</div>
+                  <p className="text-xs text-muted-foreground">This month</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Rejected</CardTitle>
+                  <XCircle className="h-4 w-4 text-red-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{studentStats.rejected}</div>
+                  <p className="text-xs text-muted-foreground">This month</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Search and Filters for Students */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Search by student name, hall ticket..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  <Select value={filterStatus} onValueChange={setFilterStatus}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Approved">Approved</SelectItem>
+                      <SelectItem value="Rejected">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={filterType} onValueChange={setFilterType}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Leave Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      {leaveTypes.map(type => (
+                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Student Leave Requests Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Student Leave Requests</CardTitle>
+                <CardDescription>Review and approve student leave applications</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Student</TableHead>
+                      <TableHead>Type & Reason</TableHead>
+                      <TableHead>Duration</TableHead>
+                      <TableHead>Applied Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredStudentRequests.map((request) => {
+                      const StatusIcon = getStatusIcon(request.status);
+                      return (
+                        <TableRow key={request.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{request.studentName}</div>
+                              <div className="text-sm text-gray-600">{request.hallTicket}</div>
+                              <div className="text-xs text-gray-500">{request.year} - {request.semester}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{request.type}</div>
+                              <div className="text-sm text-gray-600">{request.reason}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{request.days} days</div>
+                              <div className="text-sm text-gray-600">
+                                {new Date(request.fromDate).toLocaleDateString()} - {new Date(request.toDate).toLocaleDateString()}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>{new Date(request.appliedDate).toLocaleDateString()}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <StatusIcon className="h-4 w-4" />
+                              <Badge className={getStatusColor(request.status)}>
+                                {request.status}
+                              </Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button 
+                                size="sm" 
+                                variant="ghost"
+                                onClick={() => {
+                                  setSelectedStudentRequest(request);
+                                  setShowStudentViewDialog(true);
+                                }}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              {request.status === "Pending" && (
+                                <>
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost"
+                                    onClick={() => handleApproveStudentLeave(request.id)}
+                                    className="text-green-600 hover:text-green-700"
+                                  >
+                                    <CheckCircle className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost"
+                                    onClick={() => handleRejectStudentLeave(request.id)}
+                                    className="text-red-600 hover:text-red-700"
+                                  >
+                                    <XCircle className="h-4 w-4" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        {/* Personal Leave View Dialog */}
         {selectedApplication && (
           <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
             <DialogContent className="max-w-2xl">
@@ -692,6 +974,123 @@ const FacultyLeave = () => {
 
                 <div className="flex justify-end space-x-2">
                   <Button variant="outline" onClick={() => setShowViewDialog(false)}>Close</Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Student Leave View Dialog */}
+        {selectedStudentRequest && (
+          <Dialog open={showStudentViewDialog} onOpenChange={setShowStudentViewDialog}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Student Leave Request Details</DialogTitle>
+                <DialogDescription>Request from {selectedStudentRequest.studentName}</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Student</Label>
+                    <p className="text-sm text-gray-900">{selectedStudentRequest.studentName}</p>
+                    <p className="text-xs text-gray-600">{selectedStudentRequest.hallTicket}</p>
+                    <p className="text-xs text-gray-600">{selectedStudentRequest.year} - {selectedStudentRequest.semester}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Leave Type</Label>
+                    <p className="text-sm text-gray-900">{selectedStudentRequest.type}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">From Date</Label>
+                    <p className="text-sm text-gray-900">{new Date(selectedStudentRequest.fromDate).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">To Date</Label>
+                    <p className="text-sm text-gray-900">{new Date(selectedStudentRequest.toDate).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Duration</Label>
+                    <p className="text-sm text-gray-900">{selectedStudentRequest.days} days</p>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Reason</Label>
+                  <p className="text-sm text-gray-900">{selectedStudentRequest.reason}</p>
+                </div>
+
+                {selectedStudentRequest.description && (
+                  <div>
+                    <Label className="text-sm font-medium">Description</Label>
+                    <p className="text-sm text-gray-900">{selectedStudentRequest.description}</p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Applied Date</Label>
+                    <p className="text-sm text-gray-900">{new Date(selectedStudentRequest.appliedDate).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Status</Label>
+                    <Badge className={getStatusColor(selectedStudentRequest.status)}>
+                      {selectedStudentRequest.status}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Student Contact</Label>
+                    <p className="text-sm text-gray-900">{selectedStudentRequest.studentContact}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Parent Contact</Label>
+                    <p className="text-sm text-gray-900">{selectedStudentRequest.parentContact}</p>
+                  </div>
+                </div>
+
+                {selectedStudentRequest.documents && selectedStudentRequest.documents.length > 0 && (
+                  <div>
+                    <Label className="text-sm font-medium">Attached Documents</Label>
+                    <div className="flex space-x-2 mt-1">
+                      {selectedStudentRequest.documents.map((doc, index) => (
+                        <Badge key={index} variant="outline" className="cursor-pointer">
+                          <FileText className="h-3 w-3 mr-1" />
+                          {doc}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end space-x-2">
+                  {selectedStudentRequest.status === "Pending" && (
+                    <>
+                      <Button 
+                        onClick={() => {
+                          handleApproveStudentLeave(selectedStudentRequest.id);
+                          setShowStudentViewDialog(false);
+                        }}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        Approve
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          handleRejectStudentLeave(selectedStudentRequest.id);
+                          setShowStudentViewDialog(false);
+                        }}
+                        variant="destructive"
+                      >
+                        Reject
+                      </Button>
+                    </>
+                  )}
+                  <Button variant="outline" onClick={() => setShowStudentViewDialog(false)}>Close</Button>
                 </div>
               </div>
             </DialogContent>
