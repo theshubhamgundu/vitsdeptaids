@@ -33,6 +33,7 @@ import FacultyMessages from "./pages/dashboard/faculty/FacultyMessages";
 import FacultyLeave from "./pages/dashboard/faculty/FacultyLeave";
 
 import AdminDashboard from "./pages/dashboard/admin/AdminDashboard";
+import AdminProfile from "./pages/dashboard/admin/AdminProfile";
 import AdminStudents from "./pages/dashboard/admin/AdminStudents";
 import AdminFaculty from "./pages/dashboard/admin/AdminFaculty";
 import AdminContent from "./pages/dashboard/admin/AdminContent";
