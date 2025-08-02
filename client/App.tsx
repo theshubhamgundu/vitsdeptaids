@@ -11,6 +11,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
+import DemoLogins from "./components/DemoLogins";
 
 // Dashboard Pages
 import StudentDashboard from "./pages/dashboard/student/StudentDashboard";
