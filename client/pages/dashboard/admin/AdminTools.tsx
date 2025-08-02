@@ -183,20 +183,39 @@ const AdminTools = () => {
   const examTypes = ["Mid-term", "End-term", "Internal Assessment", "Quiz", "Assignment"];
 
   const handleUploadTimetable = () => {
-    if (!newTimetable.title || !newTimetable.file) return;
+    if (!newTimetable.year || !newTimetable.semester) return;
+    if (!newTimetable.file && !newTimetable.designMode) return;
 
     const timetable = {
-      ...newTimetable,
       id: Date.now(),
+      title: newTimetable.title || `${newTimetable.year} ${newTimetable.semester} Timetable`,
+      year: newTimetable.year,
+      semester: newTimetable.semester,
       uploadedBy: "Admin",
       uploadDate: new Date().toISOString().split('T')[0],
       status: "Active",
-      fileUrl: `/timetables/${newTimetable.file.name}`
+      effectiveFrom: newTimetable.effectiveFrom || new Date().toISOString().split('T')[0],
+      type: newTimetable.designMode ? "Generated" : "Uploaded",
+      fileUrl: newTimetable.file ? `/timetables/${newTimetable.file.name}` : null,
+      schedule: newTimetable.designMode ? {
+        morningStart: newTimetable.morningStart,
+        afternoonStart: newTimetable.afternoonStart,
+        generated: true
+      } : null
     };
 
     setTimetables(prev => [timetable, ...prev]);
     setShowTimetableDialog(false);
-    setNewTimetable({ title: "", year: "3rd Year", semester: "6th Semester", file: null });
+    setNewTimetable({
+      title: "",
+      year: "",
+      semester: "",
+      file: null,
+      designMode: false,
+      effectiveFrom: "",
+      morningStart: "09:00",
+      afternoonStart: "14:00"
+    });
   };
 
   const handleUploadResults = () => {
