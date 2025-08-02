@@ -27,7 +27,8 @@ const StudentProfile = () => {
     bloodGroup: "O+",
     admissionDate: "2021-08-01",
     counsellor: "Dr. Anita Verma",
-    status: "Active"
+    status: "Active",
+    profilePhoto: null
   });
 
   const handleSave = () => {
