@@ -48,7 +48,17 @@ import {
   BookOpen,
   CheckCircle,
   Clock,
-  AlertCircle
+  AlertCircle,
+  GraduationCap,
+  Trophy,
+  Search,
+  Filter,
+  Download,
+  Star,
+  MapPin,
+  Phone,
+  Mail,
+  ExternalLink
 } from "lucide-react";
 
 const AdminContent = () => {
@@ -60,7 +70,9 @@ const AdminContent = () => {
       date: "2025-03-15",
       type: "Workshop",
       status: "Active",
-      featured: true
+      featured: true,
+      venue: "Main Auditorium",
+      organizer: "Dr. Anita Verma"
     },
     {
       id: 2,
@@ -69,7 +81,9 @@ const AdminContent = () => {
       date: "2025-03-22",
       type: "Seminar",
       status: "Active",
-      featured: false
+      featured: false,
+      venue: "Conference Hall",
+      organizer: "Dr. Raj Kumar"
     }
   ]);
 
@@ -81,7 +95,9 @@ const AdminContent = () => {
       category: "Infrastructure",
       imageUrl: "/api/placeholder/300/200",
       uploadDate: "2025-03-01",
-      status: "Published"
+      status: "Published",
+      photographer: "Admin",
+      tags: ["lab", "infrastructure", "AI"]
     },
     {
       id: 2,
@@ -90,19 +106,40 @@ const AdminContent = () => {
       category: "Academic",
       imageUrl: "/api/placeholder/300/200",
       uploadDate: "2025-02-28",
-      status: "Published"
+      status: "Published",
+      photographer: "Dr. Smith",
+      tags: ["students", "projects", "demo"]
     }
   ]);
 
-  const [announcements, setAnnouncements] = useState([
+  const [facultyData, setFacultyData] = useState([
     {
       id: 1,
-      title: "Semester Exam Schedule",
-      content: "Final examinations will begin from March 25, 2025",
-      priority: "High",
-      status: "Active",
-      publishDate: "2025-03-10",
-      expiryDate: "2025-03-30"
+      name: "Dr. Anita Verma",
+      designation: "Associate Professor",
+      department: "AI & Data Science",
+      specialization: "Machine Learning, Deep Learning",
+      experience: "10 years",
+      education: "Ph.D. in Computer Science",
+      email: "anita.verma@vignan.ac.in",
+      phone: "+91 9876543210",
+      imageUrl: "/api/placeholder/150/150",
+      researchPapers: 25,
+      status: "Active"
+    },
+    {
+      id: 2,
+      name: "Dr. Raj Kumar",
+      designation: "Professor & HOD",
+      department: "AI & Data Science",
+      specialization: "Data Science, Analytics",
+      experience: "15 years",
+      education: "Ph.D. in Data Science",
+      email: "raj.kumar@vignan.ac.in",
+      phone: "+91 9876543211",
+      imageUrl: "/api/placeholder/150/150",
+      researchPapers: 45,
+      status: "Active"
     }
   ]);
 
@@ -110,34 +147,71 @@ const AdminContent = () => {
     {
       id: 1,
       studentName: "Rahul Sharma",
+      hallTicket: "20AI001",
       company: "TechCorp Solutions",
       position: "Software Engineer",
       package: "12.5",
       placementDate: "2025-02-15",
-      featured: true
+      featured: true,
+      location: "Bangalore",
+      companyType: "Product",
+      offerType: "Full-time"
     },
     {
       id: 2,
       studentName: "Priya Reddy",
+      hallTicket: "20AI002",
       company: "DataTech Industries",
       position: "Data Scientist",
       package: "15.0",
       placementDate: "2025-02-20",
-      featured: true
+      featured: true,
+      location: "Hyderabad",
+      companyType: "Service",
+      offerType: "Full-time"
     }
   ]);
 
+  const [achievements, setAchievements] = useState([
+    {
+      id: 1,
+      title: "Best Department Award 2024",
+      description: "Recognized as the best AI & Data Science department in the state",
+      category: "Institutional",
+      awardedBy: "State Government",
+      date: "2024-12-15",
+      recipient: "Department of AI & Data Science",
+      featured: true,
+      imageUrl: "/api/placeholder/300/200"
+    },
+    {
+      id: 2,
+      title: "IEEE Student Paper Competition Winner",
+      description: "First place in national level IEEE student paper competition",
+      category: "Student",
+      awardedBy: "IEEE India",
+      date: "2025-01-20",
+      recipient: "Amit Kumar (20AI003)",
+      featured: true,
+      imageUrl: "/api/placeholder/300/200"
+    }
+  ]);
+
+  // Dialog states
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [showGalleryDialog, setShowGalleryDialog] = useState(false);
-  const [showAnnouncementDialog, setShowAnnouncementDialog] = useState(false);
+  const [showFacultyDialog, setShowFacultyDialog] = useState(false);
   const [showPlacementDialog, setShowPlacementDialog] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-
+  const [showAchievementDialog, setShowAchievementDialog] = useState(false);
+  
+  // Form states
   const [newEvent, setNewEvent] = useState({
     title: "",
     description: "",
     date: "",
     type: "",
+    venue: "",
+    organizer: "",
     featured: false
   });
 
@@ -145,25 +219,50 @@ const AdminContent = () => {
     title: "",
     description: "",
     category: "",
+    photographer: "",
+    tags: "",
     imageUrl: ""
   });
 
-  const [newAnnouncement, setNewAnnouncement] = useState({
-    title: "",
-    content: "",
-    priority: "Medium",
-    expiryDate: ""
+  const [newFaculty, setNewFaculty] = useState({
+    name: "",
+    designation: "",
+    specialization: "",
+    experience: "",
+    education: "",
+    email: "",
+    phone: "",
+    researchPapers: ""
   });
 
   const [newPlacement, setNewPlacement] = useState({
     studentName: "",
+    hallTicket: "",
     company: "",
     position: "",
     package: "",
     placementDate: "",
+    location: "",
+    companyType: "",
+    offerType: "",
     featured: false
   });
 
+  const [newAchievement, setNewAchievement] = useState({
+    title: "",
+    description: "",
+    category: "",
+    awardedBy: "",
+    date: "",
+    recipient: "",
+    featured: false
+  });
+
+  // Search and filter states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("events");
+
+  // Handle functions
   const handleAddEvent = () => {
     const event = {
       ...newEvent,
@@ -172,7 +271,7 @@ const AdminContent = () => {
     };
     setEvents(prev => [...prev, event]);
     setShowEventDialog(false);
-    setNewEvent({ title: "", description: "", date: "", type: "", featured: false });
+    setNewEvent({ title: "", description: "", date: "", type: "", venue: "", organizer: "", featured: false });
   };
 
   const handleAddGalleryItem = () => {
@@ -180,23 +279,26 @@ const AdminContent = () => {
       ...newGalleryItem,
       id: Date.now(),
       uploadDate: new Date().toISOString().split('T')[0],
-      status: "Published"
+      status: "Published",
+      tags: newGalleryItem.tags.split(',').map(tag => tag.trim())
     };
     setGallery(prev => [...prev, item]);
     setShowGalleryDialog(false);
-    setNewGalleryItem({ title: "", description: "", category: "", imageUrl: "" });
+    setNewGalleryItem({ title: "", description: "", category: "", photographer: "", tags: "", imageUrl: "" });
   };
 
-  const handleAddAnnouncement = () => {
-    const announcement = {
-      ...newAnnouncement,
+  const handleAddFaculty = () => {
+    const faculty = {
+      ...newFaculty,
       id: Date.now(),
+      department: "AI & Data Science",
+      imageUrl: "/api/placeholder/150/150",
       status: "Active",
-      publishDate: new Date().toISOString().split('T')[0]
+      researchPapers: parseInt(newFaculty.researchPapers) || 0
     };
-    setAnnouncements(prev => [...prev, announcement]);
-    setShowAnnouncementDialog(false);
-    setNewAnnouncement({ title: "", content: "", priority: "Medium", expiryDate: "" });
+    setFacultyData(prev => [...prev, faculty]);
+    setShowFacultyDialog(false);
+    setNewFaculty({ name: "", designation: "", specialization: "", experience: "", education: "", email: "", phone: "", researchPapers: "" });
   };
 
   const handleAddPlacement = () => {
@@ -206,27 +308,42 @@ const AdminContent = () => {
     };
     setPlacements(prev => [...prev, placement]);
     setShowPlacementDialog(false);
-    setNewPlacement({ studentName: "", company: "", position: "", package: "", placementDate: "", featured: false });
+    setNewPlacement({ studentName: "", hallTicket: "", company: "", position: "", package: "", placementDate: "", location: "", companyType: "", offerType: "", featured: false });
   };
 
-  const handleDeleteEvent = (id) => {
-    setEvents(prev => prev.filter(event => event.id !== id));
+  const handleAddAchievement = () => {
+    const achievement = {
+      ...newAchievement,
+      id: Date.now(),
+      imageUrl: "/api/placeholder/300/200"
+    };
+    setAchievements(prev => [...prev, achievement]);
+    setShowAchievementDialog(false);
+    setNewAchievement({ title: "", description: "", category: "", awardedBy: "", date: "", recipient: "", featured: false });
   };
 
-  const handleDeleteGalleryItem = (id) => {
-    setGallery(prev => prev.filter(item => item.id !== id));
-  };
-
-  const handleDeleteAnnouncement = (id) => {
-    setAnnouncements(prev => prev.filter(announcement => announcement.id !== id));
-  };
-
-  const handleDeletePlacement = (id) => {
-    setPlacements(prev => prev.filter(placement => placement.id !== id));
+  const handleDelete = (id, type) => {
+    switch (type) {
+      case 'event':
+        setEvents(prev => prev.filter(item => item.id !== id));
+        break;
+      case 'gallery':
+        setGallery(prev => prev.filter(item => item.id !== id));
+        break;
+      case 'faculty':
+        setFacultyData(prev => prev.filter(item => item.id !== id));
+        break;
+      case 'placement':
+        setPlacements(prev => prev.filter(item => item.id !== id));
+        break;
+      case 'achievement':
+        setAchievements(prev => prev.filter(item => item.id !== id));
+        break;
+    }
   };
 
   const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case 'active':
       case 'published':
         return 'bg-green-100 text-green-800';
@@ -235,19 +352,6 @@ const AdminContent = () => {
         return 'bg-gray-100 text-gray-800';
       case 'expired':
         return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getPriorityColor = (priority) => {
-    switch (priority.toLowerCase()) {
-      case 'high':
-        return 'bg-red-100 text-red-800';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'low':
-        return 'bg-green-100 text-green-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -265,10 +369,10 @@ const AdminContent = () => {
         </div>
 
         {/* Content Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Events</CardTitle>
+              <CardTitle className="text-sm font-medium">Events</CardTitle>
               <Calendar className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
@@ -279,7 +383,7 @@ const AdminContent = () => {
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Gallery Items</CardTitle>
+              <CardTitle className="text-sm font-medium">Gallery</CardTitle>
               <Camera className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
@@ -290,12 +394,12 @@ const AdminContent = () => {
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Announcements</CardTitle>
-              <FileText className="h-4 w-4 text-purple-600" />
+              <CardTitle className="text-sm font-medium">Faculty</CardTitle>
+              <Users className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{announcements.length}</div>
-              <p className="text-xs text-muted-foreground">Active announcements</p>
+              <div className="text-2xl font-bold">{facultyData.length}</div>
+              <p className="text-xs text-muted-foreground">Faculty members</p>
             </CardContent>
           </Card>
           
@@ -309,15 +413,42 @@ const AdminContent = () => {
               <p className="text-xs text-muted-foreground">Placement records</p>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Achievements</CardTitle>
+              <Trophy className="h-4 w-4 text-yellow-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{achievements.length}</div>
+              <p className="text-xs text-muted-foreground">Awards & honors</p>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Search Bar */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search content..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Content Management Tabs */}
         <Tabs defaultValue="events" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="events">Events</TabsTrigger>
-            <TabsTrigger value="gallery">Gallery</TabsTrigger>
-            <TabsTrigger value="announcements">Announcements</TabsTrigger>
-            <TabsTrigger value="placements">Placements</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="events">📅 Events</TabsTrigger>
+            <TabsTrigger value="gallery">📷 Gallery</TabsTrigger>
+            <TabsTrigger value="faculty">👨‍🏫 Faculty</TabsTrigger>
+            <TabsTrigger value="placements">💼 Placements</TabsTrigger>
+            <TabsTrigger value="achievements">🏆 Achievements</TabsTrigger>
           </TabsList>
 
           {/* Events Tab */}
@@ -326,7 +457,7 @@ const AdminContent = () => {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Events Management</CardTitle>
+                    <CardTitle>📅 Events Manager</CardTitle>
                     <CardDescription>Manage department events and activities</CardDescription>
                   </div>
                   <Dialog open={showEventDialog} onOpenChange={setShowEventDialog}>
@@ -384,14 +515,32 @@ const AdminContent = () => {
                             </Select>
                           </div>
                         </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label>Venue</Label>
+                            <Input
+                              value={newEvent.venue}
+                              onChange={(e) => setNewEvent(prev => ({ ...prev, venue: e.target.value }))}
+                              placeholder="Event venue"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Organizer</Label>
+                            <Input
+                              value={newEvent.organizer}
+                              onChange={(e) => setNewEvent(prev => ({ ...prev, organizer: e.target.value }))}
+                              placeholder="Event organizer"
+                            />
+                          </div>
+                        </div>
                         <div className="flex items-center space-x-2">
                           <input
                             type="checkbox"
-                            id="featured"
+                            id="eventFeatured"
                             checked={newEvent.featured}
                             onChange={(e) => setNewEvent(prev => ({ ...prev, featured: e.target.checked }))}
                           />
-                          <Label htmlFor="featured">Mark as featured</Label>
+                          <Label htmlFor="eventFeatured">Mark as featured</Label>
                         </div>
                         <div className="flex space-x-2">
                           <Button onClick={handleAddEvent} className="flex-1">Add Event</Button>
@@ -409,30 +558,36 @@ const AdminContent = () => {
                       <TableHead>Event</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Type</TableHead>
+                      <TableHead>Venue</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Featured</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {events.map((event) => (
+                    {events.filter(event => 
+                      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      event.description.toLowerCase().includes(searchTerm.toLowerCase())
+                    ).map((event) => (
                       <TableRow key={event.id}>
                         <TableCell>
                           <div>
                             <div className="font-medium">{event.title}</div>
                             <div className="text-sm text-gray-600">{event.description}</div>
+                            <div className="text-xs text-gray-500">Organizer: {event.organizer}</div>
                           </div>
                         </TableCell>
                         <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
                         <TableCell>
                           <Badge variant="outline">{event.type}</Badge>
                         </TableCell>
+                        <TableCell>{event.venue}</TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(event.status)}>{event.status}</Badge>
                         </TableCell>
                         <TableCell>
                           {event.featured ? (
-                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <Star className="h-4 w-4 text-yellow-500" />
                           ) : (
                             <div className="h-4 w-4"></div>
                           )}
@@ -442,7 +597,7 @@ const AdminContent = () => {
                             <Button size="sm" variant="ghost">
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={() => handleDeleteEvent(event.id)}>
+                            <Button size="sm" variant="ghost" onClick={() => handleDelete(event.id, 'event')}>
                               <Trash2 className="h-4 w-4 text-red-600" />
                             </Button>
                           </div>
@@ -461,7 +616,7 @@ const AdminContent = () => {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Gallery Management</CardTitle>
+                    <CardTitle>📷 Gallery Manager</CardTitle>
                     <CardDescription>Manage department photos and images</CardDescription>
                   </div>
                   <Dialog open={showGalleryDialog} onOpenChange={setShowGalleryDialog}>
@@ -494,20 +649,38 @@ const AdminContent = () => {
                             rows={2}
                           />
                         </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label>Category</Label>
+                            <Select value={newGalleryItem.category} onValueChange={(value) => setNewGalleryItem(prev => ({ ...prev, category: value }))}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select category" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Infrastructure">Infrastructure</SelectItem>
+                                <SelectItem value="Academic">Academic</SelectItem>
+                                <SelectItem value="Events">Events</SelectItem>
+                                <SelectItem value="Achievements">Achievements</SelectItem>
+                                <SelectItem value="Campus">Campus</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Photographer</Label>
+                            <Input
+                              value={newGalleryItem.photographer}
+                              onChange={(e) => setNewGalleryItem(prev => ({ ...prev, photographer: e.target.value }))}
+                              placeholder="Photographer name"
+                            />
+                          </div>
+                        </div>
                         <div className="space-y-2">
-                          <Label>Category</Label>
-                          <Select value={newGalleryItem.category} onValueChange={(value) => setNewGalleryItem(prev => ({ ...prev, category: value }))}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select category" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Infrastructure">Infrastructure</SelectItem>
-                              <SelectItem value="Academic">Academic</SelectItem>
-                              <SelectItem value="Events">Events</SelectItem>
-                              <SelectItem value="Achievements">Achievements</SelectItem>
-                              <SelectItem value="Campus">Campus</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <Label>Tags (comma separated)</Label>
+                          <Input
+                            value={newGalleryItem.tags}
+                            onChange={(e) => setNewGalleryItem(prev => ({ ...prev, tags: e.target.value }))}
+                            placeholder="lab, infrastructure, AI"
+                          />
                         </div>
                         <div className="space-y-2">
                           <Label>Image Upload</Label>
@@ -527,7 +700,10 @@ const AdminContent = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {gallery.map((item) => (
+                  {gallery.filter(item => 
+                    item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    item.description.toLowerCase().includes(searchTerm.toLowerCase())
+                  ).map((item) => (
                     <Card key={item.id}>
                       <div className="aspect-video bg-gray-200 rounded-t-lg flex items-center justify-center">
                         <Camera className="h-8 w-8 text-gray-400" />
@@ -535,16 +711,24 @@ const AdminContent = () => {
                       <CardContent className="p-4">
                         <h3 className="font-semibold mb-1">{item.title}</h3>
                         <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between mb-2">
                           <Badge variant="outline">{item.category}</Badge>
-                          <div className="flex space-x-1">
-                            <Button size="sm" variant="ghost">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="ghost" onClick={() => handleDeleteGalleryItem(item.id)}>
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </Button>
-                          </div>
+                          <span className="text-xs text-gray-500">by {item.photographer}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {item.tags.map((tag, index) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                        <div className="flex justify-between">
+                          <Button size="sm" variant="ghost">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => handleDelete(item.id, 'gallery')}>
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -554,71 +738,109 @@ const AdminContent = () => {
             </Card>
           </TabsContent>
 
-          {/* Announcements Tab */}
-          <TabsContent value="announcements" className="space-y-6">
+          {/* Faculty Tab */}
+          <TabsContent value="faculty" className="space-y-6">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Announcements</CardTitle>
-                    <CardDescription>Manage important announcements and notices</CardDescription>
+                    <CardTitle>👨‍🏫 Faculty Manager</CardTitle>
+                    <CardDescription>Manage faculty profiles and information</CardDescription>
                   </div>
-                  <Dialog open={showAnnouncementDialog} onOpenChange={setShowAnnouncementDialog}>
+                  <Dialog open={showFacultyDialog} onOpenChange={setShowFacultyDialog}>
                     <DialogTrigger asChild>
                       <Button>
                         <Plus className="h-4 w-4 mr-2" />
-                        New Announcement
+                        Add Faculty
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="max-w-2xl">
                       <DialogHeader>
-                        <DialogTitle>Create Announcement</DialogTitle>
-                        <DialogDescription>Post a new announcement</DialogDescription>
+                        <DialogTitle>Add Faculty Member</DialogTitle>
+                        <DialogDescription>Add a new faculty member profile</DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label>Title</Label>
-                          <Input
-                            value={newAnnouncement.title}
-                            onChange={(e) => setNewAnnouncement(prev => ({ ...prev, title: e.target.value }))}
-                            placeholder="Enter announcement title"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Content</Label>
-                          <Textarea
-                            value={newAnnouncement.content}
-                            onChange={(e) => setNewAnnouncement(prev => ({ ...prev, content: e.target.value }))}
-                            placeholder="Enter announcement content"
-                            rows={4}
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label>Priority</Label>
-                            <Select value={newAnnouncement.priority} onValueChange={(value) => setNewAnnouncement(prev => ({ ...prev, priority: value }))}>
+                            <Label>Full Name</Label>
+                            <Input
+                              value={newFaculty.name}
+                              onChange={(e) => setNewFaculty(prev => ({ ...prev, name: e.target.value }))}
+                              placeholder="Dr. Full Name"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Designation</Label>
+                            <Select value={newFaculty.designation} onValueChange={(value) => setNewFaculty(prev => ({ ...prev, designation: value }))}>
                               <SelectTrigger>
-                                <SelectValue />
+                                <SelectValue placeholder="Select designation" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="High">High</SelectItem>
-                                <SelectItem value="Medium">Medium</SelectItem>
-                                <SelectItem value="Low">Low</SelectItem>
+                                <SelectItem value="Professor">Professor</SelectItem>
+                                <SelectItem value="Associate Professor">Associate Professor</SelectItem>
+                                <SelectItem value="Assistant Professor">Assistant Professor</SelectItem>
+                                <SelectItem value="HOD">HOD</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Specialization</Label>
+                          <Input
+                            value={newFaculty.specialization}
+                            onChange={(e) => setNewFaculty(prev => ({ ...prev, specialization: e.target.value }))}
+                            placeholder="Machine Learning, Deep Learning"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <Label>Expiry Date</Label>
+                            <Label>Experience</Label>
                             <Input
-                              type="date"
-                              value={newAnnouncement.expiryDate}
-                              onChange={(e) => setNewAnnouncement(prev => ({ ...prev, expiryDate: e.target.value }))}
+                              value={newFaculty.experience}
+                              onChange={(e) => setNewFaculty(prev => ({ ...prev, experience: e.target.value }))}
+                              placeholder="10 years"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Research Papers</Label>
+                            <Input
+                              type="number"
+                              value={newFaculty.researchPapers}
+                              onChange={(e) => setNewFaculty(prev => ({ ...prev, researchPapers: e.target.value }))}
+                              placeholder="25"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Education</Label>
+                          <Input
+                            value={newFaculty.education}
+                            onChange={(e) => setNewFaculty(prev => ({ ...prev, education: e.target.value }))}
+                            placeholder="Ph.D. in Computer Science"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Email</Label>
+                            <Input
+                              type="email"
+                              value={newFaculty.email}
+                              onChange={(e) => setNewFaculty(prev => ({ ...prev, email: e.target.value }))}
+                              placeholder="email@vignan.ac.in"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Phone</Label>
+                            <Input
+                              value={newFaculty.phone}
+                              onChange={(e) => setNewFaculty(prev => ({ ...prev, phone: e.target.value }))}
+                              placeholder="+91 9876543210"
                             />
                           </div>
                         </div>
                         <div className="flex space-x-2">
-                          <Button onClick={handleAddAnnouncement} className="flex-1">Publish</Button>
-                          <Button variant="outline" onClick={() => setShowAnnouncementDialog(false)}>Cancel</Button>
+                          <Button onClick={handleAddFaculty} className="flex-1">Add Faculty</Button>
+                          <Button variant="outline" onClick={() => setShowFacultyDialog(false)}>Cancel</Button>
                         </div>
                       </div>
                     </DialogContent>
@@ -626,32 +848,48 @@ const AdminContent = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {announcements.map((announcement) => (
-                    <Card key={announcement.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {facultyData.filter(faculty => 
+                    faculty.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    faculty.specialization.toLowerCase().includes(searchTerm.toLowerCase())
+                  ).map((faculty) => (
+                    <Card key={faculty.id}>
+                      <CardContent className="p-6">
+                        <div className="flex items-start space-x-4">
+                          <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                            <Users className="h-8 w-8 text-gray-400" />
+                          </div>
                           <div className="flex-1">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <h3 className="font-semibold">{announcement.title}</h3>
-                              <Badge className={getPriorityColor(announcement.priority)}>
-                                {announcement.priority}
-                              </Badge>
+                            <h3 className="font-semibold text-lg">{faculty.name}</h3>
+                            <p className="text-sm text-gray-600">{faculty.designation}</p>
+                            <p className="text-sm text-gray-600 mt-1">{faculty.specialization}</p>
+                            <div className="flex items-center space-x-4 mt-2">
+                              <div className="flex items-center space-x-1">
+                                <Clock className="h-3 w-3 text-gray-400" />
+                                <span className="text-xs text-gray-600">{faculty.experience}</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <FileText className="h-3 w-3 text-gray-400" />
+                                <span className="text-xs text-gray-600">{faculty.researchPapers} papers</span>
+                              </div>
                             </div>
-                            <p className="text-gray-700 mb-2">{announcement.content}</p>
-                            <div className="text-sm text-gray-500">
-                              Published: {new Date(announcement.publishDate).toLocaleDateString()}
-                              {announcement.expiryDate && ` • Expires: ${new Date(announcement.expiryDate).toLocaleDateString()}`}
+                            <div className="flex items-center space-x-2 mt-2">
+                              <Mail className="h-3 w-3 text-gray-400" />
+                              <span className="text-xs text-gray-600">{faculty.email}</span>
+                            </div>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <Phone className="h-3 w-3 text-gray-400" />
+                              <span className="text-xs text-gray-600">{faculty.phone}</span>
                             </div>
                           </div>
-                          <div className="flex space-x-2">
-                            <Button size="sm" variant="ghost">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="ghost" onClick={() => handleDeleteAnnouncement(announcement.id)}>
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </Button>
-                          </div>
+                        </div>
+                        <div className="flex justify-between mt-4">
+                          <Button size="sm" variant="ghost">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => handleDelete(faculty.id, 'faculty')}>
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -667,7 +905,7 @@ const AdminContent = () => {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Placement Records</CardTitle>
+                    <CardTitle>💼 Placements Manager</CardTitle>
                     <CardDescription>Manage student placement information</CardDescription>
                   </div>
                   <Dialog open={showPlacementDialog} onOpenChange={setShowPlacementDialog}>
@@ -677,21 +915,31 @@ const AdminContent = () => {
                         Add Placement
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="max-w-2xl">
                       <DialogHeader>
                         <DialogTitle>Add Placement Record</DialogTitle>
                         <DialogDescription>Record a new student placement</DialogDescription>
                       </DialogHeader>
                       <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label>Student Name</Label>
-                          <Input
-                            value={newPlacement.studentName}
-                            onChange={(e) => setNewPlacement(prev => ({ ...prev, studentName: e.target.value }))}
-                            placeholder="Enter student name"
-                          />
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Student Name</Label>
+                            <Input
+                              value={newPlacement.studentName}
+                              onChange={(e) => setNewPlacement(prev => ({ ...prev, studentName: e.target.value }))}
+                              placeholder="Enter student name"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Hall Ticket</Label>
+                            <Input
+                              value={newPlacement.hallTicket}
+                              onChange={(e) => setNewPlacement(prev => ({ ...prev, hallTicket: e.target.value }))}
+                              placeholder="20AI001"
+                            />
+                          </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label>Company</Label>
                             <Input
@@ -709,7 +957,7 @@ const AdminContent = () => {
                             />
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-3 gap-4">
                           <div className="space-y-2">
                             <Label>Package (LPA)</Label>
                             <Input
@@ -721,12 +969,49 @@ const AdminContent = () => {
                             />
                           </div>
                           <div className="space-y-2">
+                            <Label>Location</Label>
+                            <Input
+                              value={newPlacement.location}
+                              onChange={(e) => setNewPlacement(prev => ({ ...prev, location: e.target.value }))}
+                              placeholder="Bangalore"
+                            />
+                          </div>
+                          <div className="space-y-2">
                             <Label>Placement Date</Label>
                             <Input
                               type="date"
                               value={newPlacement.placementDate}
                               onChange={(e) => setNewPlacement(prev => ({ ...prev, placementDate: e.target.value }))}
                             />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Company Type</Label>
+                            <Select value={newPlacement.companyType} onValueChange={(value) => setNewPlacement(prev => ({ ...prev, companyType: value }))}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Product">Product</SelectItem>
+                                <SelectItem value="Service">Service</SelectItem>
+                                <SelectItem value="Startup">Startup</SelectItem>
+                                <SelectItem value="MNC">MNC</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Offer Type</Label>
+                            <Select value={newPlacement.offerType} onValueChange={(value) => setNewPlacement(prev => ({ ...prev, offerType: value }))}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Full-time">Full-time</SelectItem>
+                                <SelectItem value="Internship">Internship</SelectItem>
+                                <SelectItem value="Contract">Contract</SelectItem>
+                              </SelectContent>
+                            </Select>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -755,22 +1040,42 @@ const AdminContent = () => {
                       <TableHead>Company</TableHead>
                       <TableHead>Position</TableHead>
                       <TableHead>Package</TableHead>
+                      <TableHead>Location</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Featured</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {placements.map((placement) => (
+                    {placements.filter(placement => 
+                      placement.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      placement.company.toLowerCase().includes(searchTerm.toLowerCase())
+                    ).map((placement) => (
                       <TableRow key={placement.id}>
-                        <TableCell className="font-medium">{placement.studentName}</TableCell>
-                        <TableCell>{placement.company}</TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{placement.studentName}</div>
+                            <div className="text-sm text-gray-600">{placement.hallTicket}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{placement.company}</div>
+                            <Badge variant="outline" className="text-xs">{placement.companyType}</Badge>
+                          </div>
+                        </TableCell>
                         <TableCell>{placement.position}</TableCell>
                         <TableCell>₹{placement.package} LPA</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-1">
+                            <MapPin className="h-3 w-3 text-gray-400" />
+                            <span>{placement.location}</span>
+                          </div>
+                        </TableCell>
                         <TableCell>{new Date(placement.placementDate).toLocaleDateString()}</TableCell>
                         <TableCell>
                           {placement.featured ? (
-                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <Star className="h-4 w-4 text-yellow-500" />
                           ) : (
                             <div className="h-4 w-4"></div>
                           )}
@@ -780,7 +1085,7 @@ const AdminContent = () => {
                             <Button size="sm" variant="ghost">
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={() => handleDeletePlacement(placement.id)}>
+                            <Button size="sm" variant="ghost" onClick={() => handleDelete(placement.id, 'placement')}>
                               <Trash2 className="h-4 w-4 text-red-600" />
                             </Button>
                           </div>
@@ -789,6 +1094,144 @@ const AdminContent = () => {
                     ))}
                   </TableBody>
                 </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Achievements Tab */}
+          <TabsContent value="achievements" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>🏆 Achievements Manager</CardTitle>
+                    <CardDescription>Manage awards and achievements</CardDescription>
+                  </div>
+                  <Dialog open={showAchievementDialog} onOpenChange={setShowAchievementDialog}>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Achievement
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                        <DialogTitle>Add Achievement</DialogTitle>
+                        <DialogDescription>Record a new achievement or award</DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label>Achievement Title</Label>
+                          <Input
+                            value={newAchievement.title}
+                            onChange={(e) => setNewAchievement(prev => ({ ...prev, title: e.target.value }))}
+                            placeholder="Enter achievement title"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Description</Label>
+                          <Textarea
+                            value={newAchievement.description}
+                            onChange={(e) => setNewAchievement(prev => ({ ...prev, description: e.target.value }))}
+                            placeholder="Enter achievement description"
+                            rows={3}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Category</Label>
+                            <Select value={newAchievement.category} onValueChange={(value) => setNewAchievement(prev => ({ ...prev, category: value }))}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select category" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Institutional">Institutional</SelectItem>
+                                <SelectItem value="Faculty">Faculty</SelectItem>
+                                <SelectItem value="Student">Student</SelectItem>
+                                <SelectItem value="Research">Research</SelectItem>
+                                <SelectItem value="Academic">Academic</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Date</Label>
+                            <Input
+                              type="date"
+                              value={newAchievement.date}
+                              onChange={(e) => setNewAchievement(prev => ({ ...prev, date: e.target.value }))}
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Awarded By</Label>
+                            <Input
+                              value={newAchievement.awardedBy}
+                              onChange={(e) => setNewAchievement(prev => ({ ...prev, awardedBy: e.target.value }))}
+                              placeholder="Organization/Institution"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Recipient</Label>
+                            <Input
+                              value={newAchievement.recipient}
+                              onChange={(e) => setNewAchievement(prev => ({ ...prev, recipient: e.target.value }))}
+                              placeholder="Department/Person"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="achievementFeatured"
+                            checked={newAchievement.featured}
+                            onChange={(e) => setNewAchievement(prev => ({ ...prev, featured: e.target.checked }))}
+                          />
+                          <Label htmlFor="achievementFeatured">Feature on homepage</Label>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button onClick={handleAddAchievement} className="flex-1">Add Achievement</Button>
+                          <Button variant="outline" onClick={() => setShowAchievementDialog(false)}>Cancel</Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {achievements.filter(achievement => 
+                    achievement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    achievement.description.toLowerCase().includes(searchTerm.toLowerCase())
+                  ).map((achievement) => (
+                    <Card key={achievement.id}>
+                      <div className="aspect-video bg-gradient-to-r from-yellow-100 to-orange-100 rounded-t-lg flex items-center justify-center">
+                        <Trophy className="h-12 w-12 text-yellow-600" />
+                      </div>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-semibold">{achievement.title}</h3>
+                          {achievement.featured && <Star className="h-4 w-4 text-yellow-500" />}
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">{achievement.description}</p>
+                        <div className="space-y-1 text-xs text-gray-500">
+                          <div>Category: <Badge variant="outline" className="text-xs">{achievement.category}</Badge></div>
+                          <div>Awarded by: {achievement.awardedBy}</div>
+                          <div>Recipient: {achievement.recipient}</div>
+                          <div>Date: {new Date(achievement.date).toLocaleDateString()}</div>
+                        </div>
+                        <div className="flex justify-between mt-4">
+                          <Button size="sm" variant="ghost">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => handleDelete(achievement.id, 'achievement')}>
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
