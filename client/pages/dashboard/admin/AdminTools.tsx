@@ -110,9 +110,13 @@ const AdminTools = () => {
   // Form states
   const [newTimetable, setNewTimetable] = useState({
     title: "",
-    year: "3rd Year",
-    semester: "6th Semester",
-    file: null
+    year: "",
+    semester: "",
+    file: null,
+    designMode: false,
+    effectiveFrom: "",
+    morningStart: "09:00",
+    afternoonStart: "14:00"
   });
 
   const [newResults, setNewResults] = useState({
