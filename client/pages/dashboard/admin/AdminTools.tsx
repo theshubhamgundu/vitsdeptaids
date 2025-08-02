@@ -229,17 +229,7 @@ const AdminTools = () => {
     setNewAttendance({ title: "", month: "", year: "3rd Year", semester: "6th Semester", subjects: [], file: null });
   };
 
-  const handleApproveLeave = (id) => {
-    setLeaveRequests(prev => prev.map(leave =>
-      leave.id === id ? { ...leave, status: "Approved" } : leave
-    ));
-  };
 
-  const handleRejectLeave = (id) => {
-    setLeaveRequests(prev => prev.map(leave =>
-      leave.id === id ? { ...leave, status: "Rejected" } : leave
-    ));
-  };
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
