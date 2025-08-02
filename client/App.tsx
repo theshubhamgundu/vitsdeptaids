@@ -22,6 +22,7 @@ import StudentAttendance from "./pages/dashboard/student/StudentAttendance";
 import StudentMaterials from "./pages/dashboard/student/StudentMaterials";
 import StudentTimetable from "./pages/dashboard/student/StudentTimetable";
 import StudentLeave from "./pages/dashboard/student/StudentLeave";
+import StudentFees from "./pages/dashboard/student/StudentFees";
 
 import FacultyDashboard from "./pages/dashboard/faculty/FacultyDashboard";
 import FacultyProfile from "./pages/dashboard/faculty/FacultyProfile";
