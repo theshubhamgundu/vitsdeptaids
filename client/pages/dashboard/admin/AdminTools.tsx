@@ -364,12 +364,11 @@ const AdminTools = () => {
 
         {/* Main Tabs */}
         <Tabs defaultValue="timetables" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="timetables">🕒 Timetables</TabsTrigger>
             <TabsTrigger value="results">📊 Results</TabsTrigger>
             <TabsTrigger value="attendance">📉 Attendance</TabsTrigger>
             <TabsTrigger value="students">🔍 Students</TabsTrigger>
-            <TabsTrigger value="leaves">🔔 Leave Requests</TabsTrigger>
           </TabsList>
 
           {/* Timetables Tab */}
