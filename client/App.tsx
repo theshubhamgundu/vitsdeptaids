@@ -38,6 +38,7 @@ import AdminFaculty from "./pages/dashboard/admin/AdminFaculty";
 import AdminContent from "./pages/dashboard/admin/AdminContent";
 
 import HODDashboard from "./pages/dashboard/hod/HODDashboard";
+import HODProfile from "./pages/dashboard/hod/HODProfile";
 import HODStudents from "./pages/dashboard/hod/HODStudents";
 import HODFacultyLeaves from "./pages/dashboard/hod/HODFacultyLeaves";
 import HODAnalytics from "./pages/dashboard/hod/HODAnalytics";
