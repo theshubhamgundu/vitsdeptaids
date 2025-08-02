@@ -34,7 +34,7 @@ import {
   Shield,
   GraduationCap,
   CreditCard,
-  Tool
+  Wrench
 } from "lucide-react";
 
 interface DashboardLayoutProps {
