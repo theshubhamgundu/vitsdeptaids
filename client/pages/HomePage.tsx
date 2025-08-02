@@ -196,12 +196,102 @@ const HomePage = () => {
               Shaping the future with cutting-edge AI and Data Science education. 
               Empowering students to become tomorrow's tech leaders.
             </p>
-            <div className="flex justify-center">
-              <Link to="/admissions">
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
-                  Apply Now <ChevronRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50">
+                    <Eye className="mr-2 h-5 w-5" />
+                    Vision & Mission
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center space-x-2">
+                      <Eye className="h-5 w-5 text-blue-600" />
+                      <span>Vision & Mission</span>
+                    </DialogTitle>
+                    <DialogDescription>
+                      Our department's vision and mission statements
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-semibold text-blue-600 mb-3">Vision</h3>
+                      <p className="text-gray-700">
+                        To empower individuals to acquire advanced knowledge and skills with cutting edge combination in
+                        Artificial Intelligence and Data Science with Analytical Visualization Technologies to address the
+                        challenges of the society and contribute to the nation building.
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-purple-600 mb-3">Mission</h3>
+                      <ul className="space-y-2 text-gray-700">
+                        <li className="flex items-start">
+                          <span className="text-purple-600 mr-2">•</span>
+                          Provide strong AI & DS foundations through comprehensive curriculum and hands-on learning experiences
+                        </li>
+                        <li className="flex items-start">
+                          <span className="text-purple-600 mr-2">•</span>
+                          Create tech-enabled learning environments that foster innovation and critical thinking
+                        </li>
+                        <li className="flex items-start">
+                          <span className="text-purple-600 mr-2">•</span>
+                          Develop state-of-the-art research labs for advanced AI and Data Science exploration
+                        </li>
+                        <li className="flex items-start">
+                          <span className="text-purple-600 mr-2">•</span>
+                          Nurture leadership qualities through co-curricular and extra-curricular activities
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
+                    <BookOpen className="mr-2 h-5 w-5" />
+                    Program Outcomes
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center space-x-2">
+                      <BookOpen className="h-5 w-5 text-blue-600" />
+                      <span>Program Outcomes</span>
+                    </DialogTitle>
+                    <DialogDescription>
+                      Our Artificial Intelligence & Data Science program is designed to achieve the following 12 Program Outcomes:
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    {[
+                      { id: "PO1", title: "Engineering Knowledge" },
+                      { id: "PO2", title: "Problem Analysis" },
+                      { id: "PO3", title: "Design/Development of Solutions" },
+                      { id: "PO4", title: "Conduct Investigations of Complex Problems" },
+                      { id: "PO5", title: "Modern Tool Usage" },
+                      { id: "PO6", title: "The Engineer and Society" },
+                      { id: "PO7", title: "Environment and Sustainability" },
+                      { id: "PO8", title: "Ethics" },
+                      { id: "PO9", title: "Individual and Team Work" },
+                      { id: "PO10", title: "Communication" },
+                      { id: "PO11", title: "Project Management and Finance" },
+                      { id: "PO12", title: "Life-long Learning" }
+                    ].map((outcome, index) => (
+                      <div key={index} className="border rounded-lg p-3 hover:bg-gray-50">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-8 bg-blue-100 rounded flex items-center justify-center">
+                            <span className="text-blue-600 font-semibold text-sm">{outcome.id}</span>
+                          </div>
+                          <h4 className="font-medium text-gray-900">{outcome.title}</h4>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </div>
