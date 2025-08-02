@@ -250,7 +250,7 @@ const HomePage = () => {
 
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
+                  <Button size="lg" className="bg-transparent border-2 border-white text-white hover:bg-white hover:text-blue-600">
                     <BookOpen className="mr-2 h-5 w-5" />
                     Program Outcomes
                   </Button>
