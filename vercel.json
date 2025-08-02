@@ -1,0 +1,39 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "client/**/*",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist/spa"
+      }
+    },
+    {
+      "src": "netlify/functions/api.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/netlify/functions/api.ts"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/dist/spa/$1"
+    }
+  ],
+  "buildCommand": "npm run build:client",
+  "outputDirectory": "dist/spa",
+  "framework": "vite",
+  "installCommand": "npm install",
+  "devCommand": "npm run dev",
+  "functions": {
+    "netlify/functions/api.ts": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
