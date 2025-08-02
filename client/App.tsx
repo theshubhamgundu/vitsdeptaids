@@ -38,6 +38,8 @@ import AdminStudents from "./pages/dashboard/admin/AdminStudents";
 import AdminFaculty from "./pages/dashboard/admin/AdminFaculty";
 import AdminContent from "./pages/dashboard/admin/AdminContent";
 import AdminTools from "./pages/dashboard/admin/AdminTools";
+import CreateStudentProfile from "./pages/dashboard/admin/CreateStudentProfile";
+import CreateFacultyProfile from "./pages/dashboard/admin/CreateFacultyProfile";
 
 import HODDashboard from "./pages/dashboard/hod/HODDashboard";
 import HODProfile from "./pages/dashboard/hod/HODProfile";
