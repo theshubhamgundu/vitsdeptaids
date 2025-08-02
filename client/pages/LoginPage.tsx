@@ -60,22 +60,35 @@ const LoginPage = () => {
     setError("");
 
     try {
-      // Simulate authentication
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock authentication - in real app, this would call an API
-      if (formData.identifier && formData.password) {
-        // Route to appropriate dashboard based on type
+      // Call authentication API
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          identifier: formData.identifier,
+          password: formData.password,
+          role: type
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.user) {
+        // Route based on actual user role returned from API
         const dashboardRoutes = {
           student: "/dashboard/student",
-          faculty: "/dashboard/faculty", 
+          faculty: "/dashboard/faculty",
           admin: "/dashboard/admin",
           hod: "/dashboard/hod"
         };
-        
-        navigate(dashboardRoutes[type as keyof typeof dashboardRoutes] || "/dashboard/student");
+
+        const userRole = data.user.role;
+        const route = dashboardRoutes[userRole as keyof typeof dashboardRoutes] || "/dashboard/student";
+        navigate(route);
       } else {
-        setError("Please enter valid credentials");
+        setError(data.message || "Invalid credentials");
       }
     } catch (err) {
       setError("Authentication failed. Please try again.");
