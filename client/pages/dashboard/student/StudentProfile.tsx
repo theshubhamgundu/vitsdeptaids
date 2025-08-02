@@ -34,7 +34,18 @@ const StudentProfile = () => {
   const handleSave = () => {
     // In real app, this would save to API
     setIsEditing(false);
-    // Show success toast
+    alert("Profile updated successfully!");
+  };
+
+  const handlePhotoUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setProfileData(prev => ({ ...prev, profilePhoto: e.target.result }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleCancel = () => {
