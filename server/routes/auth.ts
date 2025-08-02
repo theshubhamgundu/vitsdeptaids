@@ -66,12 +66,22 @@ export const handleLogin: RequestHandler = (req, res) => {
       } as AuthResponse);
     }
 
-    // Find user by identifier and role
-    const user = mockUsers.find(u => 
-      u.identifier === identifier && 
-      u.role === role && 
-      u.password === password
-    );
+    // Find user by identifier and password
+    // For faculty login, also check for HOD users
+    let user;
+    if (role === "faculty") {
+      user = mockUsers.find(u =>
+        u.identifier === identifier &&
+        (u.role === "faculty" || u.role === "hod") &&
+        u.password === password
+      );
+    } else {
+      user = mockUsers.find(u =>
+        u.identifier === identifier &&
+        u.role === role &&
+        u.password === password
+      );
+    }
 
     if (!user) {
       return res.status(401).json({
