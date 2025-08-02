@@ -97,35 +97,7 @@ const AdminTools = () => {
     }
   ]);
 
-  const [leaveRequests, setLeaveRequests] = useState([
-    {
-      id: 1,
-      applicantType: "Student",
-      applicantName: "Rahul Sharma",
-      hallTicket: "20AI001",
-      leaveType: "Medical Leave",
-      fromDate: "2025-03-15",
-      toDate: "2025-03-17",
-      days: 3,
-      reason: "Medical treatment",
-      appliedDate: "2025-03-10",
-      status: "Pending",
-      documents: ["medical_certificate.pdf"]
-    },
-    {
-      id: 2,
-      applicantType: "Faculty",
-      applicantName: "Dr. Anita Verma",
-      leaveType: "Conference Leave",
-      fromDate: "2025-03-22",
-      toDate: "2025-03-24",
-      days: 3,
-      reason: "Attending AI Conference",
-      appliedDate: "2025-03-12",
-      status: "Pending",
-      documents: ["conference_invitation.pdf"]
-    }
-  ]);
+
 
   const [searchTerm, setSearchTerm] = useState("");
   const [studentSearchTerm, setStudentSearchTerm] = useState("");
