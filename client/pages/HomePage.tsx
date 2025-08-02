@@ -155,6 +155,9 @@ const HomePage = () => {
               <Link to="/placements" className="text-gray-700 hover:text-blue-600 transition-colors">Placements</Link>
             </div>
             <div className="flex items-center space-x-3">
+              <Link to="/demo-logins">
+                <Button variant="ghost" size="sm" className="text-sm">Demo Logins</Button>
+              </Link>
               <Link to="/login/student">
                 <Button variant="outline" size="sm">Student Login</Button>
               </Link>
