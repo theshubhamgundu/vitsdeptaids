@@ -1,0 +1,213 @@
+import { useState } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { 
+  User, 
+  GraduationCap, 
+  Users, 
+  Shield, 
+  Crown,
+  Eye,
+  EyeOff,
+  Cpu,
+  ArrowLeft
+} from "lucide-react";
+
+const LoginPage = () => {
+  const { type } = useParams<{ type: string }>();
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    identifier: "",
+    password: ""
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const loginTypes = {
+    student: {
+      title: "Student Login",
+      icon: GraduationCap,
+      placeholder: "Hall Ticket Number",
+      description: "Access your student dashboard",
+      gradient: "from-blue-500 to-purple-600"
+    },
+    faculty: {
+      title: "Faculty Login", 
+      icon: Users,
+      placeholder: "Employee ID",
+      description: "Access your faculty dashboard",
+      gradient: "from-green-500 to-blue-600"
+    },
+    admin: {
+      title: "Admin Login",
+      icon: Shield,
+      placeholder: "Admin ID",
+      description: "Access admin panel",
+      gradient: "from-red-500 to-pink-600"
+    },
+    hod: {
+      title: "HOD Login",
+      icon: Crown,
+      placeholder: "HOD ID",
+      description: "Access HOD dashboard",
+      gradient: "from-purple-500 to-indigo-600"
+    }
+  };
+
+  const currentType = loginTypes[type as keyof typeof loginTypes] || loginTypes.student;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      // Simulate authentication
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mock authentication - in real app, this would call an API
+      if (formData.identifier && formData.password) {
+        // Route to appropriate dashboard based on type
+        const dashboardRoutes = {
+          student: "/dashboard/student",
+          faculty: "/dashboard/faculty", 
+          admin: "/dashboard/admin",
+          hod: "/dashboard/hod"
+        };
+        
+        navigate(dashboardRoutes[type as keyof typeof dashboardRoutes] || "/dashboard/student");
+      } else {
+        setError("Please enter valid credentials");
+      }
+    } catch (err) {
+      setError("Authentication failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const IconComponent = currentType.icon;
+
+  return (
+    <div className={`min-h-screen bg-gradient-to-br ${currentType.gradient} flex items-center justify-center p-4`}>
+      <div className="absolute inset-0 bg-black opacity-20"></div>
+      
+      <Card className="w-full max-w-md relative z-10 shadow-2xl">
+        <CardHeader className="text-center space-y-4">
+          <div className="flex justify-center">
+            <div className={`p-3 rounded-full bg-gradient-to-r ${currentType.gradient}`}>
+              <IconComponent className="h-8 w-8 text-white" />
+            </div>
+          </div>
+          <div>
+            <CardTitle className="text-2xl font-bold">{currentType.title}</CardTitle>
+            <CardDescription className="text-base mt-2">
+              {currentType.description}
+            </CardDescription>
+          </div>
+          <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
+            <Cpu className="h-4 w-4" />
+            <span>AI & Data Science Department</span>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="identifier">{currentType.placeholder}</Label>
+              <Input
+                id="identifier"
+                placeholder={`Enter your ${currentType.placeholder.toLowerCase()}`}
+                value={formData.identifier}
+                onChange={(e) => setFormData(prev => ({ ...prev, identifier: e.target.value }))}
+                required
+                className="h-11"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={formData.password}
+                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                  required
+                  className="h-11 pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <Button 
+              type="submit" 
+              className={`w-full h-11 bg-gradient-to-r ${currentType.gradient} hover:opacity-90 transition-opacity`}
+              disabled={loading}
+            >
+              {loading ? (
+                <div className="flex items-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Signing in...</span>
+                </div>
+              ) : (
+                "Sign In"
+              )}
+            </Button>
+          </form>
+
+          <div className="text-center space-y-4">
+            <button className="text-sm text-blue-600 hover:underline">
+              Forgot password?
+            </button>
+            
+            <div className="border-t pt-4">
+              <p className="text-sm text-gray-600 mb-3">Login as different role:</p>
+              <div className="grid grid-cols-2 gap-2">
+                {Object.entries(loginTypes).map(([key, config]) => (
+                  key !== type && (
+                    <Link 
+                      key={key}
+                      to={`/login/${key}`}
+                      className="text-xs px-3 py-2 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors text-center"
+                    >
+                      {config.title}
+                    </Link>
+                  )
+                ))}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Link 
+        to="/" 
+        className="absolute top-6 left-6 z-20 flex items-center space-x-2 text-white hover:text-gray-200 transition-colors"
+      >
+        <ArrowLeft className="h-5 w-5" />
+        <span>Back to Home</span>
+      </Link>
+    </div>
+  );
+};
+
+export default LoginPage;
