@@ -99,18 +99,33 @@ const StudentProfile = () => {
             <div className="flex items-center space-x-6">
               <div className="relative">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage src="/api/placeholder/100/100" />
+                  <AvatarImage src={profileData.profilePhoto || "/api/placeholder/100/100"} />
                   <AvatarFallback className="text-2xl">
                     {profileData.fullName.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
                 {isEditing && (
-                  <Button 
-                    size="sm" 
-                    className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
-                  >
-                    <Camera className="h-4 w-4" />
-                  </Button>
+                  <>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handlePhotoUpload}
+                      className="hidden"
+                      id="photo-upload"
+                    />
+                    <label htmlFor="photo-upload" className="cursor-pointer">
+                      <Button
+                        size="sm"
+                        className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+                        type="button"
+                        asChild
+                      >
+                        <span>
+                          <Camera className="h-4 w-4" />
+                        </span>
+                      </Button>
+                    </label>
+                  </>
                 )}
               </div>
               <div>
