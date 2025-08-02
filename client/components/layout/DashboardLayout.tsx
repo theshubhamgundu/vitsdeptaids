@@ -85,6 +85,7 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
       color: "bg-red-600",
       items: [
         { name: "Dashboard", href: "/dashboard/admin", icon: Home },
+        { name: "Profile", href: "/dashboard/admin/profile", icon: User },
         { name: "Students", href: "/dashboard/admin/students", icon: Users },
         { name: "Faculty", href: "/dashboard/admin/faculty", icon: Users },
         { name: "Content Management", href: "/dashboard/admin/content", icon: Settings },
