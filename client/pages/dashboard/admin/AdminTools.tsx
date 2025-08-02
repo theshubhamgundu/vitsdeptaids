@@ -515,8 +515,9 @@ const AdminTools = () => {
                     <TableRow>
                       <TableHead>Title</TableHead>
                       <TableHead>Year/Semester</TableHead>
-                      <TableHead>Uploaded By</TableHead>
-                      <TableHead>Upload Date</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Effective From</TableHead>
+                      <TableHead>Created By</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -527,12 +528,19 @@ const AdminTools = () => {
                         <TableCell className="font-medium">{timetable.title}</TableCell>
                         <TableCell>
                           <div>
-                            <div>{timetable.year}</div>
+                            <div className="font-medium">{timetable.year}</div>
                             <div className="text-sm text-gray-600">{timetable.semester}</div>
                           </div>
                         </TableCell>
+                        <TableCell>
+                          <Badge variant={timetable.type === "Generated" ? "default" : "outline"}>
+                            {timetable.type || "Uploaded"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(timetable.effectiveFrom || timetable.uploadDate).toLocaleDateString()}
+                        </TableCell>
                         <TableCell>{timetable.uploadedBy}</TableCell>
-                        <TableCell>{new Date(timetable.uploadDate).toLocaleDateString()}</TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(timetable.status)}>
                             {timetable.status}
@@ -540,13 +548,18 @@ const AdminTools = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
-                            <Button size="sm" variant="ghost">
-                              <Download className="h-4 w-4" />
+                            <Button size="sm" variant="ghost" title="View">
+                              <Eye className="h-4 w-4" />
                             </Button>
-                            <Button size="sm" variant="ghost">
+                            {timetable.fileUrl && (
+                              <Button size="sm" variant="ghost" title="Download">
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button size="sm" variant="ghost" title="Edit">
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button size="sm" variant="ghost">
+                            <Button size="sm" variant="ghost" title="Delete">
                               <Trash2 className="h-4 w-4 text-red-600" />
                             </Button>
                           </div>
