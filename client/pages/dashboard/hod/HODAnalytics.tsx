@@ -388,7 +388,7 @@ const HODAnalytics = () => {
                     <AlertTriangle className="h-8 w-8 text-red-600 mx-auto mb-2" />
                     <div className="text-2xl font-bold text-red-600">{analyticsData.studentPerformance.strugglingStudents}</div>
                     <div className="text-sm text-gray-600">Need Support</div>
-                    <div className="text-xs text-gray-500 mt-1">CGPA < 6.0</div>
+                    <div className="text-xs text-gray-500 mt-1">CGPA &lt; 6.0</div>
                   </div>
                 </div>
               </CardContent>
