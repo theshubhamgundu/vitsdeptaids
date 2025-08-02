@@ -43,6 +43,8 @@ import HODDashboard from "./pages/dashboard/hod/HODDashboard";
 import HODProfile from "./pages/dashboard/hod/HODProfile";
 import HODStudents from "./pages/dashboard/hod/HODStudents";
 import HODFacultyLeaves from "./pages/dashboard/hod/HODFacultyLeaves";
+import HODMessages from "./pages/dashboard/hod/HODMessages";
+import HODTimetables from "./pages/dashboard/hod/HODTimetables";
 import HODAnalytics from "./pages/dashboard/hod/HODAnalytics";
 
 import PlaceholderPage from "./pages/PlaceholderPage";
