@@ -160,10 +160,11 @@ const HomePage = () => {
               </span>
             </div>
             <div className="hidden md:flex items-center space-x-8">
-              <Link to="/about" className="text-gray-700 hover:text-blue-600 transition-colors">About</Link>
-              <Link to="/admissions" className="text-gray-700 hover:text-blue-600 transition-colors">Admissions</Link>
-              <Link to="/research" className="text-gray-700 hover:text-blue-600 transition-colors">Research</Link>
-              <Link to="/placements" className="text-gray-700 hover:text-blue-600 transition-colors">Placements</Link>
+              <a href="#events" className="text-gray-700 hover:text-blue-600 transition-colors">Events</a>
+              <a href="#faculty" className="text-gray-700 hover:text-blue-600 transition-colors">Faculty</a>
+              <a href="#gallery" className="text-gray-700 hover:text-blue-600 transition-colors">Gallery</a>
+              <a href="#placements" className="text-gray-700 hover:text-blue-600 transition-colors">Placements</a>
+              <a href="#achievements" className="text-gray-700 hover:text-blue-600 transition-colors">Achievements</a>
             </div>
             <div className="flex items-center space-x-3">
               <Link to="/demo-logins">
