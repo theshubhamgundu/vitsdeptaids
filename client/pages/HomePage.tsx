@@ -392,8 +392,70 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Gallery Section */}
+      <section id="gallery" className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Gallery</h2>
+            <p className="text-xl text-gray-600">Department photos and videos</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((item) => (
+              <Card key={item} className="hover:shadow-lg transition-shadow">
+                <div className="aspect-video bg-gradient-to-br from-blue-400 to-purple-500 rounded-t-lg flex items-center justify-center">
+                  <span className="text-white font-semibold">Gallery Item {item}</span>
+                </div>
+                <CardContent className="p-4">
+                  <h3 className="font-semibold mb-2">Event/Activity {item}</h3>
+                  <p className="text-sm text-gray-600">Description of the event or activity</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Placements Section */}
+      <section id="placements" className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Placements</h2>
+            <p className="text-xl text-gray-600">Outstanding placement records and industry partnerships</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card className="text-center">
+              <CardHeader>
+                <div className="text-4xl font-bold text-green-600 mb-2">95%</div>
+                <CardTitle>Placement Rate</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Students successfully placed in top companies</p>
+              </CardContent>
+            </Card>
+            <Card className="text-center">
+              <CardHeader>
+                <div className="text-4xl font-bold text-blue-600 mb-2">50+</div>
+                <CardTitle>Partner Companies</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Leading tech companies for placements</p>
+              </CardContent>
+            </Card>
+            <Card className="text-center">
+              <CardHeader>
+                <div className="text-4xl font-bold text-purple-600 mb-2">₹12L</div>
+                <CardTitle>Highest Package</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600">Maximum package offered to our students</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* Achievements Section */}
-      <section className="py-20 bg-gradient-to-r from-green-50 to-blue-50">
+      <section id="achievements" className="py-20 bg-gradient-to-r from-green-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Our Achievements</h2>
