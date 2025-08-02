@@ -37,10 +37,10 @@ const LoginPage = () => {
       gradient: "from-blue-500 to-purple-600"
     },
     faculty: {
-      title: "Faculty Login", 
+      title: "Faculty / HOD Login",
       icon: Users,
       placeholder: "Employee ID",
-      description: "Access your faculty dashboard",
+      description: "Access your faculty or HOD dashboard",
       gradient: "from-green-500 to-blue-600"
     },
     admin: {
@@ -49,13 +49,6 @@ const LoginPage = () => {
       placeholder: "Admin ID",
       description: "Access admin panel",
       gradient: "from-red-500 to-pink-600"
-    },
-    hod: {
-      title: "HOD Login",
-      icon: Crown,
-      placeholder: "HOD ID",
-      description: "Access HOD dashboard",
-      gradient: "from-purple-500 to-indigo-600"
     }
   };
 
