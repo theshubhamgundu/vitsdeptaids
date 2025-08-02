@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,12 +21,26 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
-  RefreshCw
+  RefreshCw,
+  AlertCircle,
+  Info
 } from "lucide-react";
 
 const StudentTimetable = () => {
   const [currentWeek, setCurrentWeek] = useState(0);
+  const [timetableData, setTimetableData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
+  // Student info - in real app, this would come from authentication context
+  const [studentInfo] = useState({
+    name: "Rahul Sharma",
+    hallTicket: "20AI001",
+    year: "3rd Year",
+    semester: "6th Semester",
+    branch: "AI & DS"
+  });
+
   const timeSlots = [
     "9:00 - 9:50",
     "9:50 - 10:40", 
@@ -42,80 +56,153 @@ const StudentTimetable = () => {
 
   const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-  const [timetable] = useState({
-    Monday: [
-      { subject: "Machine Learning", faculty: "Dr. Priya Sharma", room: "ML Lab-301", type: "Lab" },
-      { subject: "Machine Learning", faculty: "Dr. Priya Sharma", room: "ML Lab-301", type: "Lab" },
-      { subject: "Break", faculty: "", room: "", type: "break" },
-      { subject: "Data Structures", faculty: "Dr. Rajesh Kumar", room: "CSE-205", type: "Theory" },
-      { subject: "Database Management", faculty: "Dr. Suresh Reddy", room: "CSE-210", type: "Theory" },
-      { subject: "Lunch Break", faculty: "", room: "", type: "break" },
-      { subject: "Python Programming", faculty: "Dr. Anita Verma", room: "Lab-102", type: "Lab" },
-      { subject: "Python Programming", faculty: "Dr. Anita Verma", room: "Lab-102", type: "Lab" },
-      { subject: "Statistics", faculty: "Dr. Kavitha Rao", room: "CSE-208", type: "Theory" },
-      { subject: "Library", faculty: "", room: "Library", type: "study" }
-    ],
-    Tuesday: [
-      { subject: "Computer Vision", faculty: "Dr. Anita Verma", room: "CV Lab-302", type: "Lab" },
-      { subject: "Computer Vision", faculty: "Dr. Anita Verma", room: "CV Lab-302", type: "Lab" },
-      { subject: "Break", faculty: "", room: "", type: "break" },
-      { subject: "Machine Learning", faculty: "Dr. Priya Sharma", room: "CSE-201", type: "Theory" },
-      { subject: "Data Mining", faculty: "Dr. Rajesh Kumar", room: "CSE-205", type: "Theory" },
-      { subject: "Lunch Break", faculty: "", room: "", type: "break" },
-      { subject: "Seminar", faculty: "All Faculty", room: "Seminar Hall", type: "seminar" },
-      { subject: "Project Work", faculty: "Project Guide", room: "Project Lab", type: "project" },
-      { subject: "Project Work", faculty: "Project Guide", room: "Project Lab", type: "project" },
-      { subject: "Free Period", faculty: "", room: "", type: "free" }
-    ],
-    Wednesday: [
-      { subject: "Database Management", faculty: "Dr. Suresh Reddy", room: "DB Lab-303", type: "Lab" },
-      { subject: "Database Management", faculty: "Dr. Suresh Reddy", room: "DB Lab-303", type: "Lab" },
-      { subject: "Break", faculty: "", room: "", type: "break" },
-      { subject: "Statistics", faculty: "Dr. Kavitha Rao", room: "CSE-208", type: "Theory" },
-      { subject: "Computer Vision", faculty: "Dr. Anita Verma", room: "CSE-203", type: "Theory" },
-      { subject: "Lunch Break", faculty: "", room: "", type: "break" },
-      { subject: "Data Structures", faculty: "Dr. Rajesh Kumar", room: "DS Lab-304", type: "Lab" },
-      { subject: "Data Structures", faculty: "Dr. Rajesh Kumar", room: "DS Lab-304", type: "Lab" },
-      { subject: "Machine Learning", faculty: "Dr. Priya Sharma", room: "CSE-201", type: "Theory" },
-      { subject: "Tutorial", faculty: "Class Teacher", room: "CSE-205", type: "tutorial" }
-    ],
-    Thursday: [
-      { subject: "Natural Language Processing", faculty: "Dr. Suresh Reddy", room: "NLP Lab-305", type: "Lab" },
-      { subject: "Natural Language Processing", faculty: "Dr. Suresh Reddy", room: "NLP Lab-305", type: "Lab" },
-      { subject: "Break", faculty: "", room: "", type: "break" },
-      { subject: "Python Programming", faculty: "Dr. Anita Verma", room: "CSE-204", type: "Theory" },
-      { subject: "Data Mining", faculty: "Dr. Rajesh Kumar", room: "CSE-205", type: "Theory" },
-      { subject: "Lunch Break", faculty: "", room: "", type: "break" },
-      { subject: "Big Data Analytics", faculty: "Dr. Priya Sharma", room: "BD Lab-306", type: "Lab" },
-      { subject: "Big Data Analytics", faculty: "Dr. Priya Sharma", room: "BD Lab-306", type: "Lab" },
-      { subject: "Statistics", faculty: "Dr. Kavitha Rao", room: "CSE-208", type: "Theory" },
-      { subject: "Free Period", faculty: "", room: "", type: "free" }
-    ],
-    Friday: [
-      { subject: "Project Work", faculty: "Project Guide", room: "Project Lab", type: "project" },
-      { subject: "Project Work", faculty: "Project Guide", room: "Project Lab", type: "project" },
-      { subject: "Break", faculty: "", room: "", type: "break" },
-      { subject: "Natural Language Processing", faculty: "Dr. Suresh Reddy", room: "CSE-206", type: "Theory" },
-      { subject: "Big Data Analytics", faculty: "Dr. Priya Sharma", room: "CSE-207", type: "Theory" },
-      { subject: "Lunch Break", faculty: "", room: "", type: "break" },
-      { subject: "Comprehensive Lab", faculty: "All Faculty", room: "Comp Lab-307", type: "Lab" },
-      { subject: "Comprehensive Lab", faculty: "All Faculty", room: "Comp Lab-307", type: "Lab" },
-      { subject: "Review Meeting", faculty: "HOD", room: "Conference Room", type: "meeting" },
-      { subject: "Library", faculty: "", room: "Library", type: "study" }
-    ],
-    Saturday: [
-      { subject: "Guest Lecture", faculty: "Industry Expert", room: "Auditorium", type: "lecture" },
-      { subject: "Workshop", faculty: "External Faculty", room: "Workshop Hall", type: "workshop" },
-      { subject: "Break", faculty: "", room: "", type: "break" },
-      { subject: "Skill Development", faculty: "Training Team", room: "Skills Lab", type: "training" },
-      { subject: "Skill Development", faculty: "Training Team", room: "Skills Lab", type: "training" },
-      { subject: "Lunch Break", faculty: "", room: "", type: "break" },
-      { subject: "Sports/Cultural", faculty: "Sports Coordinator", room: "Ground/Hall", type: "activity" },
-      { subject: "Sports/Cultural", faculty: "Sports Coordinator", room: "Ground/Hall", type: "activity" },
-      { subject: "Free Period", faculty: "", room: "", type: "free" },
-      { subject: "Free Period", faculty: "", room: "", type: "free" }
-    ]
-  });
+  // Year-wise timetable data - this would come from the admin timetable uploads
+  const timetableByYear = {
+    "1st Year": {
+      Monday: [
+        { subject: "Mathematics I", faculty: "Dr. Rajesh Kumar", room: "CSE-101", type: "Theory" },
+        { subject: "Programming Fundamentals", faculty: "Dr. Anita Verma", room: "Lab-101", type: "Lab" },
+        { subject: "Break", faculty: "", room: "", type: "break" },
+        { subject: "Physics", faculty: "Dr. Priya Sharma", room: "CSE-102", type: "Theory" },
+        { subject: "English Communication", faculty: "Prof. Sarah Johnson", room: "CSE-103", type: "Theory" },
+        { subject: "Lunch Break", faculty: "", room: "", type: "break" },
+        { subject: "Programming Lab", faculty: "Dr. Anita Verma", room: "Lab-101", type: "Lab" },
+        { subject: "Programming Lab", faculty: "Dr. Anita Verma", room: "Lab-101", type: "Lab" },
+        { subject: "Tutorial", faculty: "Class Teacher", room: "CSE-101", type: "tutorial" },
+        { subject: "Library", faculty: "", room: "Library", type: "study" }
+      ],
+      // More days would be here...
+    },
+    "2nd Year": {
+      Monday: [
+        { subject: "Data Structures", faculty: "Dr. Rajesh Kumar", room: "CSE-201", type: "Theory" },
+        { subject: "Database Systems", faculty: "Dr. Suresh Reddy", room: "CSE-202", type: "Theory" },
+        { subject: "Break", faculty: "", room: "", type: "break" },
+        { subject: "Computer Networks", faculty: "Dr. Kavitha Rao", room: "CSE-203", type: "Theory" },
+        { subject: "Statistics", faculty: "Dr. Anita Verma", room: "CSE-204", type: "Theory" },
+        { subject: "Lunch Break", faculty: "", room: "", type: "break" },
+        { subject: "Database Lab", faculty: "Dr. Suresh Reddy", room: "DB Lab-201", type: "Lab" },
+        { subject: "Database Lab", faculty: "Dr. Suresh Reddy", room: "DB Lab-201", type: "Lab" },
+        { subject: "Data Structures Lab", faculty: "Dr. Rajesh Kumar", room: "DS Lab-202", type: "Lab" },
+        { subject: "Free Period", faculty: "", room: "", type: "free" }
+      ],
+      // More days would be here...
+    },
+    "3rd Year": {
+      Monday: [
+        { subject: "Machine Learning", faculty: "Dr. Priya Sharma", room: "ML Lab-301", type: "Lab" },
+        { subject: "Machine Learning", faculty: "Dr. Priya Sharma", room: "ML Lab-301", type: "Lab" },
+        { subject: "Break", faculty: "", room: "", type: "break" },
+        { subject: "Data Structures", faculty: "Dr. Rajesh Kumar", room: "CSE-205", type: "Theory" },
+        { subject: "Database Management", faculty: "Dr. Suresh Reddy", room: "CSE-210", type: "Theory" },
+        { subject: "Lunch Break", faculty: "", room: "", type: "break" },
+        { subject: "Python Programming", faculty: "Dr. Anita Verma", room: "Lab-102", type: "Lab" },
+        { subject: "Python Programming", faculty: "Dr. Anita Verma", room: "Lab-102", type: "Lab" },
+        { subject: "Statistics", faculty: "Dr. Kavitha Rao", room: "CSE-208", type: "Theory" },
+        { subject: "Library", faculty: "", room: "Library", type: "study" }
+      ],
+      Tuesday: [
+        { subject: "Computer Vision", faculty: "Dr. Anita Verma", room: "CV Lab-302", type: "Lab" },
+        { subject: "Computer Vision", faculty: "Dr. Anita Verma", room: "CV Lab-302", type: "Lab" },
+        { subject: "Break", faculty: "", room: "", type: "break" },
+        { subject: "Machine Learning", faculty: "Dr. Priya Sharma", room: "CSE-201", type: "Theory" },
+        { subject: "Data Mining", faculty: "Dr. Rajesh Kumar", room: "CSE-205", type: "Theory" },
+        { subject: "Lunch Break", faculty: "", room: "", type: "break" },
+        { subject: "Seminar", faculty: "All Faculty", room: "Seminar Hall", type: "seminar" },
+        { subject: "Project Work", faculty: "Project Guide", room: "Project Lab", type: "project" },
+        { subject: "Project Work", faculty: "Project Guide", room: "Project Lab", type: "project" },
+        { subject: "Free Period", faculty: "", room: "", type: "free" }
+      ],
+      Wednesday: [
+        { subject: "Database Management", faculty: "Dr. Suresh Reddy", room: "DB Lab-303", type: "Lab" },
+        { subject: "Database Management", faculty: "Dr. Suresh Reddy", room: "DB Lab-303", type: "Lab" },
+        { subject: "Break", faculty: "", room: "", type: "break" },
+        { subject: "Statistics", faculty: "Dr. Kavitha Rao", room: "CSE-208", type: "Theory" },
+        { subject: "Computer Vision", faculty: "Dr. Anita Verma", room: "CSE-203", type: "Theory" },
+        { subject: "Lunch Break", faculty: "", room: "", type: "break" },
+        { subject: "Data Structures", faculty: "Dr. Rajesh Kumar", room: "DS Lab-304", type: "Lab" },
+        { subject: "Data Structures", faculty: "Dr. Rajesh Kumar", room: "DS Lab-304", type: "Lab" },
+        { subject: "Machine Learning", faculty: "Dr. Priya Sharma", room: "CSE-201", type: "Theory" },
+        { subject: "Tutorial", faculty: "Class Teacher", room: "CSE-205", type: "tutorial" }
+      ],
+      Thursday: [
+        { subject: "Natural Language Processing", faculty: "Dr. Suresh Reddy", room: "NLP Lab-305", type: "Lab" },
+        { subject: "Natural Language Processing", faculty: "Dr. Suresh Reddy", room: "NLP Lab-305", type: "Lab" },
+        { subject: "Break", faculty: "", room: "", type: "break" },
+        { subject: "Python Programming", faculty: "Dr. Anita Verma", room: "CSE-204", type: "Theory" },
+        { subject: "Data Mining", faculty: "Dr. Rajesh Kumar", room: "CSE-205", type: "Theory" },
+        { subject: "Lunch Break", faculty: "", room: "", type: "break" },
+        { subject: "Big Data Analytics", faculty: "Dr. Priya Sharma", room: "BD Lab-306", type: "Lab" },
+        { subject: "Big Data Analytics", faculty: "Dr. Priya Sharma", room: "BD Lab-306", type: "Lab" },
+        { subject: "Statistics", faculty: "Dr. Kavitha Rao", room: "CSE-208", type: "Theory" },
+        { subject: "Free Period", faculty: "", room: "", type: "free" }
+      ],
+      Friday: [
+        { subject: "Project Work", faculty: "Project Guide", room: "Project Lab", type: "project" },
+        { subject: "Project Work", faculty: "Project Guide", room: "Project Lab", type: "project" },
+        { subject: "Break", faculty: "", room: "", type: "break" },
+        { subject: "Natural Language Processing", faculty: "Dr. Suresh Reddy", room: "CSE-206", type: "Theory" },
+        { subject: "Big Data Analytics", faculty: "Dr. Priya Sharma", room: "CSE-207", type: "Theory" },
+        { subject: "Lunch Break", faculty: "", room: "", type: "break" },
+        { subject: "Comprehensive Lab", faculty: "All Faculty", room: "Comp Lab-307", type: "Lab" },
+        { subject: "Comprehensive Lab", faculty: "All Faculty", room: "Comp Lab-307", type: "Lab" },
+        { subject: "Review Meeting", faculty: "HOD", room: "Conference Room", type: "meeting" },
+        { subject: "Library", faculty: "", room: "Library", type: "study" }
+      ],
+      Saturday: [
+        { subject: "Guest Lecture", faculty: "Industry Expert", room: "Auditorium", type: "lecture" },
+        { subject: "Workshop", faculty: "External Faculty", room: "Workshop Hall", type: "workshop" },
+        { subject: "Break", faculty: "", room: "", type: "break" },
+        { subject: "Skill Development", faculty: "Training Team", room: "Skills Lab", type: "training" },
+        { subject: "Skill Development", faculty: "Training Team", room: "Skills Lab", type: "training" },
+        { subject: "Lunch Break", faculty: "", room: "", type: "break" },
+        { subject: "Sports/Cultural", faculty: "Sports Coordinator", room: "Ground/Hall", type: "activity" },
+        { subject: "Sports/Cultural", faculty: "Sports Coordinator", room: "Ground/Hall", type: "activity" },
+        { subject: "Free Period", faculty: "", room: "", type: "free" },
+        { subject: "Free Period", faculty: "", room: "", type: "free" }
+      ]
+    },
+    "4th Year": {
+      Monday: [
+        { subject: "Advanced AI", faculty: "Dr. Priya Sharma", room: "AI Lab-401", type: "Lab" },
+        { subject: "Advanced AI", faculty: "Dr. Priya Sharma", room: "AI Lab-401", type: "Lab" },
+        { subject: "Break", faculty: "", room: "", type: "break" },
+        { subject: "Research Methodology", faculty: "Dr. Rajesh Kumar", room: "CSE-401", type: "Theory" },
+        { subject: "Industry Training", faculty: "Industry Mentor", room: "Training Hall", type: "training" },
+        { subject: "Lunch Break", faculty: "", room: "", type: "break" },
+        { subject: "Capstone Project", faculty: "Project Guide", room: "Project Lab", type: "project" },
+        { subject: "Capstone Project", faculty: "Project Guide", room: "Project Lab", type: "project" },
+        { subject: "Capstone Project", faculty: "Project Guide", room: "Project Lab", type: "project" },
+        { subject: "Free Period", faculty: "", room: "", type: "free" }
+      ],
+      // More days would be here...
+    }
+  };
+
+  useEffect(() => {
+    // Simulate fetching timetable data based on student's year
+    const fetchTimetable = async () => {
+      setLoading(true);
+      try {
+        // In real app, this would be an API call to fetch timetable based on student's year and semester
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
+        
+        const yearTimetable = timetableByYear[studentInfo.year];
+        if (yearTimetable) {
+          setTimetableData(yearTimetable);
+          setError(null);
+        } else {
+          setError(`No timetable found for ${studentInfo.year}`);
+        }
+      } catch (err) {
+        setError("Failed to load timetable");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTimetable();
+  }, [studentInfo.year]);
 
   const getSubjectColor = (type) => {
     switch (type) {
@@ -165,9 +252,10 @@ const StudentTimetable = () => {
   const weekDates = getCurrentWeekDates();
 
   const getTodayClasses = () => {
+    if (!timetableData) return [];
     const today = new Date().getDay();
     const dayName = weekDays[today === 0 ? 6 : today - 1]; // Convert Sunday(0) to Saturday(6)
-    return timetable[dayName] || [];
+    return timetableData[dayName] || [];
   };
 
   const getUpcomingClasses = () => {
@@ -187,26 +275,99 @@ const StudentTimetable = () => {
     }).slice(0, 3);
   };
 
+  if (loading) {
+    return (
+      <DashboardLayout userType="student" userName={studentInfo.name}>
+        <div className="space-y-6">
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <RefreshCw className="h-8 w-8 animate-spin mx-auto text-blue-600 mb-4" />
+              <h3 className="text-lg font-semibold text-gray-700">Loading your timetable...</h3>
+              <p className="text-gray-500">Fetching schedule for {studentInfo.year}</p>
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout userType="student" userName={studentInfo.name}>
+        <div className="space-y-6">
+          <div className="flex items-center justify-center py-12">
+            <Card className="max-w-md">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Timetable Not Available</h3>
+                  <p className="text-gray-500 mb-4">{error}</p>
+                  <p className="text-sm text-gray-400">
+                    Please contact the academic office or your HOD for the latest timetable.
+                  </p>
+                  <Button 
+                    onClick={() => window.location.reload()} 
+                    className="mt-4"
+                    variant="outline"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Retry
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
-    <DashboardLayout userType="student" userName="Rahul Sharma">
+    <DashboardLayout userType="student" userName={studentInfo.name}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Timetable</h1>
-            <p className="text-gray-600">View your class schedule and upcoming sessions</p>
+            <p className="text-gray-600">
+              {studentInfo.year} • {studentInfo.semester} • {studentInfo.branch}
+            </p>
           </div>
           <div className="flex space-x-2">
             <Button variant="outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
               Download PDF
             </Button>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => window.location.reload()}
+            >
               <RefreshCw className="h-4 w-4 mr-2" />
               Sync
             </Button>
           </div>
         </div>
+
+        {/* Student Info Card */}
+        <Card className="bg-blue-50 border-blue-200">
+          <CardContent className="pt-4">
+            <div className="flex items-start space-x-4">
+              <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-blue-900">Current Academic Information</h3>
+                <div className="text-sm text-blue-700 mt-1">
+                  <span className="font-medium">Year:</span> {studentInfo.year} | 
+                  <span className="font-medium"> Semester:</span> {studentInfo.semester} | 
+                  <span className="font-medium"> Branch:</span> {studentInfo.branch}
+                </div>
+                <p className="text-xs text-blue-600 mt-1">
+                  This timetable is specifically designed for your current academic year and semester.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Quick Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -267,7 +428,7 @@ const StudentTimetable = () => {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Weekly Timetable</CardTitle>
+                    <CardTitle>Weekly Timetable - {studentInfo.year}</CardTitle>
                     <CardDescription>
                       Week of {weekDates[0].toLocaleDateString()} - {weekDates[5].toLocaleDateString()}
                     </CardDescription>
@@ -321,7 +482,7 @@ const StudentTimetable = () => {
                         <TableRow key={timeIndex}>
                           <TableCell className="font-medium text-sm">{time}</TableCell>
                           {weekDays.map((day) => {
-                            const classItem = timetable[day][timeIndex];
+                            const classItem = timetableData[day]?.[timeIndex];
                             return (
                               <TableCell key={day} className="p-1">
                                 {classItem && (
