@@ -302,14 +302,12 @@ const AdminTools = () => {
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Leaves</CardTitle>
-              <Clock className="h-4 w-4 text-orange-600" />
+              <CardTitle className="text-sm font-medium">Students</CardTitle>
+              <Users className="h-4 w-4 text-indigo-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {leaveRequests.filter(leave => leave.status === "Pending").length}
-              </div>
-              <p className="text-xs text-muted-foreground">Awaiting approval</p>
+              <div className="text-2xl font-bold">{students.length}</div>
+              <p className="text-xs text-muted-foreground">Total students</p>
             </CardContent>
           </Card>
         </div>
