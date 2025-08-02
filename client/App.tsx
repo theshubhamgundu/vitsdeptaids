@@ -88,6 +88,7 @@ const App = () => (
           {/* HOD Dashboard Routes */}
           <Route path="/dashboard/hod" element={<HODDashboard />} />
           <Route path="/secret/hod" element={<HODDashboard />} />
+          <Route path="/dashboard/hod/profile" element={<HODProfile />} />
           <Route path="/dashboard/hod/students" element={<HODStudents />} />
           <Route path="/dashboard/hod/faculty-leaves" element={<HODFacultyLeaves />} />
           <Route path="/dashboard/hod/analytics" element={<HODAnalytics />} />
