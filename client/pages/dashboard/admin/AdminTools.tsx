@@ -337,26 +337,18 @@ const AdminTools = () => {
                         Upload Timetable
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="max-w-3xl">
                       <DialogHeader>
-                        <DialogTitle>Upload Timetable</DialogTitle>
-                        <DialogDescription>Upload timetable for students</DialogDescription>
+                        <DialogTitle>Design & Upload Timetable</DialogTitle>
+                        <DialogDescription>Create timetable for specific year and semester</DialogDescription>
                       </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label>Timetable Title</Label>
-                          <Input
-                            value={newTimetable.title}
-                            onChange={(e) => setNewTimetable(prev => ({ ...prev, title: e.target.value }))}
-                            placeholder="3rd Year AI & DS Timetable"
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-6">
+                        <div className="grid grid-cols-3 gap-4">
                           <div className="space-y-2">
-                            <Label>Year</Label>
-                            <Select value={newTimetable.year} onValueChange={(value) => setNewTimetable(prev => ({ ...prev, year: value }))}>
+                            <Label>Academic Year</Label>
+                            <Select value={newTimetable.year} onValueChange={(value) => setNewTimetable(prev => ({ ...prev, year: value, title: `${value} AI & DS Timetable` }))}>
                               <SelectTrigger>
-                                <SelectValue />
+                                <SelectValue placeholder="Select year" />
                               </SelectTrigger>
                               <SelectContent>
                                 {years.map(year => (
@@ -369,7 +361,7 @@ const AdminTools = () => {
                             <Label>Semester</Label>
                             <Select value={newTimetable.semester} onValueChange={(value) => setNewTimetable(prev => ({ ...prev, semester: value }))}>
                               <SelectTrigger>
-                                <SelectValue />
+                                <SelectValue placeholder="Select semester" />
                               </SelectTrigger>
                               <SelectContent>
                                 {semesters.map(semester => (
@@ -378,36 +370,116 @@ const AdminTools = () => {
                               </SelectContent>
                             </Select>
                           </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Upload File</Label>
-                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                            <div className="text-center">
-                              <FileSpreadsheet className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                              <div className="text-sm text-gray-600 mb-2">
-                                Upload PDF, Excel, or Image file
-                              </div>
-                              <Input
-                                type="file"
-                                className="hidden"
-                                id="timetable-upload"
-                                accept=".pdf,.xlsx,.xls,.jpg,.jpeg,.png"
-                                onChange={(e) => setNewTimetable(prev => ({ ...prev, file: e.target.files[0] }))}
-                              />
-                              <label htmlFor="timetable-upload" className="cursor-pointer">
-                                <Button type="button" variant="outline">Choose File</Button>
-                              </label>
-                            </div>
-                            {newTimetable.file && (
-                              <div className="mt-2 text-center text-sm text-green-600">
-                                Selected: {newTimetable.file.name}
-                              </div>
-                            )}
+                          <div className="space-y-2">
+                            <Label>Effective From</Label>
+                            <Input
+                              type="date"
+                              value={newTimetable.effectiveFrom || ""}
+                              onChange={(e) => setNewTimetable(prev => ({ ...prev, effectiveFrom: e.target.value }))}
+                            />
                           </div>
                         </div>
+
+                        <div className="space-y-2">
+                          <Label>Timetable Title</Label>
+                          <Input
+                            value={newTimetable.title}
+                            onChange={(e) => setNewTimetable(prev => ({ ...prev, title: e.target.value }))}
+                            placeholder="3rd Year AI & DS Timetable"
+                          />
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-base font-semibold">Upload Options</Label>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                              <div className="text-center">
+                                <FileSpreadsheet className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                                <div className="text-sm font-medium text-gray-700 mb-1">Upload Existing Timetable</div>
+                                <div className="text-xs text-gray-600 mb-3">
+                                  PDF, Excel, or Image file
+                                </div>
+                                <Input
+                                  type="file"
+                                  className="hidden"
+                                  id="timetable-upload"
+                                  accept=".pdf,.xlsx,.xls,.jpg,.jpeg,.png"
+                                  onChange={(e) => setNewTimetable(prev => ({ ...prev, file: e.target.files[0] }))}
+                                />
+                                <label htmlFor="timetable-upload" className="cursor-pointer">
+                                  <Button type="button" variant="outline" size="sm">Choose File</Button>
+                                </label>
+                                {newTimetable.file && (
+                                  <div className="mt-2 text-xs text-green-600">
+                                    Selected: {newTimetable.file.name}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="border-2 border-blue-200 bg-blue-50 rounded-lg p-4">
+                              <div className="text-center">
+                                <Calendar className="h-8 w-8 mx-auto text-blue-600 mb-2" />
+                                <div className="text-sm font-medium text-blue-800 mb-1">Design New Timetable</div>
+                                <div className="text-xs text-blue-600 mb-3">
+                                  Create interactive timetable
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="default"
+                                  size="sm"
+                                  className="bg-blue-600 hover:bg-blue-700"
+                                  onClick={() => setNewTimetable(prev => ({ ...prev, designMode: true }))}
+                                >
+                                  Design Timetable
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {newTimetable.designMode && (
+                          <div className="border rounded-lg p-4 bg-gray-50">
+                            <div className="text-sm font-medium text-gray-700 mb-3">Quick Timetable Designer</div>
+                            <div className="text-xs text-gray-600 mb-4">
+                              This will create a basic timetable template that students can view. You can edit it later or upload a detailed version.
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label className="text-xs">Morning Session Start</Label>
+                                <Input
+                                  type="time"
+                                  defaultValue="09:00"
+                                  onChange={(e) => setNewTimetable(prev => ({ ...prev, morningStart: e.target.value }))}
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-xs">Afternoon Session Start</Label>
+                                <Input
+                                  type="time"
+                                  defaultValue="14:00"
+                                  onChange={(e) => setNewTimetable(prev => ({ ...prev, afternoonStart: e.target.value }))}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         <div className="flex space-x-2">
-                          <Button onClick={handleUploadTimetable} className="flex-1">Upload</Button>
-                          <Button variant="outline" onClick={() => setShowTimetableDialog(false)}>Cancel</Button>
+                          <Button
+                            onClick={handleUploadTimetable}
+                            className="flex-1"
+                            disabled={!newTimetable.year || !newTimetable.semester || (!newTimetable.file && !newTimetable.designMode)}
+                          >
+                            {newTimetable.designMode ? 'Create Timetable' : 'Upload Timetable'}
+                          </Button>
+                          <Button variant="outline" onClick={() => {
+                            setShowTimetableDialog(false);
+                            setNewTimetable({ title: "", year: "", semester: "", file: null, designMode: false });
+                          }}>Cancel</Button>
                         </div>
                       </div>
                     </DialogContent>
