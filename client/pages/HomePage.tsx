@@ -62,36 +62,13 @@ const HomePage = () => {
     }
   ];
 
-  const faculty = [
-    {
-      name: "Dr. Priya Sharma",
-      designation: "Professor & HOD",
-      specialization: "Machine Learning, Neural Networks",
-      image: "/api/placeholder/150/150",
-      experience: "15+ years"
-    },
-    {
-      name: "Dr. Rajesh Kumar",
-      designation: "Associate Professor",
-      specialization: "Data Mining, Big Data Analytics",
-      image: "/api/placeholder/150/150",
-      experience: "12+ years"
-    },
-    {
-      name: "Dr. Anita Verma",
-      designation: "Assistant Professor",
-      specialization: "Computer Vision, Deep Learning",
-      image: "/api/placeholder/150/150",
-      experience: "8+ years"
-    },
-    {
-      name: "Dr. Suresh Reddy",
-      designation: "Assistant Professor",
-      specialization: "Natural Language Processing",
-      image: "/api/placeholder/150/150",
-      experience: "6+ years"
-    }
-  ];
+  const faculty = getAllFaculty().map(member => ({
+    name: member.name,
+    designation: member.designation,
+    specialization: member.specialization,
+    image: "/api/placeholder/150/150", // Keep placeholder for now
+    experience: `${member.experience} years`
+  }));
 
   const achievements = [
     {
