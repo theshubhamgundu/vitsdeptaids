@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { getAllFaculty } from "@/data/facultyData";
 import {
   Calendar,
   Clock,
@@ -74,11 +75,8 @@ const SimpleTimetableCreator = () => {
     "4th Year": ["Advanced AI", "Research Methodology", "Capstone Project", "Industry Training", "Thesis Work", "Internship"]
   };
 
-  // Sample faculty list
-  const facultyList = [
-    "Dr. Priya Sharma", "Dr. Rajesh Kumar", "Dr. Anita Verma", "Dr. Suresh Reddy", 
-    "Dr. Kavitha Rao", "Prof. Sarah Johnson", "Dr. Mohan Babu", "Dr. Lakshmi Devi"
-  ];
+  // Get faculty list from real data
+  const facultyList = getAllFaculty().map(faculty => faculty.name);
 
   // Sample rooms
   const roomList = [
