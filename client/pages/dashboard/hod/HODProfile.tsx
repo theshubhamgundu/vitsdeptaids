@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { getFacultyById } from "@/data/facultyData";
 import {
   User,
   Edit,
@@ -32,12 +33,16 @@ const HODProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
 
+  // Get current user from localStorage
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+  const hodData = getFacultyById(currentUser.facultyId);
+
   const [profileData, setProfileData] = useState({
     personal: {
-      name: "Dr. Priya Sharma",
-      email: "priya.sharma@vignan.ac.in",
-      phone: "+91 9876543210",
-      employeeId: "VIT-AIML-001",
+      name: hodData?.name || "HOD",
+      email: hodData?.email || "hod@vignan.ac.in",
+      phone: hodData?.phone || "+91 9876543210",
+      employeeId: hodData?.facultyId || "VIT-AIML-001",
       dateOfBirth: "1980-05-15",
       address: "123, Faculty Colony, Hyderabad, Telangana - 500032",
       emergencyContact: "+91 9876543211",
@@ -45,12 +50,12 @@ const HODProfile = () => {
       profilePhoto: null
     },
     professional: {
-      designation: "Professor & Head of Department",
-      department: "Artificial Intelligence & Data Science",
+      designation: hodData?.designation || "Head of Department",
+      department: hodData?.department || "Artificial Intelligence & Data Science",
       institute: "Vignan Institute of Technology & Science",
       joiningDate: "2015-08-01",
-      experience: "15+ years",
-      specializations: ["Machine Learning", "Deep Learning", "Data Science", "AI Ethics"],
+      experience: `${hodData?.experience || 15} years`,
+      specializations: hodData?.specialization?.split(", ") || ["Computer Science"],
       currentSalary: "₹85,000",
       employmentType: "Permanent",
       officeLocation: "AI & DS Department, Room 301",
