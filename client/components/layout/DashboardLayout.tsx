@@ -216,7 +216,16 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
             </div>
 
             <div className="flex items-center space-x-2 sm:space-x-4">
-              <Button variant="ghost" size="sm" className="relative p-1 sm:p-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="relative p-1 sm:p-2"
+                onClick={() => {
+                  // In real app, this would open notifications panel
+                  console.log("Open notifications");
+                }}
+                title="View notifications"
+              >
                 <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
                 <span className="absolute -top-1 -right-1 h-3 w-3 sm:h-4 sm:w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
                   3
