@@ -104,7 +104,6 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
         { name: "Faculty Leaves", href: "/dashboard/hod/faculty-leaves", icon: FileText },
         { name: "Timetables", href: "/dashboard/hod/timetables", icon: Clock },
         { name: "Messages", href: "/dashboard/hod/messages", icon: MessageSquare },
-        { name: "Analytics", href: "/dashboard/hod/analytics", icon: BarChart3 },
       ]
     }
   };
