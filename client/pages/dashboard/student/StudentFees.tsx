@@ -86,7 +86,14 @@ const StudentFees = () => {
 
   const handlePayOnline = () => {
     // Simple redirect to external payment link
-    window.open("https://eazypay.icicibank.com/eazypayLink?P1=/2/SVNghjulFgj4uw2vsXQ==", '_blank', 'noopener,noreferrer');
+    toast({
+      title: "Redirecting to Payment Gateway",
+      description: "You will be redirected to ICICI Bank EazyPay for secure payment.",
+    });
+
+    setTimeout(() => {
+      window.open("https://eazypay.icicibank.com/eazypayLink?P1=/2/SVNghjulFgj4uw2vsXQ==", '_blank', 'noopener,noreferrer');
+    }, 1000);
   };
 
   const getStatusColor = (status) => {
