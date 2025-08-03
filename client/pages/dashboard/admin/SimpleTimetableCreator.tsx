@@ -254,18 +254,18 @@ const SimpleTimetableCreator = () => {
     const newTimetable = {
       id: Date.now(),
       year: selectedYear,
-      semester: selectedSemester,
       createdDate: new Date().toISOString().split('T')[0],
       status: "Active",
       classCount,
-      data: timetable
+      data: timetable,
+      timeSlots: timeSlots
     };
 
     setSavedTimetables(prev => [newTimetable, ...prev.map(t => ({ ...t, status: "Inactive" }))]);
 
     toast({
       title: "🎉 Timetable Saved Successfully!",
-      description: `Timetable for ${selectedYear} ${selectedSemester} with ${classCount} classes is now active. Students can view it immediately.`,
+      description: `Timetable for ${selectedYear} with ${classCount} classes is now active. Students can view it immediately.`,
     });
   };
 
