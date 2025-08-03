@@ -723,163 +723,21 @@ const AdminContent = () => {
             </Card>
           </TabsContent>
 
-          {/* Faculty Tab */}
+          {/* Faculty Tab - Redirect to dedicated management */}
           <TabsContent value="faculty" className="space-y-6">
             <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>👨‍🏫 Faculty Manager</CardTitle>
-                    <CardDescription>Manage faculty profiles and information</CardDescription>
-                  </div>
-                  <Dialog open={showFacultyDialog} onOpenChange={setShowFacultyDialog}>
-                    <DialogTrigger asChild>
-                      <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Faculty
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>Add Faculty Member</DialogTitle>
-                        <DialogDescription>Add a new faculty member profile</DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label>Full Name</Label>
-                            <Input
-                              value={newFaculty.name}
-                              onChange={(e) => setNewFaculty(prev => ({ ...prev, name: e.target.value }))}
-                              placeholder="Dr. Full Name"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Designation</Label>
-                            <Select value={newFaculty.designation} onValueChange={(value) => setNewFaculty(prev => ({ ...prev, designation: value }))}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select designation" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Professor">Professor</SelectItem>
-                                <SelectItem value="Associate Professor">Associate Professor</SelectItem>
-                                <SelectItem value="Assistant Professor">Assistant Professor</SelectItem>
-                                <SelectItem value="HOD">HOD</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Specialization</Label>
-                          <Input
-                            value={newFaculty.specialization}
-                            onChange={(e) => setNewFaculty(prev => ({ ...prev, specialization: e.target.value }))}
-                            placeholder="Machine Learning, Deep Learning"
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label>Experience</Label>
-                            <Input
-                              value={newFaculty.experience}
-                              onChange={(e) => setNewFaculty(prev => ({ ...prev, experience: e.target.value }))}
-                              placeholder="10 years"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Research Papers</Label>
-                            <Input
-                              type="number"
-                              value={newFaculty.researchPapers}
-                              onChange={(e) => setNewFaculty(prev => ({ ...prev, researchPapers: e.target.value }))}
-                              placeholder="25"
-                            />
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Education</Label>
-                          <Input
-                            value={newFaculty.education}
-                            onChange={(e) => setNewFaculty(prev => ({ ...prev, education: e.target.value }))}
-                            placeholder="Ph.D. in Computer Science"
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label>Email</Label>
-                            <Input
-                              type="email"
-                              value={newFaculty.email}
-                              onChange={(e) => setNewFaculty(prev => ({ ...prev, email: e.target.value }))}
-                              placeholder="email@vignan.ac.in"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Phone</Label>
-                            <Input
-                              value={newFaculty.phone}
-                              onChange={(e) => setNewFaculty(prev => ({ ...prev, phone: e.target.value }))}
-                              placeholder="+91 9876543210"
-                            />
-                          </div>
-                        </div>
-                        <div className="flex space-x-2">
-                          <Button onClick={handleAddFaculty} className="flex-1">Add Faculty</Button>
-                          <Button variant="outline" onClick={() => setShowFacultyDialog(false)}>Cancel</Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {facultyData.filter(faculty => 
-                    faculty.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    faculty.specialization.toLowerCase().includes(searchTerm.toLowerCase())
-                  ).map((faculty) => (
-                    <Card key={faculty.id}>
-                      <CardContent className="p-6">
-                        <div className="flex items-start space-x-4">
-                          <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
-                            <Users className="h-8 w-8 text-gray-400" />
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-lg">{faculty.name}</h3>
-                            <p className="text-sm text-gray-600">{faculty.designation}</p>
-                            <p className="text-sm text-gray-600 mt-1">{faculty.specialization}</p>
-                            <div className="flex items-center space-x-4 mt-2">
-                              <div className="flex items-center space-x-1">
-                                <Clock className="h-3 w-3 text-gray-400" />
-                                <span className="text-xs text-gray-600">{faculty.experience}</span>
-                              </div>
-                              <div className="flex items-center space-x-1">
-                                <FileText className="h-3 w-3 text-gray-400" />
-                                <span className="text-xs text-gray-600">{faculty.researchPapers} papers</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2 mt-2">
-                              <Mail className="h-3 w-3 text-gray-400" />
-                              <span className="text-xs text-gray-600">{faculty.email}</span>
-                            </div>
-                            <div className="flex items-center space-x-2 mt-1">
-                              <Phone className="h-3 w-3 text-gray-400" />
-                              <span className="text-xs text-gray-600">{faculty.phone}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex justify-between mt-4">
-                          <Button size="sm" variant="ghost">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => handleDelete(faculty.id, 'faculty')}>
-                            <Trash2 className="h-4 w-4 text-red-600" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+              <CardContent className="text-center py-12">
+                <Users className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Faculty Management</h3>
+                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                  Faculty management has been moved to a dedicated section for better organization and functionality.
+                </p>
+                <Link to="/dashboard/admin/faculty">
+                  <Button size="lg">
+                    <Users className="h-5 w-5 mr-2" />
+                    Go to Faculty Management
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           </TabsContent>
