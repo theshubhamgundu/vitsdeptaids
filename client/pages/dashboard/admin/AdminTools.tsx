@@ -157,41 +157,7 @@ const AdminTools = () => {
   const subjects = ["Machine Learning", "Deep Learning", "Data Science", "Programming", "Statistics", "Mathematics"];
   const examTypes = ["Mid-term", "End-term", "Internal Assessment", "Quiz", "Assignment"];
 
-  const handleUploadTimetable = () => {
-    if (!newTimetable.year || !newTimetable.semester) return;
-    if (!newTimetable.file && !newTimetable.designMode) return;
 
-    const timetable = {
-      id: Date.now(),
-      title: newTimetable.title || `${newTimetable.year} ${newTimetable.semester} Timetable`,
-      year: newTimetable.year,
-      semester: newTimetable.semester,
-      uploadedBy: "Admin",
-      uploadDate: new Date().toISOString().split('T')[0],
-      status: "Active",
-      effectiveFrom: newTimetable.effectiveFrom || new Date().toISOString().split('T')[0],
-      type: newTimetable.designMode ? "Generated" : "Uploaded",
-      fileUrl: newTimetable.file ? `/timetables/${newTimetable.file.name}` : null,
-      schedule: newTimetable.designMode ? {
-        morningStart: newTimetable.morningStart,
-        afternoonStart: newTimetable.afternoonStart,
-        generated: true
-      } : null
-    };
-
-    setTimetables(prev => [timetable, ...prev]);
-    setShowTimetableDialog(false);
-    setNewTimetable({
-      title: "",
-      year: "",
-      semester: "",
-      file: null,
-      designMode: false,
-      effectiveFrom: "",
-      morningStart: "09:00",
-      afternoonStart: "14:00"
-    });
-  };
 
   const handleUploadResults = () => {
     if (!newResults.title || !newResults.file) return;
@@ -315,7 +281,7 @@ const AdminTools = () => {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="results">📊 Results</TabsTrigger>
             <TabsTrigger value="attendance">📉 Attendance</TabsTrigger>
-            <TabsTrigger value="students">��� Students</TabsTrigger>
+            <TabsTrigger value="students">🔍 Students</TabsTrigger>
           </TabsList>
 
 
