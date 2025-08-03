@@ -326,25 +326,28 @@ const StudentTimetable = () => {
     <DashboardLayout userType="student" userName={studentInfo.name}>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Timetable</h1>
-            <p className="text-gray-600">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Timetable</h1>
+            <p className="text-sm sm:text-base text-gray-600">
               {studentInfo.year} • {studentInfo.semester} • {studentInfo.branch}
             </p>
           </div>
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Download PDF
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
+              <Download className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Download PDF</span>
+              <span className="sm:hidden">PDF</span>
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={() => window.location.reload()}
+              className="flex-1 sm:flex-none"
             >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Sync
+              <RefreshCw className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Sync</span>
+              <span className="sm:hidden">Sync</span>
             </Button>
           </div>
         </div>
