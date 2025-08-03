@@ -97,19 +97,22 @@ const LoginPage = () => {
           setError("Invalid Faculty ID or Password");
         }
       } else if (type === 'student') {
-        // For student login, use default demo authentication
-        if (formData.identifier === "20AI001" && formData.password === "student123") {
+        // Use student authentication service
+        const student = await authenticateStudent(formData.identifier, formData.password);
+        if (student) {
           toast({
             title: "Login Successful",
-            description: "Welcome back, Student!",
+            description: `Welcome back, ${student.name}!`,
           });
 
           localStorage.setItem('currentUser', JSON.stringify({
-            id: "student1",
-            name: "Rahul Sharma",
+            id: student.id,
+            name: student.name,
             role: "student",
-            hallTicket: "20AI001",
-            year: "3rd Year"
+            hallTicket: student.hallTicket,
+            email: student.email,
+            year: student.year,
+            section: student.section
           }));
 
           navigate("/dashboard/student");
