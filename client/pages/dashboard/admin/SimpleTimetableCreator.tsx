@@ -175,6 +175,64 @@ const SimpleTimetableCreator = () => {
     setShowCellDialog(false);
   };
 
+  const handleAddTimeSlot = () => {
+    if (!newTimeSlot.startTime || !newTimeSlot.endTime) {
+      toast({
+        title: "Error",
+        description: "Please select both start and end times",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const timeSlotString = newTimeSlot.isBreak
+      ? `${newTimeSlot.startTime} - ${newTimeSlot.endTime}`
+      : `${newTimeSlot.startTime} - ${newTimeSlot.endTime}`;
+
+    setTimeSlots(prev => [...prev, timeSlotString]);
+
+    // Update timetable to accommodate new time slot
+    const newTimetable = { ...timetable };
+    weekDays.forEach(day => {
+      newTimetable[day] = [...newTimetable[day], null];
+    });
+    setTimetable(newTimetable);
+
+    toast({
+      title: "Time Slot Added",
+      description: `New time slot ${timeSlotString} has been added`
+    });
+
+    setShowTimeSlotDialog(false);
+    setNewTimeSlot({ startTime: "", endTime: "", isBreak: false, breakType: "Tea Break" });
+  };
+
+  const handleRemoveTimeSlot = (index: number) => {
+    if (timeSlots.length <= 1) {
+      toast({
+        title: "Cannot Remove",
+        description: "At least one time slot is required",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newTimeSlots = timeSlots.filter((_, i) => i !== index);
+    setTimeSlots(newTimeSlots);
+
+    // Update timetable to remove the time slot
+    const newTimetable = { ...timetable };
+    weekDays.forEach(day => {
+      newTimetable[day] = newTimetable[day].filter((_, i) => i !== index);
+    });
+    setTimetable(newTimetable);
+
+    toast({
+      title: "Time Slot Removed",
+      description: "Time slot has been removed from the timetable"
+    });
+  };
+
   const handleSaveTimetable = () => {
     // Count non-empty cells
     let classCount = 0;
