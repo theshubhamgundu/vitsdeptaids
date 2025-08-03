@@ -51,6 +51,7 @@ import HODTimetables from "./pages/dashboard/hod/HODTimetables";
 import HODAnalytics from "./pages/dashboard/hod/HODAnalytics";
 
 import PlaceholderPage from "./pages/PlaceholderPage";
+import StudentRegistration from "./pages/StudentRegistration";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +65,7 @@ const App = () => (
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login/:type" element={<LoginPage />} />
+          <Route path="/register/student" element={<StudentRegistration />} />
           <Route path="/demo-logins" element={<DemoLogins />} />
 
           {/* Student Dashboard Routes */}
