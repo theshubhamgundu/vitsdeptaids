@@ -54,18 +54,6 @@ import {
 } from "lucide-react";
 
 const AdminTools = () => {
-  const [timetables, setTimetables] = useState([
-    {
-      id: 1,
-      title: "3rd Year AI & DS Timetable",
-      year: "3rd Year",
-      semester: "6th Semester",
-      uploadedBy: "Admin",
-      uploadDate: "2025-03-10",
-      status: "Active",
-      fileUrl: "/timetables/3rd-year-6th-sem.pdf"
-    }
-  ]);
 
   const [results, setResults] = useState([
     {
