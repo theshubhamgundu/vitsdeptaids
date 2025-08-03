@@ -113,36 +113,20 @@ const AdminContent = () => {
     }
   ]);
 
-  const [facultyData, setFacultyData] = useState([
-    {
-      id: 1,
-      name: "Dr. Anita Verma",
-      designation: "Associate Professor",
-      department: "AI & Data Science",
-      specialization: "Machine Learning, Deep Learning",
-      experience: "10 years",
-      education: "Ph.D. in Computer Science",
-      email: "anita.verma@vignan.ac.in",
-      phone: "+91 9876543210",
-      imageUrl: "/api/placeholder/150/150",
-      researchPapers: 25,
-      status: "Active"
-    },
-    {
-      id: 2,
-      name: "Dr. Raj Kumar",
-      designation: "Professor & HOD",
-      department: "AI & Data Science",
-      specialization: "Data Science, Analytics",
-      experience: "15 years",
-      education: "Ph.D. in Data Science",
-      email: "raj.kumar@vignan.ac.in",
-      phone: "+91 9876543211",
-      imageUrl: "/api/placeholder/150/150",
-      researchPapers: 45,
-      status: "Active"
-    }
-  ]);
+  const [facultyData, setFacultyData] = useState(getAllFaculty().map(faculty => ({
+    id: faculty.id,
+    name: faculty.name,
+    designation: faculty.designation,
+    department: faculty.department,
+    specialization: faculty.specialization,
+    experience: `${faculty.experience} years`,
+    education: faculty.qualification,
+    email: faculty.email,
+    phone: faculty.phone,
+    imageUrl: "/api/placeholder/150/150",
+    researchPapers: Math.floor(Math.random() * 50), // Random for now
+    status: "Active"
+  })));
 
   const [placements, setPlacements] = useState([
     {
