@@ -1,4 +1,5 @@
 import { supabase, authHelpers, tables } from '@/lib/supabase';
+import { getAllFaculty as getFallbackFaculty, authenticateFaculty as fallbackAuthFaculty, getFacultyByRole as getFallbackFacultyByRole, getFacultyById as getFallbackFacultyById } from '@/data/facultyData';
 
 export interface FacultyMember {
   id: string;
@@ -38,6 +39,12 @@ export interface User {
 // Faculty Authentication
 export const authenticateFaculty = async (facultyId: string, password: string): Promise<FacultyMember | null> => {
   try {
+    // Check if Supabase is properly configured
+    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+      console.log('Supabase not configured, falling back to local data');
+      return fallbackAuthFaculty(facultyId, password);
+    }
+
     const { data: faculty, error } = await tables.faculty()
       .select('*')
       .eq('faculty_id', facultyId)
@@ -45,8 +52,8 @@ export const authenticateFaculty = async (facultyId: string, password: string): 
       .single();
 
     if (error || !faculty) {
-      console.error('Faculty authentication error:', error);
-      return null;
+      console.log('Supabase authentication failed, trying fallback:', error?.message);
+      return fallbackAuthFaculty(facultyId, password);
     }
 
     return {
@@ -65,8 +72,8 @@ export const authenticateFaculty = async (facultyId: string, password: string): 
       canChangePassword: faculty.can_change_password
     };
   } catch (error) {
-    console.error('Error authenticating faculty:', error);
-    return null;
+    console.log('Error with Supabase authentication, using fallback:', error);
+    return fallbackAuthFaculty(facultyId, password);
   }
 };
 
@@ -112,13 +119,19 @@ export const authenticateStudent = async (hallTicket: string, password: string):
 // Get all faculty members
 export const getAllFaculty = async (): Promise<FacultyMember[]> => {
   try {
+    // Check if Supabase is properly configured
+    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+      console.log('Supabase not configured, using local faculty data');
+      return getFallbackFaculty();
+    }
+
     const { data: facultyList, error } = await tables.faculty()
       .select('*')
       .order('name');
 
     if (error) {
-      console.error('Error fetching faculty:', error);
-      return [];
+      console.log('Error fetching faculty from Supabase, using fallback:', error);
+      return getFallbackFaculty();
     }
 
     return facultyList.map(faculty => ({
@@ -137,8 +150,8 @@ export const getAllFaculty = async (): Promise<FacultyMember[]> => {
       canChangePassword: faculty.can_change_password
     }));
   } catch (error) {
-    console.error('Error fetching all faculty:', error);
-    return [];
+    console.log('Error with Supabase, using local faculty data:', error);
+    return getFallbackFaculty();
   }
 };
 
