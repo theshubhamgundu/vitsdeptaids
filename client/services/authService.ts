@@ -160,16 +160,22 @@ export const getAllFaculty = async (): Promise<FacultyMember[]> => {
 // Get faculty by role
 export const getFacultyByRole = async (role: "HOD" | "Faculty" | "Admin"): Promise<FacultyMember[]> => {
   try {
+    const facultyTable = tables.faculty();
+    if (!facultyTable) {
+      console.log('Supabase not configured, using local faculty data');
+      return getFallbackFacultyByRole(role);
+    }
+
     const roleValue = role === 'HOD' ? 'hod' : role.toLowerCase();
-    
-    const { data: facultyList, error } = await tables.faculty()
+
+    const { data: facultyList, error } = await facultyTable
       .select('*')
       .eq('role', roleValue)
       .order('name');
 
     if (error) {
-      console.error('Error fetching faculty by role:', error);
-      return [];
+      console.log('Error fetching faculty by role from Supabase, using fallback:', error);
+      return getFallbackFacultyByRole(role);
     }
 
     return facultyList.map(faculty => ({
@@ -188,22 +194,28 @@ export const getFacultyByRole = async (role: "HOD" | "Faculty" | "Admin"): Promi
       canChangePassword: faculty.can_change_password
     }));
   } catch (error) {
-    console.error('Error fetching faculty by role:', error);
-    return [];
+    console.log('Error with Supabase, using local faculty data:', error);
+    return getFallbackFacultyByRole(role);
   }
 };
 
 // Get faculty by ID
 export const getFacultyById = async (facultyId: string): Promise<FacultyMember | null> => {
   try {
-    const { data: faculty, error } = await tables.faculty()
+    const facultyTable = tables.faculty();
+    if (!facultyTable) {
+      console.log('Supabase not configured, using local faculty data');
+      return getFallbackFacultyById(facultyId);
+    }
+
+    const { data: faculty, error } = await facultyTable
       .select('*')
       .eq('faculty_id', facultyId)
       .single();
 
     if (error || !faculty) {
-      console.error('Error fetching faculty by ID:', error);
-      return null;
+      console.log('Error fetching faculty by ID from Supabase, using fallback:', error);
+      return getFallbackFacultyById(facultyId);
     }
 
     return {
@@ -222,8 +234,8 @@ export const getFacultyById = async (facultyId: string): Promise<FacultyMember |
       canChangePassword: faculty.can_change_password
     };
   } catch (error) {
-    console.error('Error fetching faculty by ID:', error);
-    return null;
+    console.log('Error with Supabase, using local faculty data:', error);
+    return getFallbackFacultyById(facultyId);
   }
 };
 
