@@ -274,6 +274,7 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
 
         {/* Page content */}
         <main className="flex-1 p-3 sm:p-6 overflow-auto">
+          <SystemStatus />
           {children}
         </main>
       </div>
