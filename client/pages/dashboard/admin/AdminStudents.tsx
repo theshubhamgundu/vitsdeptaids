@@ -196,13 +196,20 @@ const AdminStudents = () => {
     <DashboardLayout userType="admin" userName="Admin User">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Student Management</h1>
-            <p className="text-gray-600">Complete student administration and records management</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Student Management</h1>
+            <p className="text-sm sm:text-base text-gray-600">Complete student administration and records management</p>
           </div>
-          <div className="flex space-x-3">
-            <Button onClick={exportStudents} variant="outline">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button
+              onClick={() => window.location.href = "/dashboard/admin/students/create"}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create Student
+            </Button>
+            <Button onClick={exportStudents} variant="outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
               Export Data
             </Button>
