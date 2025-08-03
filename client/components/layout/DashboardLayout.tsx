@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import SystemStatus from "@/components/SystemStatus";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -371,7 +371,6 @@ const DashboardLayout = ({
 
         {/* Page content */}
         <main className="flex-1 p-3 sm:p-6 overflow-auto">
-          <SystemStatus />
           {children}
         </main>
       </div>
