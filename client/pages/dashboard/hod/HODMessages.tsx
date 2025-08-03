@@ -178,21 +178,48 @@ const HODMessages = () => {
   const categories = ["General", "Academic", "Meeting", "Research", "Administrative"];
 
   const handleSendMessage = () => {
-    if (!newMessage.title || !newMessage.content) return;
+    if (!newMessage.title || !newMessage.content) {
+      toast({
+        title: "Error",
+        description: "Please fill in both title and content",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    let recipientCount = 0;
+    if (newMessage.recipients === "All Faculty") {
+      recipientCount = allFaculty.length;
+    } else if (newMessage.recipients === "All Students") {
+      recipientCount = 240; // Estimated student count
+    } else if (newMessage.recipients === "Admin Staff") {
+      recipientCount = getFacultyByRole("Admin").length;
+    } else if (newMessage.recipients === "Associate Professors") {
+      recipientCount = allFaculty.filter(f => f.designation === "Associate Prof.").length;
+    } else if (newMessage.recipients === "Assistant Professors") {
+      recipientCount = allFaculty.filter(f => f.designation === "Asst. Prof.").length;
+    } else {
+      recipientCount = 1; // Individual faculty member
+    }
 
     const message = {
       id: Date.now(),
       ...newMessage,
       sentDate: newMessage.scheduledDate || new Date().toISOString().split('T')[0],
-      sentBy: "Dr. Priya Sharma",
+      sentBy: "Dr. V. Srinivas", // HOD name from faculty data
       status: newMessage.scheduledDate ? "Scheduled" : "Sent",
-      recipientCount: newMessage.recipients === "All Faculty" ? 15 : 
-                     newMessage.recipients === "All Students" ? 240 : 5,
+      recipientCount,
       readBy: 0,
       acknowledgments: 0
     };
 
     setMessages(prev => [message, ...prev]);
+
+    toast({
+      title: "Message Sent Successfully",
+      description: `Message sent to ${recipientCount} recipient(s): ${newMessage.recipients}`,
+    });
+
     setShowMessageDialog(false);
     setNewMessage({
       title: "",
