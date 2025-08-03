@@ -164,6 +164,10 @@ const AdminStudents = () => {
   const exportStudents = () => {
     // In real app, this would generate and download CSV/Excel
     console.log("Exporting students data");
+    toast({
+      title: "Export Started",
+      description: "Student data is being exported. You'll receive the file shortly.",
+    });
   };
 
   const getStatusColor = (status) => {
