@@ -429,7 +429,7 @@ const SimpleTimetableCreator = () => {
               {savedTimetables.map((tt) => (
                 <div key={tt.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg gap-3">
                   <div className="flex-1">
-                    <div className="font-medium">{tt.year} - {tt.semester}</div>
+                    <div className="font-medium">{tt.year}</div>
                     <div className="text-sm text-gray-600">
                       Created: {new Date(tt.createdDate).toLocaleDateString()} • {tt.classCount} classes
                     </div>
