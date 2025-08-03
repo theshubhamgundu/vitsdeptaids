@@ -166,7 +166,14 @@ const HODMessages = () => {
     scheduledDate: ""
   });
 
-  const recipients = ["All Faculty", "All Students", "Course Faculty", "Lab Coordinators", "Admin Staff"];
+  const recipients = [
+    "All Faculty",
+    "All Students",
+    "Admin Staff",
+    ...facultyOnly.map(f => f.name), // Individual faculty members
+    "Associate Professors",
+    "Assistant Professors"
+  ];
   const priorities = ["High", "Medium", "Low"];
   const categories = ["General", "Academic", "Meeting", "Research", "Administrative"];
 
