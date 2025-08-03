@@ -461,12 +461,12 @@ const HODDashboard = () => {
                 </Button>
               </Link>
               
-              <Link to="/dashboard/hod/analytics">
+              <Link to="/dashboard/hod/messages">
                 <Button variant="outline" className="w-full justify-start h-auto p-4">
                   <div className="text-left">
-                    <BarChart3 className="h-5 w-5 mb-2" />
-                    <div className="font-medium">Analytics</div>
-                    <div className="text-xs text-gray-600">Detailed reports</div>
+                    <MessageSquare className="h-5 w-5 mb-2" />
+                    <div className="font-medium">Messages</div>
+                    <div className="text-xs text-gray-600">Department communication</div>
                   </div>
                 </Button>
               </Link>
