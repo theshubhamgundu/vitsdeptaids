@@ -40,12 +40,13 @@ export interface User {
 export const authenticateFaculty = async (facultyId: string, password: string): Promise<FacultyMember | null> => {
   try {
     // Check if Supabase is properly configured
-    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+    const facultyTable = tables.faculty();
+    if (!facultyTable) {
       console.log('Supabase not configured, falling back to local data');
       return fallbackAuthFaculty(facultyId, password);
     }
 
-    const { data: faculty, error } = await tables.faculty()
+    const { data: faculty, error } = await facultyTable
       .select('*')
       .eq('faculty_id', facultyId)
       .eq('password_hash', password)
@@ -120,12 +121,13 @@ export const authenticateStudent = async (hallTicket: string, password: string):
 export const getAllFaculty = async (): Promise<FacultyMember[]> => {
   try {
     // Check if Supabase is properly configured
-    if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+    const facultyTable = tables.faculty();
+    if (!facultyTable) {
       console.log('Supabase not configured, using local faculty data');
       return getFallbackFaculty();
     }
 
-    const { data: facultyList, error } = await tables.faculty()
+    const { data: facultyList, error } = await facultyTable
       .select('*')
       .order('name');
 
