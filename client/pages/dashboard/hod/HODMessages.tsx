@@ -52,6 +52,12 @@ import {
 } from "lucide-react";
 
 const HODMessages = () => {
+  const { toast } = useToast();
+
+  // Get faculty data for recipients
+  const allFaculty = getAllFaculty();
+  const facultyOnly = getFacultyByRole("Faculty");
+
   const [messages, setMessages] = useState([
     {
       id: 1,
