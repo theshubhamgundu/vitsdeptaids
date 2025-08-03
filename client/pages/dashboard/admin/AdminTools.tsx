@@ -91,21 +91,8 @@ const AdminTools = () => {
   const [filterYear, setFilterYear] = useState("all");
 
   // Dialog states
-  const [showTimetableDialog, setShowTimetableDialog] = useState(false);
   const [showResultsDialog, setShowResultsDialog] = useState(false);
   const [showAttendanceDialog, setShowAttendanceDialog] = useState(false);
-
-  // Form states
-  const [newTimetable, setNewTimetable] = useState({
-    title: "",
-    year: "",
-    semester: "",
-    file: null,
-    designMode: false,
-    effectiveFrom: "",
-    morningStart: "09:00",
-    afternoonStart: "14:00"
-  });
 
   const [newResults, setNewResults] = useState({
     title: "",
@@ -328,7 +315,7 @@ const AdminTools = () => {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="results">📊 Results</TabsTrigger>
             <TabsTrigger value="attendance">📉 Attendance</TabsTrigger>
-            <TabsTrigger value="students">🔍 Students</TabsTrigger>
+            <TabsTrigger value="students">��� Students</TabsTrigger>
           </TabsList>
 
 
