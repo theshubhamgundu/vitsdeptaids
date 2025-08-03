@@ -228,12 +228,16 @@ const LoginPage = () => {
             )}
 
             {type === 'student' && (
-              <div className="border rounded-lg p-3 bg-gray-50 text-left">
-                <p className="text-xs font-medium text-gray-700 mb-2">Demo Student Login:</p>
-                <div className="text-xs text-gray-600">
-                  <div><strong>Hall Ticket:</strong> 20AI001</div>
-                  <div><strong>Password:</strong> student123</div>
-                </div>
+              <div className="border rounded-lg p-3 bg-blue-50 text-center">
+                <p className="text-sm font-medium text-gray-700 mb-3">Don't have an account?</p>
+                <Link to="/register/student">
+                  <Button variant="outline" className="w-full">
+                    Create Student Account
+                  </Button>
+                </Link>
+                <p className="text-xs text-gray-600 mt-2">
+                  Register with your hall ticket and academic details
+                </p>
               </div>
             )}
 
