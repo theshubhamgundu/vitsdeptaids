@@ -452,7 +452,7 @@ const SimpleTimetableCreator = () => {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">
-              Weekly Timetable - {selectedYear} {selectedSemester}
+              Weekly Timetable - {selectedYear}
             </CardTitle>
             <CardDescription>Click on any time slot to add/edit a class</CardDescription>
           </CardHeader>
