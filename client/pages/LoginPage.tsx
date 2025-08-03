@@ -65,7 +65,7 @@ const LoginPage = () => {
     try {
       if (type === 'faculty' || type === 'admin') {
         // Use faculty database for authentication
-        const faculty = authenticateFaculty(formData.identifier, formData.password);
+        const faculty = await authenticateFaculty(formData.identifier, formData.password);
 
         if (faculty) {
           toast({
