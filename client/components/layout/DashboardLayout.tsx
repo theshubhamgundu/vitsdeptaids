@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import SystemStatus from "@/components/SystemStatus";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
   Menu,
   X,
   Home,
@@ -35,7 +35,7 @@ import {
   Shield,
   GraduationCap,
   CreditCard,
-  Wrench
+  Wrench,
 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -44,7 +44,11 @@ interface DashboardLayoutProps {
   userName: string;
 }
 
-const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps) => {
+const DashboardLayout = ({
+  children,
+  userType,
+  userName,
+}: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -57,14 +61,42 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
       items: [
         { name: "Dashboard", href: "/dashboard/student", icon: Home },
         { name: "Profile", href: "/dashboard/student/profile", icon: User },
-        { name: "Certificates", href: "/dashboard/student/certificates", icon: Award },
-        { name: "Results", href: "/dashboard/student/results", icon: BarChart3 },
-        { name: "Attendance", href: "/dashboard/student/attendance", icon: Calendar },
-        { name: "Study Materials", href: "/dashboard/student/materials", icon: BookOpen },
-        { name: "Timetable", href: "/dashboard/student/timetable", icon: Clock },
-        { name: "Leave Applications", href: "/dashboard/student/leave", icon: Plane },
-        { name: "Fee Payment", href: "/dashboard/student/fees", icon: CreditCard },
-      ]
+        {
+          name: "Certificates",
+          href: "/dashboard/student/certificates",
+          icon: Award,
+        },
+        {
+          name: "Results",
+          href: "/dashboard/student/results",
+          icon: BarChart3,
+        },
+        {
+          name: "Attendance",
+          href: "/dashboard/student/attendance",
+          icon: Calendar,
+        },
+        {
+          name: "Study Materials",
+          href: "/dashboard/student/materials",
+          icon: BookOpen,
+        },
+        {
+          name: "Timetable",
+          href: "/dashboard/student/timetable",
+          icon: Clock,
+        },
+        {
+          name: "Leave Applications",
+          href: "/dashboard/student/leave",
+          icon: Plane,
+        },
+        {
+          name: "Fee Payment",
+          href: "/dashboard/student/fees",
+          icon: CreditCard,
+        },
+      ],
     },
     faculty: {
       title: "Faculty Dashboard",
@@ -74,11 +106,27 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
         { name: "Dashboard", href: "/dashboard/faculty", icon: Home },
         { name: "Profile", href: "/dashboard/faculty/profile", icon: User },
         { name: "Students", href: "/dashboard/faculty/students", icon: Users },
-        { name: "Study Materials", href: "/dashboard/faculty/materials", icon: Upload },
-        { name: "Results", href: "/dashboard/faculty/results", icon: BarChart3 },
-        { name: "Messages", href: "/dashboard/faculty/messages", icon: MessageSquare },
-        { name: "Leave Applications", href: "/dashboard/faculty/leave", icon: Plane },
-      ]
+        {
+          name: "Study Materials",
+          href: "/dashboard/faculty/materials",
+          icon: Upload,
+        },
+        {
+          name: "Results",
+          href: "/dashboard/faculty/results",
+          icon: BarChart3,
+        },
+        {
+          name: "Messages",
+          href: "/dashboard/faculty/messages",
+          icon: MessageSquare,
+        },
+        {
+          name: "Leave Applications",
+          href: "/dashboard/faculty/leave",
+          icon: Plane,
+        },
+      ],
     },
     admin: {
       title: "Admin Panel",
@@ -89,10 +137,18 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
         { name: "Profile", href: "/dashboard/admin/profile", icon: User },
         { name: "Students", href: "/dashboard/admin/students", icon: Users },
         { name: "Faculty", href: "/dashboard/admin/faculty", icon: Users },
-        { name: "Timetable Creator", href: "/dashboard/admin/timetable-creator", icon: Clock },
-        { name: "Content Management", href: "/dashboard/admin/content", icon: Settings },
+        {
+          name: "Timetable Creator",
+          href: "/dashboard/admin/timetable-creator",
+          icon: Clock,
+        },
+        {
+          name: "Content Management",
+          href: "/dashboard/admin/content",
+          icon: Settings,
+        },
         { name: "Admin Tools", href: "/dashboard/admin/tools", icon: Wrench },
-      ]
+      ],
     },
     hod: {
       title: "HOD Dashboard",
@@ -102,11 +158,19 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
         { name: "Dashboard", href: "/dashboard/hod", icon: Home },
         { name: "Profile", href: "/dashboard/hod/profile", icon: User },
         { name: "Students", href: "/dashboard/hod/students", icon: Users },
-        { name: "Faculty Leaves", href: "/dashboard/hod/faculty-leaves", icon: FileText },
+        {
+          name: "Faculty Leaves",
+          href: "/dashboard/hod/faculty-leaves",
+          icon: FileText,
+        },
         { name: "Timetables", href: "/dashboard/hod/timetables", icon: Clock },
-        { name: "Messages", href: "/dashboard/hod/messages", icon: MessageSquare },
-      ]
-    }
+        {
+          name: "Messages",
+          href: "/dashboard/hod/messages",
+          icon: MessageSquare,
+        },
+      ],
+    },
   };
 
   const config = navigationConfig[userType];
@@ -132,16 +196,20 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:relative lg:block ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-      }`}>
+      <div
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:relative lg:block ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        }`}
+      >
         <div className="flex items-center justify-between h-14 sm:h-16 px-4 sm:px-6 border-b">
           <div className="flex items-center space-x-2 sm:space-x-3">
             <div className={`p-1.5 sm:p-2 rounded-lg ${config.color}`}>
               <IconComponent className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-sm sm:text-lg font-semibold text-gray-900">AI & DS</h1>
+              <h1 className="text-sm sm:text-lg font-semibold text-gray-900">
+                AI & DS
+              </h1>
               <Badge variant="outline" className="text-xs">
                 {userType.toUpperCase()}
               </Badge>
@@ -167,7 +235,7 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
                 className={`flex items-center px-2 sm:px-3 py-2.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
                   isActivePath(item.href)
                     ? `${config.color} text-white`
-                    : 'text-gray-700 hover:bg-gray-100'
+                    : "text-gray-700 hover:bg-gray-100"
                 }`}
               >
                 <item.icon className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
@@ -182,7 +250,12 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
             <div className="flex items-center space-x-2 sm:space-x-3">
               <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
                 <AvatarImage src="/api/placeholder/40/40" />
-                <AvatarFallback className="text-xs sm:text-sm">{userName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                <AvatarFallback className="text-xs sm:text-sm">
+                  {userName
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
@@ -210,8 +283,12 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
                 <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
               <div>
-                <h1 className="text-base sm:text-xl font-semibold text-gray-900 truncate">{config.title}</h1>
-                <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Welcome back, {userName}</p>
+                <h1 className="text-base sm:text-xl font-semibold text-gray-900 truncate">
+                  {config.title}
+                </h1>
+                <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">
+                  Welcome back, {userName}
+                </p>
               </div>
             </div>
 
@@ -234,17 +311,31 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0">
+                  <Button
+                    variant="ghost"
+                    className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0"
+                  >
                     <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
                       <AvatarImage src="/api/placeholder/40/40" />
-                      <AvatarFallback className="text-xs sm:text-sm">{userName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                      <AvatarFallback className="text-xs sm:text-sm">
+                        {userName
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
+                      </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-48 sm:w-56" align="end" forceMount>
+                <DropdownMenuContent
+                  className="w-48 sm:w-56"
+                  align="end"
+                  forceMount
+                >
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-xs sm:text-sm font-medium leading-none truncate">{userName}</p>
+                      <p className="text-xs sm:text-sm font-medium leading-none truncate">
+                        {userName}
+                      </p>
                       <p className="text-xs leading-none text-muted-foreground capitalize">
                         {userType}
                       </p>
@@ -252,7 +343,10 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to={`/dashboard/${userType}/profile`} className="cursor-pointer">
+                    <Link
+                      to={`/dashboard/${userType}/profile`}
+                      className="cursor-pointer"
+                    >
                       <User className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                       <span className="text-xs sm:text-sm">Profile</span>
                     </Link>
@@ -262,7 +356,10 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
                     <span className="text-xs sm:text-sm">Settings</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="cursor-pointer"
+                  >
                     <LogOut className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="text-xs sm:text-sm">Log out</span>
                   </DropdownMenuItem>

@@ -1,6 +1,7 @@
 # 🚀 Deploy to Vercel - Step by Step
 
 ## Prerequisites Completed ✅
+
 - Application is built and ready
 - Supabase fallback system implemented
 - All faculty data prepared
@@ -8,9 +9,11 @@
 ## Step 1: Deploy to Vercel
 
 ### Option A: Via Vercel MCP (Recommended)
+
 Since Vercel MCP is connected, the deployment will be automatic when you push to git.
 
 ### Option B: Manual Deployment
+
 1. Go to [vercel.com](https://vercel.com)
 2. Click "New Project"
 3. Import your Git repository
@@ -42,14 +45,17 @@ After deployment completes:
 3. **Test Login** with these credentials:
 
 ### HOD Login:
+
 - Faculty ID: `AIDS-HVS1`
 - Password: `@VSrinivas231`
 
 ### Faculty Login:
-- Faculty ID: `AIDS-ANK1` 
+
+- Faculty ID: `AIDS-ANK1`
 - Password: `@NMKrishna342`
 
 ### Student Login:
+
 - Hall Ticket: `20AI001`
 - Password: `student123`
 
@@ -83,6 +89,7 @@ Your application will be live at: `https://your-project-name.vercel.app`
 ## 📞 Troubleshooting
 
 If you encounter issues:
+
 1. Check Vercel function logs
 2. Verify environment variables are set correctly
 3. Ensure Supabase database scripts ran without errors
@@ -91,6 +98,7 @@ If you encounter issues:
 ## 🔑 Login Credentials Summary
 
 All faculty credentials are ready to use:
+
 - **HOD**: AIDS-HVS1 / @VSrinivas231
 - **9 Faculty Members** with individual credentials
 - **Admin**: AIDS-DKS1 / @KSomesh702

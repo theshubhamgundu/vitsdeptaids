@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { isSupabaseConfigured } from '@/lib/supabase';
-import { Database, AlertTriangle, CheckCircle } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import { Database, AlertTriangle, CheckCircle } from "lucide-react";
 
 const SystemStatus = () => {
   const [showStatus, setShowStatus] = useState(true);
@@ -24,7 +24,10 @@ const SystemStatus = () => {
           <CheckCircle className="h-4 w-4 text-green-600" />
           <AlertDescription className="flex items-center justify-between">
             <span className="text-green-800">Database connected</span>
-            <Badge variant="outline" className="text-green-700 border-green-300">
+            <Badge
+              variant="outline"
+              className="text-green-700 border-green-300"
+            >
               Production Mode
             </Badge>
           </AlertDescription>
@@ -35,12 +38,16 @@ const SystemStatus = () => {
           <AlertDescription className="text-yellow-800">
             <div className="flex items-center justify-between mb-2">
               <span className="font-medium">Demo Mode</span>
-              <Badge variant="outline" className="text-yellow-700 border-yellow-300">
+              <Badge
+                variant="outline"
+                className="text-yellow-700 border-yellow-300"
+              >
                 Local Data
               </Badge>
             </div>
             <div className="text-xs">
-              Configure Supabase environment variables to enable full database features.
+              Configure Supabase environment variables to enable full database
+              features.
             </div>
           </AlertDescription>
         </Alert>

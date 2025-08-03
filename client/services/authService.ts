@@ -1,5 +1,10 @@
-import { supabase, authHelpers, tables } from '@/lib/supabase';
-import { getAllFaculty as getFallbackFaculty, authenticateFaculty as fallbackAuthFaculty, getFacultyByRole as getFallbackFacultyByRole, getFacultyById as getFallbackFacultyById } from '@/data/facultyData';
+import { supabase, authHelpers, tables } from "@/lib/supabase";
+import {
+  getAllFaculty as getFallbackFaculty,
+  authenticateFaculty as fallbackAuthFaculty,
+  getFacultyByRole as getFallbackFacultyByRole,
+  getFacultyById as getFallbackFacultyById,
+} from "@/data/facultyData";
 
 export interface FacultyMember {
   id: string;
@@ -37,23 +42,29 @@ export interface User {
 }
 
 // Faculty Authentication
-export const authenticateFaculty = async (facultyId: string, password: string): Promise<FacultyMember | null> => {
+export const authenticateFaculty = async (
+  facultyId: string,
+  password: string,
+): Promise<FacultyMember | null> => {
   try {
     // Check if Supabase is properly configured
     const facultyTable = tables.faculty();
     if (!facultyTable) {
-      console.log('Supabase not configured, falling back to local data');
+      console.log("Supabase not configured, falling back to local data");
       return fallbackAuthFaculty(facultyId, password);
     }
 
     const { data: faculty, error } = await facultyTable
-      .select('*')
-      .eq('faculty_id', facultyId)
-      .eq('password_hash', password)
+      .select("*")
+      .eq("faculty_id", facultyId)
+      .eq("password_hash", password)
       .single();
 
     if (error || !faculty) {
-      console.log('Supabase authentication failed, trying fallback:', error?.message);
+      console.log(
+        "Supabase authentication failed, trying fallback:",
+        error?.message,
+      );
       return fallbackAuthFaculty(facultyId, password);
     }
 
@@ -62,34 +73,43 @@ export const authenticateFaculty = async (facultyId: string, password: string): 
       name: faculty.name,
       designation: faculty.designation,
       facultyId: faculty.faculty_id,
-      role: faculty.role === 'hod' ? 'HOD' : faculty.role === 'admin' ? 'Admin' : 'Faculty',
+      role:
+        faculty.role === "hod"
+          ? "HOD"
+          : faculty.role === "admin"
+            ? "Admin"
+            : "Faculty",
       defaultPassword: faculty.password_hash,
       email: faculty.email,
-      phone: faculty.phone || '',
+      phone: faculty.phone || "",
       department: faculty.department,
-      specialization: faculty.specialization || '',
+      specialization: faculty.specialization || "",
       experience: faculty.experience || 0,
-      qualification: faculty.qualification || '',
-      canChangePassword: faculty.can_change_password
+      qualification: faculty.qualification || "",
+      canChangePassword: faculty.can_change_password,
     };
   } catch (error) {
-    console.log('Error with Supabase authentication, using fallback:', error);
+    console.log("Error with Supabase authentication, using fallback:", error);
     return fallbackAuthFaculty(facultyId, password);
   }
 };
 
-// Student Authentication  
-export const authenticateStudent = async (hallTicket: string, password: string): Promise<Student | null> => {
+// Student Authentication
+export const authenticateStudent = async (
+  hallTicket: string,
+  password: string,
+): Promise<Student | null> => {
   try {
     // For now, use simple authentication - in production, implement proper password hashing
     if (hallTicket === "20AI001" && password === "student123") {
-      const { data: student, error } = await tables.students()
-        .select('*')
-        .eq('hall_ticket', hallTicket)
+      const { data: student, error } = await tables
+        .students()
+        .select("*")
+        .eq("hall_ticket", hallTicket)
         .single();
 
       if (error) {
-        console.error('Student fetch error:', error);
+        console.error("Student fetch error:", error);
         // Return default student if not found in database
         return {
           id: "student1",
@@ -97,7 +117,7 @@ export const authenticateStudent = async (hallTicket: string, password: string):
           hallTicket: "20AI001",
           email: "student@vignan.ac.in",
           year: "3rd Year",
-          section: "A"
+          section: "A",
         };
       }
 
@@ -107,12 +127,12 @@ export const authenticateStudent = async (hallTicket: string, password: string):
         hallTicket: student.hall_ticket,
         email: student.email,
         year: student.year,
-        section: student.section || 'A'
+        section: student.section || "A",
       };
     }
     return null;
   } catch (error) {
-    console.error('Error authenticating student:', error);
+    console.error("Error authenticating student:", error);
     return null;
   }
 };
@@ -123,98 +143,121 @@ export const getAllFaculty = async (): Promise<FacultyMember[]> => {
     // Check if Supabase is properly configured
     const facultyTable = tables.faculty();
     if (!facultyTable) {
-      console.log('Supabase not configured, using local faculty data');
+      console.log("Supabase not configured, using local faculty data");
       return getFallbackFaculty();
     }
 
     const { data: facultyList, error } = await facultyTable
-      .select('*')
-      .order('name');
+      .select("*")
+      .order("name");
 
     if (error) {
-      console.log('Error fetching faculty from Supabase, using fallback:', error);
+      console.log(
+        "Error fetching faculty from Supabase, using fallback:",
+        error,
+      );
       return getFallbackFaculty();
     }
 
-    return facultyList.map(faculty => ({
+    return facultyList.map((faculty) => ({
       id: faculty.id,
       name: faculty.name,
       designation: faculty.designation,
       facultyId: faculty.faculty_id,
-      role: faculty.role === 'hod' ? 'HOD' : faculty.role === 'admin' ? 'Admin' : 'Faculty',
+      role:
+        faculty.role === "hod"
+          ? "HOD"
+          : faculty.role === "admin"
+            ? "Admin"
+            : "Faculty",
       defaultPassword: faculty.password_hash,
       email: faculty.email,
-      phone: faculty.phone || '',
+      phone: faculty.phone || "",
       department: faculty.department,
-      specialization: faculty.specialization || '',
+      specialization: faculty.specialization || "",
       experience: faculty.experience || 0,
-      qualification: faculty.qualification || '',
-      canChangePassword: faculty.can_change_password
+      qualification: faculty.qualification || "",
+      canChangePassword: faculty.can_change_password,
     }));
   } catch (error) {
-    console.log('Error with Supabase, using local faculty data:', error);
+    console.log("Error with Supabase, using local faculty data:", error);
     return getFallbackFaculty();
   }
 };
 
 // Get faculty by role
-export const getFacultyByRole = async (role: "HOD" | "Faculty" | "Admin"): Promise<FacultyMember[]> => {
+export const getFacultyByRole = async (
+  role: "HOD" | "Faculty" | "Admin",
+): Promise<FacultyMember[]> => {
   try {
     const facultyTable = tables.faculty();
     if (!facultyTable) {
-      console.log('Supabase not configured, using local faculty data');
+      console.log("Supabase not configured, using local faculty data");
       return getFallbackFacultyByRole(role);
     }
 
-    const roleValue = role === 'HOD' ? 'hod' : role.toLowerCase();
+    const roleValue = role === "HOD" ? "hod" : role.toLowerCase();
 
     const { data: facultyList, error } = await facultyTable
-      .select('*')
-      .eq('role', roleValue)
-      .order('name');
+      .select("*")
+      .eq("role", roleValue)
+      .order("name");
 
     if (error) {
-      console.log('Error fetching faculty by role from Supabase, using fallback:', error);
+      console.log(
+        "Error fetching faculty by role from Supabase, using fallback:",
+        error,
+      );
       return getFallbackFacultyByRole(role);
     }
 
-    return facultyList.map(faculty => ({
+    return facultyList.map((faculty) => ({
       id: faculty.id,
       name: faculty.name,
       designation: faculty.designation,
       facultyId: faculty.faculty_id,
-      role: faculty.role === 'hod' ? 'HOD' : faculty.role === 'admin' ? 'Admin' : 'Faculty',
+      role:
+        faculty.role === "hod"
+          ? "HOD"
+          : faculty.role === "admin"
+            ? "Admin"
+            : "Faculty",
       defaultPassword: faculty.password_hash,
       email: faculty.email,
-      phone: faculty.phone || '',
+      phone: faculty.phone || "",
       department: faculty.department,
-      specialization: faculty.specialization || '',
+      specialization: faculty.specialization || "",
       experience: faculty.experience || 0,
-      qualification: faculty.qualification || '',
-      canChangePassword: faculty.can_change_password
+      qualification: faculty.qualification || "",
+      canChangePassword: faculty.can_change_password,
     }));
   } catch (error) {
-    console.log('Error with Supabase, using local faculty data:', error);
+    console.log("Error with Supabase, using local faculty data:", error);
     return getFallbackFacultyByRole(role);
   }
 };
 
 // Get faculty by ID
-export const getFacultyById = async (facultyId: string): Promise<FacultyMember | null> => {
+export const getFacultyById = async (
+  facultyId: string,
+): Promise<FacultyMember | null> => {
   try {
     const facultyTable = tables.faculty();
     if (!facultyTable) {
-      console.log('Supabase not configured, using local faculty data');
+      console.log("Supabase not configured, using local faculty data");
       return getFallbackFacultyById(facultyId);
     }
 
     const { data: faculty, error } = await facultyTable
-      .select('*')
-      .eq('faculty_id', facultyId)
+      .select("*")
+      .eq("faculty_id", facultyId)
       .single();
 
     if (error || !faculty) {
-      console.log('Error fetching faculty by ID from Supabase, using fallback:', error);
+      console.log(
+        "Error fetching faculty by ID from Supabase, using fallback:",
+        error,
+      );
       return getFallbackFacultyById(facultyId);
     }
 
@@ -223,69 +266,86 @@ export const getFacultyById = async (facultyId: string): Promise<FacultyMember |
       name: faculty.name,
       designation: faculty.designation,
       facultyId: faculty.faculty_id,
-      role: faculty.role === 'hod' ? 'HOD' : faculty.role === 'admin' ? 'Admin' : 'Faculty',
+      role:
+        faculty.role === "hod"
+          ? "HOD"
+          : faculty.role === "admin"
+            ? "Admin"
+            : "Faculty",
       defaultPassword: faculty.password_hash,
       email: faculty.email,
-      phone: faculty.phone || '',
+      phone: faculty.phone || "",
       department: faculty.department,
-      specialization: faculty.specialization || '',
+      specialization: faculty.specialization || "",
       experience: faculty.experience || 0,
-      qualification: faculty.qualification || '',
-      canChangePassword: faculty.can_change_password
+      qualification: faculty.qualification || "",
+      canChangePassword: faculty.can_change_password,
     };
   } catch (error) {
-    console.log('Error with Supabase, using local faculty data:', error);
+    console.log("Error with Supabase, using local faculty data:", error);
     return getFallbackFacultyById(facultyId);
   }
 };
 
 // Update faculty password
-export const updateFacultyPassword = async (facultyId: string, newPassword: string): Promise<boolean> => {
+export const updateFacultyPassword = async (
+  facultyId: string,
+  newPassword: string,
+): Promise<boolean> => {
   try {
-    const { error } = await tables.faculty()
+    const { error } = await tables
+      .faculty()
       .update({ password_hash: newPassword })
-      .eq('faculty_id', facultyId);
+      .eq("faculty_id", facultyId);
 
     if (error) {
-      console.error('Error updating password:', error);
+      console.error("Error updating password:", error);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Error updating faculty password:', error);
+    console.error("Error updating faculty password:", error);
     return false;
   }
 };
 
 // Message functions
-export const sendMessage = async (senderId: string, messageData: {
-  title: string;
-  content: string;
-  recipients: string[];
-  priority: string;
-  category: string;
-  scheduledDate?: string;
-}) => {
+export const sendMessage = async (
+  senderId: string,
+  messageData: {
+    title: string;
+    content: string;
+    recipients: string[];
+    priority: string;
+    category: string;
+    scheduledDate?: string;
+  },
+) => {
   try {
-    const { data, error } = await tables.messages()
-      .insert([{
-        sender_id: senderId,
-        title: messageData.title,
-        content: messageData.content,
-        recipients: messageData.recipients,
-        recipient_count: messageData.recipients.length,
-        priority: messageData.priority,
-        category: messageData.category,
-        scheduled_date: messageData.scheduledDate ? new Date(messageData.scheduledDate).toISOString() : null,
-        status: messageData.scheduledDate ? 'scheduled' : 'sent'
-      }])
+    const { data, error } = await tables
+      .messages()
+      .insert([
+        {
+          sender_id: senderId,
+          title: messageData.title,
+          content: messageData.content,
+          recipients: messageData.recipients,
+          recipient_count: messageData.recipients.length,
+          priority: messageData.priority,
+          category: messageData.category,
+          scheduled_date: messageData.scheduledDate
+            ? new Date(messageData.scheduledDate).toISOString()
+            : null,
+          status: messageData.scheduledDate ? "scheduled" : "sent",
+        },
+      ])
       .select()
       .single();
 
     return { data, error };
   } catch (error) {
-    console.error('Error sending message:', error);
+    console.error("Error sending message:", error);
     return { data: null, error };
   }
 };
@@ -293,22 +353,25 @@ export const sendMessage = async (senderId: string, messageData: {
 // Get messages for HOD dashboard
 export const getMessages = async (senderId?: string) => {
   try {
-    let query = tables.messages().select('*').order('sent_date', { ascending: false });
-    
+    let query = tables
+      .messages()
+      .select("*")
+      .order("sent_date", { ascending: false });
+
     if (senderId) {
-      query = query.eq('sender_id', senderId);
+      query = query.eq("sender_id", senderId);
     }
 
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching messages:', error);
+      console.error("Error fetching messages:", error);
       return [];
     }
 
     return data;
   } catch (error) {
-    console.error('Error fetching messages:', error);
+    console.error("Error fetching messages:", error);
     return [];
   }
 };
@@ -316,19 +379,22 @@ export const getMessages = async (senderId?: string) => {
 // Get time slots
 export const getTimeSlots = async () => {
   try {
-    const { data, error } = await tables.time_slots()
-      .select('*')
-      .eq('is_active', true)
-      .order('order_index');
+    const { data, error } = await tables
+      .time_slots()
+      .select("*")
+      .eq("is_active", true)
+      .order("order_index");
 
     if (error) {
-      console.error('Error fetching time slots:', error);
+      console.error("Error fetching time slots:", error);
       return [];
     }
 
-    return data.map(slot => `${slot.start_time.slice(0, 5)} - ${slot.end_time.slice(0, 5)}`);
+    return data.map(
+      (slot) => `${slot.start_time.slice(0, 5)} - ${slot.end_time.slice(0, 5)}`,
+    );
   } catch (error) {
-    console.error('Error fetching time slots:', error);
+    console.error("Error fetching time slots:", error);
     return [];
   }
 };
@@ -337,28 +403,32 @@ export const getTimeSlots = async () => {
 export const addTimeSlot = async (startTime: string, endTime: string) => {
   try {
     // Get the highest order index
-    const { data: maxOrder } = await tables.time_slots()
-      .select('order_index')
-      .order('order_index', { ascending: false })
+    const { data: maxOrder } = await tables
+      .time_slots()
+      .select("order_index")
+      .order("order_index", { ascending: false })
       .limit(1)
       .single();
 
     const newOrderIndex = (maxOrder?.order_index || 0) + 1;
 
-    const { data, error } = await tables.time_slots()
-      .insert([{
-        slot_name: `${startTime} - ${endTime}`,
-        start_time: startTime,
-        end_time: endTime,
-        order_index: newOrderIndex,
-        is_active: true
-      }])
+    const { data, error } = await tables
+      .time_slots()
+      .insert([
+        {
+          slot_name: `${startTime} - ${endTime}`,
+          start_time: startTime,
+          end_time: endTime,
+          order_index: newOrderIndex,
+          is_active: true,
+        },
+      ])
       .select()
       .single();
 
     return { data, error };
   } catch (error) {
-    console.error('Error adding time slot:', error);
+    console.error("Error adding time slot:", error);
     return { data: null, error };
   }
 };
@@ -366,18 +436,19 @@ export const addTimeSlot = async (startTime: string, endTime: string) => {
 // Get courses
 export const getCourses = async () => {
   try {
-    const { data, error } = await tables.courses()
-      .select('*')
-      .order('course_name');
+    const { data, error } = await tables
+      .courses()
+      .select("*")
+      .order("course_name");
 
     if (error) {
-      console.error('Error fetching courses:', error);
+      console.error("Error fetching courses:", error);
       return [];
     }
 
     return data;
   } catch (error) {
-    console.error('Error fetching courses:', error);
+    console.error("Error fetching courses:", error);
     return [];
   }
 };
@@ -386,22 +457,24 @@ export const getCourses = async () => {
 export const getDepartmentEvents = async () => {
   try {
     const { data, error } = await supabase
-      .from('department_events')
-      .select(`
+      .from("department_events")
+      .select(
+        `
         *,
         organizer:organizer_id(name, designation)
-      `)
-      .eq('is_active', true)
-      .order('event_date', { ascending: true });
+      `,
+      )
+      .eq("is_active", true)
+      .order("event_date", { ascending: true });
 
     if (error) {
-      console.error('Error fetching events:', error);
+      console.error("Error fetching events:", error);
       return [];
     }
 
     return data;
   } catch (error) {
-    console.error('Error fetching department events:', error);
+    console.error("Error fetching department events:", error);
     return [];
   }
 };
@@ -418,5 +491,5 @@ export default {
   getTimeSlots,
   addTimeSlot,
   getCourses,
-  getDepartmentEvents
+  getDepartmentEvents,
 };
