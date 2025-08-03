@@ -30,6 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { getAllFaculty } from "@/data/facultyData";
 import { 
   Users, 
   Search, 
