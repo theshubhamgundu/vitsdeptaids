@@ -235,21 +235,28 @@ const AdminFaculty = () => {
     <DashboardLayout userType="admin" userName="Admin User">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Faculty Management</h1>
-            <p className="text-gray-600">Manage faculty profiles, assignments, and performance</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Faculty Management</h1>
+            <p className="text-sm sm:text-base text-gray-600">Manage faculty profiles, assignments, and performance</p>
           </div>
-          <div className="flex space-x-3">
-            <Button variant="outline">
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button
+              onClick={() => window.location.href = "/dashboard/admin/faculty/create"}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create Faculty
+            </Button>
+            <Button variant="outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
               Export Report
             </Button>
             <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
               <DialogTrigger asChild>
-                <Button>
+                <Button variant="outline" size="sm">
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Faculty
+                  Quick Add
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-lg">
