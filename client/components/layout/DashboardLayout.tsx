@@ -157,21 +157,21 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
           </Button>
         </div>
 
-        <nav className="mt-6 px-3">
+        <nav className="mt-4 sm:mt-6 px-2 sm:px-3">
           <div className="space-y-1">
             {config.items.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                className={`flex items-center px-2 sm:px-3 py-2.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg transition-colors ${
                   isActivePath(item.href)
                     ? `${config.color} text-white`
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
-                <item.icon className="mr-3 h-5 w-5" />
-                {item.name}
+                <item.icon className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="truncate">{item.name}</span>
               </Link>
             ))}
           </div>
