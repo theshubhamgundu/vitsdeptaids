@@ -30,12 +30,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { 
-  Users, 
-  Search, 
-  Plus, 
-  Edit, 
-  Trash2, 
+import { useToast } from "@/hooks/use-toast";
+import {
+  Users,
+  Search,
+  Plus,
+  Edit,
+  Trash2,
   Download,
   Upload,
   Eye,
