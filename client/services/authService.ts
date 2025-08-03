@@ -1,0 +1,395 @@
+import { supabase, authHelpers, tables } from '@/lib/supabase';
+
+export interface FacultyMember {
+  id: string;
+  name: string;
+  designation: string;
+  facultyId: string;
+  role: "HOD" | "Faculty" | "Admin";
+  defaultPassword: string;
+  email: string;
+  phone: string;
+  department: string;
+  specialization: string;
+  experience: number;
+  qualification: string;
+  canChangePassword: boolean;
+}
+
+export interface Student {
+  id: string;
+  name: string;
+  hallTicket: string;
+  email: string;
+  year: string;
+  section: string;
+}
+
+export interface User {
+  id: string;
+  name: string;
+  role: string;
+  facultyId?: string;
+  hallTicket?: string;
+  email: string;
+  designation?: string;
+}
+
+// Faculty Authentication
+export const authenticateFaculty = async (facultyId: string, password: string): Promise<FacultyMember | null> => {
+  try {
+    const { data: faculty, error } = await tables.faculty()
+      .select('*')
+      .eq('faculty_id', facultyId)
+      .eq('password_hash', password)
+      .single();
+
+    if (error || !faculty) {
+      console.error('Faculty authentication error:', error);
+      return null;
+    }
+
+    return {
+      id: faculty.id,
+      name: faculty.name,
+      designation: faculty.designation,
+      facultyId: faculty.faculty_id,
+      role: faculty.role === 'hod' ? 'HOD' : faculty.role === 'admin' ? 'Admin' : 'Faculty',
+      defaultPassword: faculty.password_hash,
+      email: faculty.email,
+      phone: faculty.phone || '',
+      department: faculty.department,
+      specialization: faculty.specialization || '',
+      experience: faculty.experience || 0,
+      qualification: faculty.qualification || '',
+      canChangePassword: faculty.can_change_password
+    };
+  } catch (error) {
+    console.error('Error authenticating faculty:', error);
+    return null;
+  }
+};
+
+// Student Authentication  
+export const authenticateStudent = async (hallTicket: string, password: string): Promise<Student | null> => {
+  try {
+    // For now, use simple authentication - in production, implement proper password hashing
+    if (hallTicket === "20AI001" && password === "student123") {
+      const { data: student, error } = await tables.students()
+        .select('*')
+        .eq('hall_ticket', hallTicket)
+        .single();
+
+      if (error) {
+        console.error('Student fetch error:', error);
+        // Return default student if not found in database
+        return {
+          id: "student1",
+          name: "Rahul Sharma",
+          hallTicket: "20AI001",
+          email: "student@vignan.ac.in",
+          year: "3rd Year",
+          section: "A"
+        };
+      }
+
+      return {
+        id: student.id,
+        name: student.name,
+        hallTicket: student.hall_ticket,
+        email: student.email,
+        year: student.year,
+        section: student.section || 'A'
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Error authenticating student:', error);
+    return null;
+  }
+};
+
+// Get all faculty members
+export const getAllFaculty = async (): Promise<FacultyMember[]> => {
+  try {
+    const { data: facultyList, error } = await tables.faculty()
+      .select('*')
+      .order('name');
+
+    if (error) {
+      console.error('Error fetching faculty:', error);
+      return [];
+    }
+
+    return facultyList.map(faculty => ({
+      id: faculty.id,
+      name: faculty.name,
+      designation: faculty.designation,
+      facultyId: faculty.faculty_id,
+      role: faculty.role === 'hod' ? 'HOD' : faculty.role === 'admin' ? 'Admin' : 'Faculty',
+      defaultPassword: faculty.password_hash,
+      email: faculty.email,
+      phone: faculty.phone || '',
+      department: faculty.department,
+      specialization: faculty.specialization || '',
+      experience: faculty.experience || 0,
+      qualification: faculty.qualification || '',
+      canChangePassword: faculty.can_change_password
+    }));
+  } catch (error) {
+    console.error('Error fetching all faculty:', error);
+    return [];
+  }
+};
+
+// Get faculty by role
+export const getFacultyByRole = async (role: "HOD" | "Faculty" | "Admin"): Promise<FacultyMember[]> => {
+  try {
+    const roleValue = role === 'HOD' ? 'hod' : role.toLowerCase();
+    
+    const { data: facultyList, error } = await tables.faculty()
+      .select('*')
+      .eq('role', roleValue)
+      .order('name');
+
+    if (error) {
+      console.error('Error fetching faculty by role:', error);
+      return [];
+    }
+
+    return facultyList.map(faculty => ({
+      id: faculty.id,
+      name: faculty.name,
+      designation: faculty.designation,
+      facultyId: faculty.faculty_id,
+      role: faculty.role === 'hod' ? 'HOD' : faculty.role === 'admin' ? 'Admin' : 'Faculty',
+      defaultPassword: faculty.password_hash,
+      email: faculty.email,
+      phone: faculty.phone || '',
+      department: faculty.department,
+      specialization: faculty.specialization || '',
+      experience: faculty.experience || 0,
+      qualification: faculty.qualification || '',
+      canChangePassword: faculty.can_change_password
+    }));
+  } catch (error) {
+    console.error('Error fetching faculty by role:', error);
+    return [];
+  }
+};
+
+// Get faculty by ID
+export const getFacultyById = async (facultyId: string): Promise<FacultyMember | null> => {
+  try {
+    const { data: faculty, error } = await tables.faculty()
+      .select('*')
+      .eq('faculty_id', facultyId)
+      .single();
+
+    if (error || !faculty) {
+      console.error('Error fetching faculty by ID:', error);
+      return null;
+    }
+
+    return {
+      id: faculty.id,
+      name: faculty.name,
+      designation: faculty.designation,
+      facultyId: faculty.faculty_id,
+      role: faculty.role === 'hod' ? 'HOD' : faculty.role === 'admin' ? 'Admin' : 'Faculty',
+      defaultPassword: faculty.password_hash,
+      email: faculty.email,
+      phone: faculty.phone || '',
+      department: faculty.department,
+      specialization: faculty.specialization || '',
+      experience: faculty.experience || 0,
+      qualification: faculty.qualification || '',
+      canChangePassword: faculty.can_change_password
+    };
+  } catch (error) {
+    console.error('Error fetching faculty by ID:', error);
+    return null;
+  }
+};
+
+// Update faculty password
+export const updateFacultyPassword = async (facultyId: string, newPassword: string): Promise<boolean> => {
+  try {
+    const { error } = await tables.faculty()
+      .update({ password_hash: newPassword })
+      .eq('faculty_id', facultyId);
+
+    if (error) {
+      console.error('Error updating password:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error updating faculty password:', error);
+    return false;
+  }
+};
+
+// Message functions
+export const sendMessage = async (senderId: string, messageData: {
+  title: string;
+  content: string;
+  recipients: string[];
+  priority: string;
+  category: string;
+  scheduledDate?: string;
+}) => {
+  try {
+    const { data, error } = await tables.messages()
+      .insert([{
+        sender_id: senderId,
+        title: messageData.title,
+        content: messageData.content,
+        recipients: messageData.recipients,
+        recipient_count: messageData.recipients.length,
+        priority: messageData.priority,
+        category: messageData.category,
+        scheduled_date: messageData.scheduledDate ? new Date(messageData.scheduledDate).toISOString() : null,
+        status: messageData.scheduledDate ? 'scheduled' : 'sent'
+      }])
+      .select()
+      .single();
+
+    return { data, error };
+  } catch (error) {
+    console.error('Error sending message:', error);
+    return { data: null, error };
+  }
+};
+
+// Get messages for HOD dashboard
+export const getMessages = async (senderId?: string) => {
+  try {
+    let query = tables.messages().select('*').order('sent_date', { ascending: false });
+    
+    if (senderId) {
+      query = query.eq('sender_id', senderId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching messages:', error);
+      return [];
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+    return [];
+  }
+};
+
+// Get time slots
+export const getTimeSlots = async () => {
+  try {
+    const { data, error } = await tables.time_slots()
+      .select('*')
+      .eq('is_active', true)
+      .order('order_index');
+
+    if (error) {
+      console.error('Error fetching time slots:', error);
+      return [];
+    }
+
+    return data.map(slot => `${slot.start_time.slice(0, 5)} - ${slot.end_time.slice(0, 5)}`);
+  } catch (error) {
+    console.error('Error fetching time slots:', error);
+    return [];
+  }
+};
+
+// Add new time slot
+export const addTimeSlot = async (startTime: string, endTime: string) => {
+  try {
+    // Get the highest order index
+    const { data: maxOrder } = await tables.time_slots()
+      .select('order_index')
+      .order('order_index', { ascending: false })
+      .limit(1)
+      .single();
+
+    const newOrderIndex = (maxOrder?.order_index || 0) + 1;
+
+    const { data, error } = await tables.time_slots()
+      .insert([{
+        slot_name: `${startTime} - ${endTime}`,
+        start_time: startTime,
+        end_time: endTime,
+        order_index: newOrderIndex,
+        is_active: true
+      }])
+      .select()
+      .single();
+
+    return { data, error };
+  } catch (error) {
+    console.error('Error adding time slot:', error);
+    return { data: null, error };
+  }
+};
+
+// Get courses
+export const getCourses = async () => {
+  try {
+    const { data, error } = await tables.courses()
+      .select('*')
+      .order('course_name');
+
+    if (error) {
+      console.error('Error fetching courses:', error);
+      return [];
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching courses:', error);
+    return [];
+  }
+};
+
+// Get department events
+export const getDepartmentEvents = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('department_events')
+      .select(`
+        *,
+        organizer:organizer_id(name, designation)
+      `)
+      .eq('is_active', true)
+      .order('event_date', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching events:', error);
+      return [];
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching department events:', error);
+    return [];
+  }
+};
+
+export default {
+  authenticateFaculty,
+  authenticateStudent,
+  getAllFaculty,
+  getFacultyByRole,
+  getFacultyById,
+  updateFacultyPassword,
+  sendMessage,
+  getMessages,
+  getTimeSlots,
+  addTimeSlot,
+  getCourses,
+  getDepartmentEvents
+};
