@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { getAllFaculty, getFacultyByRole } from "@/data/facultyData";
 import {
   Users,
   UserCheck,
@@ -44,29 +45,13 @@ const HODDashboard = () => {
     year4: 0
   });
 
-  const [facultyMetrics, setFacultyMetrics] = useState([
-    {
-      name: "Dr. Anita Verma",
-      designation: "Assistant Professor",
-      studentsAssigned: 85,
-      researchPapers: 8,
-      workload: 85
-    },
-    {
-      name: "Dr. Rajesh Kumar",
-      designation: "Associate Professor", 
-      studentsAssigned: 92,
-      researchPapers: 12,
-      workload: 90
-    },
-    {
-      name: "Dr. Suresh Reddy",
-      designation: "Assistant Professor",
-      studentsAssigned: 78,
-      researchPapers: 6,
-      workload: 75
-    }
-  ]);
+  const [facultyMetrics, setFacultyMetrics] = useState(getAllFaculty().map(faculty => ({
+    name: faculty.name,
+    designation: faculty.designation,
+    studentsAssigned: Math.floor(Math.random() * 100), // Random for now
+    researchPapers: Math.floor(Math.random() * 30), // Random for now
+    workload: Math.floor(Math.random() * 30) + 70 // Random workload between 70-100
+  })));
 
   const [departmentKPIs, setDepartmentKPIs] = useState([
     {
@@ -231,7 +216,7 @@ const HODDashboard = () => {
   ];
 
   return (
-    <DashboardLayout userType="hod" userName="Dr. Priya Sharma">
+    <DashboardLayout userType="hod" userName={getFacultyByRole("HOD")[0]?.name || "HOD"}>
       <div className="space-y-6">
         {/* Welcome Section */}
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg p-6 text-white">
