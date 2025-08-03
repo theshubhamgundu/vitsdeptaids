@@ -105,7 +105,6 @@ const App = () => (
           <Route path="/dashboard/hod/faculty-leaves" element={<HODFacultyLeaves />} />
           <Route path="/dashboard/hod/messages" element={<HODMessages />} />
           <Route path="/dashboard/hod/timetables" element={<HODTimetables />} />
-          <Route path="/dashboard/hod/analytics" element={<HODAnalytics />} />
 
           {/* Placeholder routes for future implementation */}
           <Route path="/about" element={<PlaceholderPage title="About Department" />} />
