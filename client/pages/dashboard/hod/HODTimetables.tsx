@@ -113,56 +113,17 @@ const HODTimetables = () => {
     }
   ]);
 
-  const [facultyAssignments, setFacultyAssignments] = useState([
-    {
-      id: 1,
-      facultyName: "Dr. Anita Verma",
-      subjects: ["Machine Learning", "Deep Learning"],
-      year: "3rd Year",
-      hoursPerWeek: 12,
-      classrooms: ["Lab-1", "Room-301"],
-      status: "Assigned"
-    },
-    {
-      id: 2,
-      facultyName: "Dr. Rajesh Kumar",
-      subjects: ["Data Science", "Statistics"],
-      year: "2nd Year, 3rd Year",
-      hoursPerWeek: 14,
-      classrooms: ["Room-302", "Lab-2"],
-      status: "Assigned"
-    },
-    {
-      id: 3,
-      facultyName: "Dr. Suresh Reddy",
-      subjects: ["Programming", "Data Structures"],
-      year: "1st Year, 2nd Year",
-      hoursPerWeek: 16,
-      classrooms: ["Lab-3", "Room-101"],
-      status: "Assigned"
-    }
-  ]);
+  const [facultyAssignments, setFacultyAssignments] = useState(getAllFaculty().map((faculty, index) => ({
+    id: faculty.id,
+    facultyName: faculty.name,
+    subjects: faculty.specialization.split(", ").slice(0, 2), // Use first 2 specializations as subjects
+    year: ["1st Year", "2nd Year", "3rd Year", "4th Year"][index % 4],
+    hoursPerWeek: Math.floor(Math.random() * 10) + 10, // Random between 10-20
+    classrooms: [`Room-${300 + parseInt(faculty.id)}`, `Lab-${faculty.id}`],
+    status: "Assigned"
+  })));
 
-  const [conflicts, setConflicts] = useState([
-    {
-      id: 1,
-      type: "Faculty Overlap",
-      description: "Dr. Anita Verma scheduled for ML class in both Lab-1 and Room-301 at 10:00 AM",
-      severity: "High",
-      affectedYear: "3rd Year",
-      date: "2025-03-25",
-      status: "Unresolved"
-    },
-    {
-      id: 2,
-      type: "Room Conflict",
-      description: "Lab-2 double booked for Data Science and Statistics at 2:00 PM",
-      severity: "Medium",
-      affectedYear: "2nd Year",
-      date: "2025-03-22",
-      status: "Resolved"
-    }
-  ]);
+  const [conflicts, setConflicts] = useState([]);
 
   const [showTimetableDialog, setShowTimetableDialog] = useState(false);
   const [showAssignmentDialog, setShowAssignmentDialog] = useState(false);
@@ -261,7 +222,7 @@ const HODTimetables = () => {
   });
 
   return (
-    <DashboardLayout userType="hod" userName="Dr. Priya Sharma">
+    <DashboardLayout userType="hod" userName={getFacultyByRole("HOD")[0]?.name || "HOD"}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
