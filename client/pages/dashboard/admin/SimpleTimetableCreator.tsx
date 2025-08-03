@@ -87,7 +87,6 @@ const SimpleTimetableCreator = () => {
   ];
 
   const [selectedYear, setSelectedYear] = useState("3rd Year");
-  const [selectedSemester, setSelectedSemester] = useState("6th Semester");
   const [showCellDialog, setShowCellDialog] = useState(false);
   const [selectedCell, setSelectedCell] = useState({ day: "", timeIndex: -1 });
   const [cellData, setCellData] = useState({
