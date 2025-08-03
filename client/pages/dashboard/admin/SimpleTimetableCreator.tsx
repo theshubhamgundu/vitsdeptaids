@@ -109,7 +109,6 @@ const SimpleTimetableCreator = () => {
     {
       id: 1,
       year: "3rd Year",
-      semester: "6th Semester",
       createdDate: "2025-01-15",
       status: "Active",
       classCount: 35
