@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 
 const StudentFees = () => {
+  const { toast } = useToast();
   const [feeStructure] = useState({
     tuitionFee: 45000,
     developmentFee: 5000,
