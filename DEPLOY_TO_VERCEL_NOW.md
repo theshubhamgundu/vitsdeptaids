@@ -1,11 +1,13 @@
 # 🚀 Deploy to Vercel - Step by Step Solution
 
 ## 🎯 **Current Situation**
+
 - ✅ Your Vercel account has projects created
 - ❌ No deployments exist yet
 - ❌ Environment variables added but no live application
 
 ## 📋 **Your Vercel Projects Available:**
+
 1. `vignanaids` (recommended for this deployment)
 2. `vitsaidsdept`
 3. `vitsdeptaids`
@@ -34,16 +36,19 @@ git push origin main
 ### **Step 2: Deploy via Vercel CLI (Recommended)**
 
 #### 2.1 Install Vercel CLI
+
 ```bash
 npm install -g vercel
 ```
 
 #### 2.2 Login to Vercel
+
 ```bash
 vercel login
 ```
 
 #### 2.3 Deploy the Application
+
 ```bash
 # In your project directory, run:
 vercel
@@ -91,13 +96,14 @@ NODE_ENV=production
 If you want to deploy immediately without connecting a Git repo:
 
 ### Using Vercel CLI:
+
 ```bash
 # In your project directory:
 vercel --prod
 
 # This will:
 # 1. Upload your current code
-# 2. Build and deploy immediately  
+# 2. Build and deploy immediately
 # 3. Give you a live URL
 ```
 
@@ -116,16 +122,19 @@ After successful deployment:
 ## 🔍 **Troubleshooting**
 
 ### If you still see no projects:
+
 1. **Check you're logged into the correct Vercel account**
 2. **Verify team selection** (should be "shubsss' projects")
 3. **Clear browser cache** and login again
 
 ### If deployment fails:
+
 1. **Check build logs** in Vercel dashboard
 2. **Verify package.json** has correct build scripts
 3. **Ensure all dependencies** are installed
 
 ### If app shows "Demo Mode" after deployment:
+
 1. **Double-check environment variables** are set correctly
 2. **Trigger a new deployment** after adding env vars
 3. **Check for typos** in Supabase URL or key
@@ -135,6 +144,7 @@ After successful deployment:
 ## 🎯 **Quick Action Plan**
 
 **Option A (Recommended):**
+
 1. Install Vercel CLI: `npm install -g vercel`
 2. Run: `vercel login`
 3. Run: `vercel --prod`
@@ -142,6 +152,7 @@ After successful deployment:
 5. Redeploy
 
 **Option B (Dashboard):**
+
 1. Go to vercel.com/new
 2. Import your GitHub repository
 3. Deploy with Vite settings
