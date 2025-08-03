@@ -198,44 +198,44 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
       {/* Main content area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top header */}
-        <header className="bg-white shadow-sm border-b h-16 flex-shrink-0">
-          <div className="flex items-center justify-between h-full px-6">
-            <div className="flex items-center space-x-4">
+        <header className="bg-white shadow-sm border-b h-14 sm:h-16 flex-shrink-0">
+          <div className="flex items-center justify-between h-full px-3 sm:px-6">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden"
+                className="lg:hidden p-1"
               >
-                <Menu className="h-5 w-5" />
+                <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">{config.title}</h1>
-                <p className="text-sm text-gray-600">Welcome back, {userName}</p>
+                <h1 className="text-base sm:text-xl font-semibold text-gray-900 truncate">{config.title}</h1>
+                <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Welcome back, {userName}</p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" className="relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <Button variant="ghost" size="sm" className="relative p-1 sm:p-2">
+                <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="absolute -top-1 -right-1 h-3 w-3 sm:h-4 sm:w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
                   3
                 </span>
               </Button>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                    <Avatar className="h-10 w-10">
+                  <Button variant="ghost" className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0">
+                    <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
                       <AvatarImage src="/api/placeholder/40/40" />
-                      <AvatarFallback>{userName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                      <AvatarFallback className="text-xs sm:text-sm">{userName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuContent className="w-48 sm:w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{userName}</p>
+                      <p className="text-xs sm:text-sm font-medium leading-none truncate">{userName}</p>
                       <p className="text-xs leading-none text-muted-foreground capitalize">
                         {userType}
                       </p>
@@ -244,18 +244,18 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link to={`/dashboard/${userType}/profile`} className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      Profile
+                      <User className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="text-xs sm:text-sm">Profile</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
+                    <Settings className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="text-xs sm:text-sm">Settings</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log out
+                    <LogOut className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="text-xs sm:text-sm">Log out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
