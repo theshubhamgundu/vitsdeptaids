@@ -322,14 +322,14 @@ const SimpleTimetableCreator = () => {
           </Button>
         </div>
 
-        {/* Year and Semester Selection */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Select Year & Semester</CardTitle>
-            <CardDescription>Choose the year and semester for which you want to create the timetable</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Year Selection and Time Slots Management */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Select Academic Year</CardTitle>
+              <CardDescription>Choose the year for which you want to create the timetable</CardDescription>
+            </CardHeader>
+            <CardContent>
               <div className="space-y-2">
                 <Label>Academic Year</Label>
                 <Select value={selectedYear} onValueChange={setSelectedYear}>
@@ -343,22 +343,80 @@ const SimpleTimetableCreator = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label>Semester</Label>
-                <Select value={selectedSemester} onValueChange={setSelectedSemester}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {semesters.map(semester => (
-                      <SelectItem key={semester} value={semester}>{semester}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">Time Slots Management</CardTitle>
+                  <CardDescription>Customize the time slots for classes</CardDescription>
+                </div>
+                <Dialog open={showTimeSlotDialog} onOpenChange={setShowTimeSlotDialog}>
+                  <DialogTrigger asChild>
+                    <Button size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Slot
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Time Slot</DialogTitle>
+                      <DialogDescription>Create a new time slot for the timetable</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Start Time</Label>
+                          <Input
+                            type="time"
+                            value={newTimeSlot.startTime}
+                            onChange={(e) => setNewTimeSlot(prev => ({ ...prev, startTime: e.target.value }))}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>End Time</Label>
+                          <Input
+                            type="time"
+                            value={newTimeSlot.endTime}
+                            onChange={(e) => setNewTimeSlot(prev => ({ ...prev, endTime: e.target.value }))}
+                          />
+                        </div>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button onClick={handleAddTimeSlot} className="flex-1">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Time Slot
+                        </Button>
+                        <Button variant="outline" onClick={() => setShowTimeSlotDialog(false)}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {timeSlots.map((slot, index) => (
+                  <div key={index} className="flex items-center justify-between p-2 border rounded text-sm">
+                    <span>{slot}</span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => handleRemoveTimeSlot(index)}
+                      className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Active Timetables */}
         <Card>
