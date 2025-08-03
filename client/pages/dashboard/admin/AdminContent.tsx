@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { getAllFaculty } from "@/data/facultyData";
 import { 
   Globe, 
   Plus, 
