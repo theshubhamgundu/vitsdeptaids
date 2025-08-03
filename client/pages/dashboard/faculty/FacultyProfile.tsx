@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { getFacultyById } from "@/data/facultyData";
 import {
   User,
   Mail,
@@ -49,42 +50,46 @@ const FacultyProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showPhotoDialog, setShowPhotoDialog] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState("/api/placeholder/150/150");
-  
+
+  // Get current user from localStorage
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+  const facultyData = getFacultyById(currentUser.facultyId);
+
   const [profile, setProfile] = useState({
-    id: 1,
-    name: "Dr. Anita Verma",
-    designation: "Associate Professor",
-    department: "AI & Data Science",
-    employeeId: "VIT2018001",
-    email: "anita.verma@vignan.ac.in",
-    phone: "+91 9876543210",
+    id: facultyData?.id || 1,
+    name: facultyData?.name || "Faculty Member",
+    designation: facultyData?.designation || "Faculty",
+    department: facultyData?.department || "AI & Data Science",
+    employeeId: facultyData?.facultyId || "FACULTY001",
+    email: facultyData?.email || "faculty@vignan.ac.in",
+    phone: facultyData?.phone || "+91 9876543210",
     address: "Faculty Quarters, Vignan University, Guntur, AP",
     joiningDate: "2018-07-15",
-    experience: "10 years",
-    education: "Ph.D. in Computer Science from IIT Madras",
-    specialization: "Machine Learning, Deep Learning, Data Analytics",
-    subjects: ["Machine Learning", "Deep Learning", "Data Science", "Python Programming"],
-    researchInterests: ["Artificial Intelligence", "Neural Networks", "Big Data Analytics", "Computer Vision"],
-    publications: 25,
-    conferences: 15,
-    awards: ["Best Faculty Award 2023", "Research Excellence Award 2022", "Teaching Excellence Award 2021"],
-    certifications: ["AWS Certified Solutions Architect", "Google Cloud Professional", "Microsoft Azure AI Engineer"],
+    experience: `${facultyData?.experience || 0} years`,
+    education: facultyData?.qualification || "Ph.D. in Computer Science",
+    specialization: facultyData?.specialization || "Computer Science",
+    subjects: facultyData?.specialization?.split(", ") || ["Computer Science"],
+    researchInterests: facultyData?.specialization?.split(", ") || ["Computer Science"],
+    publications: Math.floor(Math.random() * 50), // Random for now
+    conferences: Math.floor(Math.random() * 30), // Random for now
+    awards: ["Excellence Award", "Teaching Award"],
+    certifications: ["Industry Certification"],
     officeHours: "Monday-Friday, 2:00 PM - 4:00 PM",
-    room: "Faculty Block - Room 204",
-    linkedIn: "https://linkedin.com/in/anita-verma",
+    room: `Faculty Block - Room 20${facultyData?.id || 1}`,
+    linkedIn: `https://linkedin.com/in/${facultyData?.name?.toLowerCase().replace(/\s+/g, '-') || 'faculty'}`,
     googleScholar: "https://scholar.google.com/citations?user=xyz",
     orcid: "0000-0000-0000-0000",
-    biography: "Dr. Anita Verma is an Associate Professor in the Department of AI & Data Science with over 10 years of experience in teaching and research. She specializes in Machine Learning and Deep Learning applications.",
+    biography: `${facultyData?.name || 'Faculty Member'} is a ${facultyData?.designation || 'Faculty'} in the Department of ${facultyData?.department || 'AI & Data Science'} with ${facultyData?.experience || 0} years of experience in teaching and research.`,
     currentProjects: [
-      "AI-based Healthcare Diagnostics",
-      "Smart City Data Analytics Platform",
-      "Educational Technology Enhancement"
+      "Research Project 1",
+      "Research Project 2",
+      "Research Project 3"
     ],
     mentorshipStats: {
-      currentStudents: 45,
-      graduatedStudents: 120,
-      phdStudents: 3,
-      mTechStudents: 8
+      currentStudents: Math.floor(Math.random() * 100), // Random for now
+      graduatedStudents: Math.floor(Math.random() * 200), // Random for now
+      phdStudents: Math.floor(Math.random() * 10),
+      mTechStudents: Math.floor(Math.random() * 20)
     }
   });
 
