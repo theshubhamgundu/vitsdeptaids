@@ -46,8 +46,11 @@ import {
 const SimpleTimetableCreator = () => {
   const { toast } = useToast();
   
-  // Time slots for the day
-  const timeSlots = [
+  const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const years = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
+
+  // Dynamic time slots that admin can customize
+  const [timeSlots, setTimeSlots] = useState([
     "9:00 - 9:50",
     "9:50 - 10:40",
     "10:40 - 11:00", // Break
@@ -58,11 +61,10 @@ const SimpleTimetableCreator = () => {
     "2:20 - 3:10",
     "3:10 - 4:00",
     "4:00 - 4:50"
-  ];
+  ]);
 
-  const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const years = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
-  const semesters = ["1st Semester", "2nd Semester", "3rd Semester", "4th Semester", "5th Semester", "6th Semester", "7th Semester", "8th Semester"];
+  const [showTimeSlotDialog, setShowTimeSlotDialog] = useState(false);
+  const [newTimeSlot, setNewTimeSlot] = useState({ startTime: "", endTime: "", isBreak: false, breakType: "Tea Break" });
 
   // Sample subjects for each year
   const subjectsByYear = {
