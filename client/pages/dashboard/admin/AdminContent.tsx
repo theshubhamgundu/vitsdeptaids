@@ -113,20 +113,7 @@ const AdminContent = () => {
     }
   ]);
 
-  const [facultyData, setFacultyData] = useState(getAllFaculty().map(faculty => ({
-    id: faculty.id,
-    name: faculty.name,
-    designation: faculty.designation,
-    department: faculty.department,
-    specialization: faculty.specialization,
-    experience: `${faculty.experience} years`,
-    education: faculty.qualification,
-    email: faculty.email,
-    phone: faculty.phone,
-    imageUrl: "/api/placeholder/150/150",
-    researchPapers: Math.floor(Math.random() * 50), // Random for now
-    status: "Active"
-  })));
+  const [facultyData, setFacultyData] = useState([]);
 
   const [placements, setPlacements] = useState([
     {
