@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { 
-  Users, 
-  UserCheck, 
-  BarChart3, 
+import {
+  Users,
+  UserCheck,
+  BarChart3,
   TrendingUp,
   TrendingDown,
   Crown,
@@ -23,7 +23,8 @@ import {
   Clock,
   GraduationCap,
   Building,
-  BookOpen
+  BookOpen,
+  MessageSquare
 } from "lucide-react";
 
 const HODDashboard = () => {
