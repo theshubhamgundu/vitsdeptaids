@@ -57,99 +57,13 @@ const HODMessages = () => {
   // Get faculty data for recipients
   const allFaculty = getAllFaculty();
   const facultyOnly = getFacultyByRole("Faculty");
+  const hodData = getFacultyByRole("HOD")[0]; // Get the HOD
 
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      title: "Department Meeting - Monthly Review",
-      content: "Monthly department meeting scheduled for March 25th at 10:00 AM in Conference Room A. All faculty members are requested to attend.",
-      recipients: "All Faculty",
-      recipientCount: 15,
-      sentDate: "2025-03-20",
-      sentBy: "Dr. Priya Sharma",
-      status: "Sent",
-      priority: "High",
-      category: "Meeting",
-      readBy: 12,
-      acknowledgments: 10
-    },
-    {
-      id: 2,
-      title: "New Academic Guidelines",
-      content: "Please review the updated academic guidelines for the upcoming semester. The guidelines are available in the faculty portal.",
-      recipients: "All Faculty",
-      recipientCount: 15,
-      sentDate: "2025-03-18",
-      sentBy: "Dr. Priya Sharma",
-      status: "Sent",
-      priority: "Medium",
-      category: "Academic",
-      readBy: 15,
-      acknowledgments: 14
-    },
-    {
-      id: 3,
-      title: "Student Performance Alert",
-      content: "The following students need additional support in Machine Learning course. Please coordinate with respective faculty members.",
-      recipients: "Course Faculty",
-      recipientCount: 5,
-      sentDate: "2025-03-15",
-      sentBy: "Dr. Priya Sharma",
-      status: "Sent",
-      priority: "High",
-      category: "Academic",
-      readBy: 5,
-      acknowledgments: 4
-    }
-  ]);
+  const [messages, setMessages] = useState([]);
 
-  const [pendingApprovals, setPendingApprovals] = useState([
-    {
-      id: 1,
-      title: "Research Project Proposal",
-      submittedBy: "Dr. Rajesh Kumar",
-      content: "Proposal for AI in Healthcare research project with industry collaboration",
-      submittedDate: "2025-03-19",
-      category: "Research",
-      priority: "High",
-      status: "Pending Review"
-    },
-    {
-      id: 2,
-      title: "Curriculum Update Request",
-      submittedBy: "Dr. Anita Verma",
-      content: "Request to update Machine Learning syllabus with latest industry trends",
-      submittedDate: "2025-03-17",
-      category: "Academic",
-      priority: "Medium",
-      status: "Pending Review"
-    }
-  ]);
+  const [pendingApprovals, setPendingApprovals] = useState([]);
 
-  const [communications, setCommunications] = useState([
-    {
-      id: 1,
-      from: "Dr. Rajesh Kumar",
-      to: "HOD Office",
-      subject: "Lab Equipment Request",
-      content: "Requesting approval for new GPU servers for the AI lab",
-      date: "2025-03-20",
-      status: "Unread",
-      priority: "Medium",
-      type: "Request"
-    },
-    {
-      id: 2,
-      from: "Student Representative",
-      to: "HOD Office",
-      subject: "Student Feedback on Course Structure",
-      content: "Compiled feedback from 3rd year students regarding course structure improvements",
-      date: "2025-03-19",
-      status: "Read",
-      priority: "Low",
-      type: "Feedback"
-    }
-  ]);
+  const [communications, setCommunications] = useState([]);
 
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);
@@ -206,7 +120,7 @@ const HODMessages = () => {
       id: Date.now(),
       ...newMessage,
       sentDate: newMessage.scheduledDate || new Date().toISOString().split('T')[0],
-      sentBy: "Dr. V. Srinivas", // HOD name from faculty data
+      sentBy: hodData?.name || "HOD", // HOD name from faculty data
       status: newMessage.scheduledDate ? "Scheduled" : "Sent",
       recipientCount,
       readBy: 0,
@@ -284,7 +198,7 @@ const HODMessages = () => {
   });
 
   return (
-    <DashboardLayout userType="hod" userName="Dr. Priya Sharma">
+    <DashboardLayout userType="hod" userName={hodData?.name || "HOD"}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
