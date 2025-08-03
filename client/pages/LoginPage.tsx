@@ -63,35 +63,59 @@ const LoginPage = () => {
     setError("");
 
     try {
-      // Call authentication API
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          identifier: formData.identifier,
-          password: formData.password,
-          role: type
-        })
-      });
+      if (type === 'faculty' || type === 'admin') {
+        // Use faculty database for authentication
+        const faculty = authenticateFaculty(formData.identifier, formData.password);
 
-      const data = await response.json();
+        if (faculty) {
+          toast({
+            title: "Login Successful",
+            description: `Welcome back, ${faculty.name}!`,
+          });
 
-      if (data.success && data.user) {
-        // Route based on actual user role returned from API
-        const dashboardRoutes = {
-          student: "/dashboard/student",
-          faculty: "/dashboard/faculty",
-          admin: "/dashboard/admin",
-          hod: "/dashboard/hod"
-        };
+          // Route based on faculty role
+          const dashboardRoutes = {
+            HOD: "/dashboard/hod",
+            Faculty: "/dashboard/faculty",
+            Admin: "/dashboard/admin"
+          };
 
-        const userRole = data.user.role;
-        const route = dashboardRoutes[userRole as keyof typeof dashboardRoutes] || "/dashboard/student";
-        navigate(route);
-      } else {
-        setError(data.message || "Invalid credentials");
+          const route = dashboardRoutes[faculty.role] || "/dashboard/faculty";
+
+          // Store faculty info in localStorage for later use
+          localStorage.setItem('currentUser', JSON.stringify({
+            id: faculty.id,
+            name: faculty.name,
+            role: faculty.role.toLowerCase(),
+            facultyId: faculty.facultyId,
+            email: faculty.email,
+            designation: faculty.designation
+          }));
+
+          navigate(route);
+        } else {
+          setError("Invalid Faculty ID or Password");
+        }
+      } else if (type === 'student') {
+        // For student login, use default demo authentication
+        if (formData.identifier === "20AI001" && formData.password === "student123") {
+          toast({
+            title: "Login Successful",
+            description: "Welcome back, Student!",
+          });
+
+          localStorage.setItem('currentUser', JSON.stringify({
+            id: "student1",
+            name: "Rahul Sharma",
+            role: "student",
+            hallTicket: "20AI001",
+            year: "3rd Year"
+          }));
+
+          navigate("/dashboard/student");
+        } else {
+          setError("Invalid Hall Ticket or Password. Try: 20AI001 / student123");
+        }
       }
     } catch (err) {
       setError("Authentication failed. Please try again.");
