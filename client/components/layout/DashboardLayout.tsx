@@ -125,7 +125,7 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
     <div className="min-h-screen bg-gray-50 flex">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -135,13 +135,13 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:relative lg:block ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       }`}>
-        <div className="flex items-center justify-between h-16 px-6 border-b">
-          <div className="flex items-center space-x-3">
-            <div className={`p-2 rounded-lg ${config.color}`}>
-              <IconComponent className="h-6 w-6 text-white" />
+        <div className="flex items-center justify-between h-14 sm:h-16 px-4 sm:px-6 border-b">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className={`p-1.5 sm:p-2 rounded-lg ${config.color}`}>
+              <IconComponent className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-gray-900">AI & DS</h1>
+              <h1 className="text-sm sm:text-lg font-semibold text-gray-900">AI & DS</h1>
               <Badge variant="outline" className="text-xs">
                 {userType.toUpperCase()}
               </Badge>
@@ -151,9 +151,9 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
             variant="ghost"
             size="sm"
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden"
+            className="lg:hidden p-1"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
         </div>
 
