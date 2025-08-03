@@ -52,6 +52,7 @@ import {
 } from "lucide-react";
 
 const AdminStudents = () => {
+  const { toast } = useToast();
   const [students, setStudents] = useState([]);
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [loading, setLoading] = useState(true);
