@@ -22,6 +22,7 @@ import {
 const LoginPage = () => {
   const { type } = useParams<{ type: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     identifier: "",
     password: ""
