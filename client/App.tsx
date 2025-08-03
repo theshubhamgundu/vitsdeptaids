@@ -93,6 +93,7 @@ const App = () => (
           <Route path="/dashboard/admin/students/create" element={<CreateStudentProfile />} />
           <Route path="/dashboard/admin/faculty" element={<AdminFaculty />} />
           <Route path="/dashboard/admin/faculty/create" element={<CreateFacultyProfile />} />
+          <Route path="/dashboard/admin/timetable-creator" element={<SimpleTimetableCreator />} />
           <Route path="/dashboard/admin/content" element={<AdminContent />} />
           <Route path="/dashboard/admin/tools" element={<AdminTools />} />
 
