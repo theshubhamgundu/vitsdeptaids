@@ -52,24 +52,7 @@ import {
 } from "lucide-react";
 
 const AdminFaculty = () => {
-  const [faculty, setFaculty] = useState(getAllFaculty().map(member => ({
-    id: member.id,
-    name: member.name,
-    employeeId: member.facultyId,
-    email: member.email,
-    phone: member.phone,
-    designation: member.designation,
-    department: member.department,
-    specialization: member.specialization,
-    qualification: member.qualification,
-    experience: member.experience,
-    joinDate: "2015-08-01", // Default join date
-    officeRoom: `Block-A, Room 20${member.id}`, // Generate office room
-    studentsAssigned: Math.floor(Math.random() * 100), // Random for now
-    researchPapers: Math.floor(Math.random() * 50), // Random for now
-    status: "Active",
-    workload: Math.floor(Math.random() * 30) + 70 // Random workload between 70-100
-  })));
+  const [faculty, setFaculty] = useState([]);
 
   const [filteredFaculty, setFilteredFaculty] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
