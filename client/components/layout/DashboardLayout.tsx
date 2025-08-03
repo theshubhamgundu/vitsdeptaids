@@ -88,6 +88,7 @@ const DashboardLayout = ({ children, userType, userName }: DashboardLayoutProps)
         { name: "Profile", href: "/dashboard/admin/profile", icon: User },
         { name: "Students", href: "/dashboard/admin/students", icon: Users },
         { name: "Faculty", href: "/dashboard/admin/faculty", icon: Users },
+        { name: "Timetable Creator", href: "/dashboard/admin/timetable-creator", icon: Clock },
         { name: "Content Management", href: "/dashboard/admin/content", icon: Settings },
         { name: "Admin Tools", href: "/dashboard/admin/tools", icon: Wrench },
       ]
