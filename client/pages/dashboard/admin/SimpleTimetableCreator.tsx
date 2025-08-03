@@ -184,6 +184,15 @@ const SimpleTimetableCreator = () => {
       });
     });
 
+    if (classCount === 0) {
+      toast({
+        title: "Cannot Save Empty Timetable",
+        description: "Please add at least one class before saving the timetable.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const newTimetable = {
       id: Date.now(),
       year: selectedYear,
@@ -197,8 +206,8 @@ const SimpleTimetableCreator = () => {
     setSavedTimetables(prev => [newTimetable, ...prev.map(t => ({ ...t, status: "Inactive" }))]);
 
     toast({
-      title: "Timetable Saved!",
-      description: `Timetable for ${selectedYear} ${selectedSemester} has been saved and made active for students.`,
+      title: "🎉 Timetable Saved Successfully!",
+      description: `Timetable for ${selectedYear} ${selectedSemester} with ${classCount} classes is now active. Students can view it immediately.`,
     });
   };
 
