@@ -52,80 +52,24 @@ import {
 } from "lucide-react";
 
 const AdminFaculty = () => {
-  const [faculty, setFaculty] = useState([
-    {
-      id: "1",
-      name: "Dr. Priya Sharma",
-      employeeId: "HOD001",
-      email: "priya.sharma@vignanits.ac.in",
-      phone: "+91 9876543210",
-      designation: "Professor & HOD",
-      department: "AI & DS",
-      specialization: "Machine Learning, Neural Networks",
-      qualification: "Ph.D. in Computer Science",
-      experience: 15,
-      joinDate: "2015-08-01",
-      officeRoom: "Block-A, Room 301",
-      studentsAssigned: 0,
-      researchPapers: 25,
-      status: "Active",
-      workload: 85
-    },
-    {
-      id: "2",
-      name: "Dr. Anita Verma",
-      employeeId: "FAC001",
-      email: "anita.verma@vignanits.ac.in",
-      phone: "+91 9876543211",
-      designation: "Assistant Professor",
-      department: "AI & DS",
-      specialization: "Computer Vision, Deep Learning",
-      qualification: "Ph.D. in Computer Science",
-      experience: 8,
-      joinDate: "2019-07-15",
-      officeRoom: "Block-A, Room 205",
-      studentsAssigned: 85,
-      researchPapers: 18,
-      status: "Active",
-      workload: 90
-    },
-    {
-      id: "3",
-      name: "Dr. Rajesh Kumar",
-      employeeId: "FAC002",
-      email: "rajesh.kumar@vignanits.ac.in",
-      phone: "+91 9876543212",
-      designation: "Associate Professor",
-      department: "AI & DS",
-      specialization: "Data Mining, Big Data Analytics",
-      qualification: "Ph.D. in Information Technology",
-      experience: 12,
-      joinDate: "2017-08-01",
-      officeRoom: "Block-A, Room 207",
-      studentsAssigned: 92,
-      researchPapers: 22,
-      status: "Active",
-      workload: 85
-    },
-    {
-      id: "4",
-      name: "Dr. Suresh Reddy",
-      employeeId: "FAC003",
-      email: "suresh.reddy@vignanits.ac.in",
-      phone: "+91 9876543213",
-      designation: "Assistant Professor",
-      department: "AI & DS",
-      specialization: "Natural Language Processing",
-      qualification: "Ph.D. in Computer Science",
-      experience: 6,
-      joinDate: "2021-07-01",
-      officeRoom: "Block-A, Room 209",
-      studentsAssigned: 78,
-      researchPapers: 12,
-      status: "Active",
-      workload: 75
-    }
-  ]);
+  const [faculty, setFaculty] = useState(getAllFaculty().map(member => ({
+    id: member.id,
+    name: member.name,
+    employeeId: member.facultyId,
+    email: member.email,
+    phone: member.phone,
+    designation: member.designation,
+    department: member.department,
+    specialization: member.specialization,
+    qualification: member.qualification,
+    experience: member.experience,
+    joinDate: "2015-08-01", // Default join date
+    officeRoom: `Block-A, Room 20${member.id}`, // Generate office room
+    studentsAssigned: Math.floor(Math.random() * 100), // Random for now
+    researchPapers: Math.floor(Math.random() * 50), // Random for now
+    status: "Active",
+    workload: Math.floor(Math.random() * 30) + 70 // Random workload between 70-100
+  })));
 
   const [filteredFaculty, setFilteredFaculty] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
