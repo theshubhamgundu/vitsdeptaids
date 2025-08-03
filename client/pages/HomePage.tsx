@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { getAllFaculty } from "@/data/facultyData";
+import { getAllFaculty } from "@/services/authService";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -63,13 +63,21 @@ const HomePage = () => {
     }
   ];
 
-  const faculty = getAllFaculty().map(member => ({
-    name: member.name,
-    designation: member.designation,
-    specialization: member.specialization,
-    image: "/api/placeholder/150/150", // Keep placeholder for now
-    experience: `${member.experience} years`
-  }));
+  const [faculty, setFaculty] = useState([]);
+
+  useEffect(() => {
+    const loadFaculty = async () => {
+      const facultyData = await getAllFaculty();
+      setFaculty(facultyData.map(member => ({
+        name: member.name,
+        designation: member.designation,
+        specialization: member.specialization,
+        image: "/api/placeholder/150/150", // Keep placeholder for now
+        experience: `${member.experience} years`
+      })));
+    };
+    loadFaculty();
+  }, []);
 
   const achievements = [
     {
