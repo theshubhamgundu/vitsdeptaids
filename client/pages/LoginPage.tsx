@@ -211,13 +211,35 @@ const LoginPage = () => {
             <button className="text-sm text-blue-600 hover:underline">
               Forgot password?
             </button>
-            
+
+            {/* Test Credentials */}
+            {(type === 'faculty' || type === 'admin') && (
+              <div className="border rounded-lg p-3 bg-gray-50 text-left">
+                <p className="text-xs font-medium text-gray-700 mb-2">Sample Login Credentials:</p>
+                <div className="space-y-1 text-xs text-gray-600">
+                  <div><strong>HOD:</strong> AIDS-HVS1 / @VSrinivas231</div>
+                  <div><strong>Faculty:</strong> AIDS-ANK1 / @NMKrishna342</div>
+                  <div><strong>Admin:</strong> AIDS-DKS1 / @KSomesh702</div>
+                </div>
+              </div>
+            )}
+
+            {type === 'student' && (
+              <div className="border rounded-lg p-3 bg-gray-50 text-left">
+                <p className="text-xs font-medium text-gray-700 mb-2">Demo Student Login:</p>
+                <div className="text-xs text-gray-600">
+                  <div><strong>Hall Ticket:</strong> 20AI001</div>
+                  <div><strong>Password:</strong> student123</div>
+                </div>
+              </div>
+            )}
+
             <div className="border-t pt-4">
               <p className="text-sm text-gray-600 mb-3">Login as different role:</p>
               <div className="grid grid-cols-2 gap-2">
                 {Object.entries(loginTypes).map(([key, config]) => (
                   key !== type && (
-                    <Link 
+                    <Link
                       key={key}
                       to={`/login/${key}`}
                       className="text-xs px-3 py-2 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors text-center"
