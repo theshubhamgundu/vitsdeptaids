@@ -62,7 +62,9 @@ interface StudentFilters {
 export const handleGetStudents: RequestHandler = (req, res) => {
   try {
     const { year, branch, status, search } = req.query as StudentFilters;
-    
+
+    // In a real application, this would fetch from database
+    // For now, we return the mock students as the frontend manages real-time data
     let filteredStudents = [...mockStudents];
 
     // Apply filters
@@ -211,6 +213,8 @@ export const handleGetStudentAnalysis: RequestHandler = (req, res) => {
 
 export const handleGetStudentStats: RequestHandler = (req, res) => {
   try {
+    // Note: In production, real-time stats are handled by the frontend studentDataService
+    // This endpoint provides fallback data for API compatibility
     const stats = {
       total: mockStudents.length,
       byYear: {
@@ -223,8 +227,8 @@ export const handleGetStudentStats: RequestHandler = (req, res) => {
         active: mockStudents.filter(s => s.status === "Active").length,
         inactive: mockStudents.filter(s => s.status === "Inactive").length
       },
-      averageCgpa: mockStudents.reduce((sum, s) => sum + s.cgpa, 0) / mockStudents.length,
-      averageAttendance: mockStudents.reduce((sum, s) => sum + s.attendance, 0) / mockStudents.length
+      averageCgpa: mockStudents.length > 0 ? mockStudents.reduce((sum, s) => sum + s.cgpa, 0) / mockStudents.length : 0,
+      averageAttendance: mockStudents.length > 0 ? mockStudents.reduce((sum, s) => sum + s.attendance, 0) / mockStudents.length : 0
     };
 
     res.json({
