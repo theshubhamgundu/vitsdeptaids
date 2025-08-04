@@ -79,6 +79,15 @@ const HomePage = () => {
   ];
 
   const [faculty, setFaculty] = useState([]);
+  const [placementStats, setPlacementStats] = useState({
+    placementRate: 0,
+    totalStudents: 0,
+    companiesCount: 0,
+    highestPackage: 0
+  });
+  const [featuredPlacements, setFeaturedPlacements] = useState([]);
+  const [featuredAchievements, setFeaturedAchievements] = useState([]);
+  const [featuredGallery, setFeaturedGallery] = useState([]);
 
   useEffect(() => {
     const loadFaculty = async () => {
@@ -91,7 +100,30 @@ const HomePage = () => {
         })),
       );
     };
+
+    const loadDynamicData = () => {
+      // Load placement statistics
+      setPlacementStats(getPlacementStats());
+
+      // Load featured content
+      setFeaturedPlacements(getFeaturedPlacements(6));
+      setFeaturedAchievements(getFeaturedAchievements(3));
+      setFeaturedGallery(getFeaturedGallery(6));
+    };
+
     loadFaculty();
+    loadDynamicData();
+
+    // Set up listener for localStorage changes (when admin adds new data)
+    const handleStorageChange = () => {
+      loadDynamicData();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const achievements = [
