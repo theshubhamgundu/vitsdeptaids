@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/table";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { useToast } from "@/hooks/use-toast";
+import { getAllStudents, getStudentStats, subscribeToStudentData, StudentRecord } from "@/services/studentDataService";
 import {
   Users,
   Search,
@@ -53,16 +54,17 @@ import {
 
 const AdminStudents = () => {
   const { toast } = useToast();
-  const [students, setStudents] = useState([]);
-  const [filteredStudents, setFilteredStudents] = useState([]);
+  const [students, setStudents] = useState<StudentRecord[]>([]);
+  const [filteredStudents, setFilteredStudents] = useState<StudentRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [yearFilter, setYearFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState<StudentRecord | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showBulkUpload, setShowBulkUpload] = useState(false);
+  const [studentStats, setStudentStats] = useState<any>({});
 
   const [newStudent, setNewStudent] = useState({
     fullName: "",
@@ -79,6 +81,15 @@ const AdminStudents = () => {
 
   useEffect(() => {
     fetchStudents();
+    fetchStudentStats();
+
+    // Subscribe to real-time updates
+    const unsubscribe = subscribeToStudentData(() => {
+      fetchStudents();
+      fetchStudentStats();
+    });
+
+    return unsubscribe;
   }, []);
 
   useEffect(() => {
@@ -87,15 +98,27 @@ const AdminStudents = () => {
 
   const fetchStudents = async () => {
     try {
-      const response = await fetch('/api/students');
-      const data = await response.json();
-      if (data.success) {
-        setStudents(data.data);
-      }
+      setLoading(true);
+      const studentsData = await getAllStudents();
+      setStudents(studentsData);
     } catch (error) {
       console.error('Error fetching students:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load student data",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchStudentStats = async () => {
+    try {
+      const stats = await getStudentStats();
+      setStudentStats(stats);
+    } catch (error) {
+      console.error('Error fetching student stats:', error);
     }
   };
 
@@ -111,7 +134,13 @@ const AdminStudents = () => {
     }
     
     if (yearFilter !== "all") {
-      filtered = filtered.filter(student => student.year.toString() === yearFilter);
+      filtered = filtered.filter(student => {
+        if (yearFilter === "1") return student.year.includes("1st");
+        if (yearFilter === "2") return student.year.includes("2nd");
+        if (yearFilter === "3") return student.year.includes("3rd");
+        if (yearFilter === "4") return student.year.includes("4th");
+        return true;
+      });
     }
 
     if (statusFilter !== "all") {
@@ -121,24 +150,95 @@ const AdminStudents = () => {
     setFilteredStudents(filtered);
   };
 
-  const handleAddStudent = () => {
-    // In real app, this would save to API
-    console.log("Adding student:", newStudent);
-    setShowAddDialog(false);
-    setNewStudent({
-      fullName: "",
-      hallTicket: "",
-      email: "",
-      phone: "",
-      year: "",
-      branch: "AI & DS",
-      address: "",
-      emergencyContact: "",
-      admissionDate: "",
-      status: "Active"
-    });
-    // Refresh students list
-    fetchStudents();
+  const handleAddStudent = async () => {
+    try {
+      // Create new student record
+      const newStudentRecord: StudentRecord = {
+        id: crypto.randomUUID(),
+        hallTicket: newStudent.hallTicket,
+        fullName: newStudent.fullName,
+        email: newStudent.email,
+        phone: newStudent.phone,
+        year: newStudent.year,
+        section: "A",
+        cgpa: 0.0,
+        attendance: 0,
+        status: newStudent.status,
+        branch: newStudent.branch,
+        semester: getDefaultSemester(newStudent.year),
+        address: newStudent.address,
+        emergencyContact: newStudent.emergencyContact,
+        admissionDate: newStudent.admissionDate,
+        createdAt: new Date().toISOString(),
+      };
+
+      // Save to localStorage for now (in real app, save to database)
+      const existingStudents = JSON.parse(localStorage.getItem("adminCreatedStudents") || "[]");
+      existingStudents.push(newStudentRecord);
+      localStorage.setItem("adminCreatedStudents", JSON.stringify(existingStudents));
+
+      // Also add to localUsers for authentication
+      const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
+      localUsers.push({
+        id: newStudentRecord.id,
+        name: newStudentRecord.fullName,
+        role: "student",
+        hallTicket: newStudentRecord.hallTicket,
+        email: newStudentRecord.email,
+        phone: newStudentRecord.phone,
+        year: newStudentRecord.year,
+        section: newStudentRecord.section,
+        password: "student123", // Default password
+        cgpa: newStudentRecord.cgpa,
+        attendance: newStudentRecord.attendance,
+        status: newStudentRecord.status,
+        createdAt: newStudentRecord.createdAt,
+      });
+      localStorage.setItem("localUsers", JSON.stringify(localUsers));
+
+      // Trigger storage event for real-time updates
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'localUsers',
+        newValue: JSON.stringify(localUsers)
+      }));
+
+      toast({
+        title: "Student Added",
+        description: `${newStudent.fullName} has been added successfully. Default password: student123`,
+      });
+
+      setShowAddDialog(false);
+      setNewStudent({
+        fullName: "",
+        hallTicket: "",
+        email: "",
+        phone: "",
+        year: "",
+        branch: "AI & DS",
+        address: "",
+        emergencyContact: "",
+        admissionDate: "",
+        status: "Active"
+      });
+
+      // Refresh students list
+      fetchStudents();
+    } catch (error) {
+      console.error("Error adding student:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add student. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getDefaultSemester = (year: string): number => {
+    if (year.includes("1st")) return 2;
+    if (year.includes("2nd")) return 4;
+    if (year.includes("3rd")) return 6;
+    if (year.includes("4th")) return 8;
+    return 1;
   };
 
   const handleEditStudent = () => {
@@ -149,10 +249,37 @@ const AdminStudents = () => {
     fetchStudents();
   };
 
-  const handleDeleteStudent = (studentId) => {
-    // In real app, this would delete via API
-    console.log("Deleting student:", studentId);
-    setStudents(prev => prev.filter(s => s.id !== studentId));
+  const handleDeleteStudent = async (studentId: string) => {
+    try {
+      // Remove from localStorage
+      const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
+      const updatedUsers = localUsers.filter((user: any) => user.id !== studentId);
+      localStorage.setItem("localUsers", JSON.stringify(updatedUsers));
+
+      const adminStudents = JSON.parse(localStorage.getItem("adminCreatedStudents") || "[]");
+      const updatedAdminStudents = adminStudents.filter((student: any) => student.id !== studentId);
+      localStorage.setItem("adminCreatedStudents", JSON.stringify(updatedAdminStudents));
+
+      // Trigger storage event for real-time updates
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'localUsers',
+        newValue: JSON.stringify(updatedUsers)
+      }));
+
+      toast({
+        title: "Student Deleted",
+        description: "Student record has been removed successfully.",
+      });
+
+      fetchStudents();
+    } catch (error) {
+      console.error("Error deleting student:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete student. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleBulkUpload = () => {
@@ -369,7 +496,7 @@ const AdminStudents = () => {
               <Users className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{students.length}</div>
+              <div className="text-2xl font-bold">{studentStats.total || students.length}</div>
               <p className="text-xs text-muted-foreground">All registered students</p>
             </CardContent>
           </Card>
@@ -381,7 +508,7 @@ const AdminStudents = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
-                {students.filter(s => s.status === 'Active').length}
+                {studentStats.byStatus?.active || students.filter(s => s.status === 'Active').length}
               </div>
               <p className="text-xs text-muted-foreground">Currently enrolled</p>
             </CardContent>
@@ -394,7 +521,7 @@ const AdminStudents = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-600">
-                {students.filter(s => s.status === 'Graduated').length}
+                {studentStats.byStatus?.graduated || students.filter(s => s.status === 'Graduated').length}
               </div>
               <p className="text-xs text-muted-foreground">Completed program</p>
             </CardContent>
@@ -407,7 +534,8 @@ const AdminStudents = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-purple-600">
-                {students.length > 0 ? (students.reduce((sum, s) => sum + s.cgpa, 0) / students.length).toFixed(2) : '0.00'}
+                {studentStats.averageCgpa ? studentStats.averageCgpa.toFixed(2) :
+                 (students.length > 0 ? (students.reduce((sum, s) => sum + s.cgpa, 0) / students.length).toFixed(2) : '0.00')}
               </div>
               <p className="text-xs text-muted-foreground">Department average</p>
             </CardContent>
