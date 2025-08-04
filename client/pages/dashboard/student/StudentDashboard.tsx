@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { getStudentCertificates, getStudentResults, getStudentAttendance, getStudentLeaveApplications, subscribeToStudentData } from "@/services/studentDataService";
 import {
   User,
   Award,
@@ -38,52 +39,149 @@ interface StudentData {
 
 const StudentDashboard = () => {
   const [studentData, setStudentData] = useState<StudentData | null>(null);
+  const [certificates, setCertificates] = useState([]);
+  const [results, setResults] = useState([]);
+  const [attendance, setAttendance] = useState([]);
+  const [leaveApplications, setLeaveApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Get current user from localStorage
     const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
     setStudentData(currentUser);
+
+    if (currentUser.id) {
+      loadStudentData(currentUser.id);
+    }
+
+    // Subscribe to real-time updates
+    const unsubscribe = subscribeToStudentData(() => {
+      if (currentUser.id) {
+        loadStudentData(currentUser.id);
+      }
+    });
+
+    return unsubscribe;
   }, []);
 
-  // Default empty states for fresh accounts
+  const loadStudentData = async (studentId: string) => {
+    try {
+      setLoading(true);
+      const [certsData, resultsData, attendanceData, leavesData] = await Promise.all([
+        getStudentCertificates(studentId),
+        getStudentResults(studentId),
+        getStudentAttendance(studentId),
+        getStudentLeaveApplications(studentId)
+      ]);
+
+      setCertificates(certsData);
+      setResults(resultsData);
+      setAttendance(attendanceData);
+      setLeaveApplications(leavesData);
+    } catch (error) {
+      console.error("Error loading student data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Calculate current CGPA from results
+  const calculateCGPA = () => {
+    if (results.length === 0) return "N/A";
+    const totalMarks = results.reduce((sum: number, result: any) => sum + result.marks, 0);
+    const avgMarks = totalMarks / results.length;
+    // Convert marks to CGPA (assuming 10-point scale)
+    const cgpa = (avgMarks / 100) * 10;
+    return cgpa.toFixed(2);
+  };
+
+  // Calculate attendance percentage
+  const calculateAttendance = () => {
+    if (attendance.length === 0) return "N/A";
+    const presentCount = attendance.filter((record: any) => record.status === "present").length;
+    const percentage = (presentCount / attendance.length) * 100;
+    return `${percentage.toFixed(1)}%`;
+  };
+
+  // Stats based on real data
   const quickStats = [
     {
       title: "Overall CGPA",
-      value: "N/A",
-      description: "No data available",
+      value: calculateCGPA(),
+      description: results.length > 0 ? `Based on ${results.length} subjects` : "No results available",
       icon: TrendingUp,
-      color: "text-gray-500",
-      bgColor: "bg-gray-50",
+      color: results.length > 0 ? "text-blue-600" : "text-gray-500",
+      bgColor: results.length > 0 ? "bg-blue-50" : "bg-gray-50",
     },
     {
       title: "Attendance",
-      value: "N/A",
-      description: "No data available",
+      value: calculateAttendance(),
+      description: attendance.length > 0 ? `${attendance.length} records` : "No attendance data",
       icon: Calendar,
-      color: "text-gray-500",
-      bgColor: "bg-gray-50",
+      color: attendance.length > 0 ? "text-green-600" : "text-gray-500",
+      bgColor: attendance.length > 0 ? "bg-green-50" : "bg-gray-50",
     },
     {
       title: "Certificates",
-      value: "0",
-      description: "No certificates uploaded",
+      value: certificates.length.toString(),
+      description: certificates.length > 0 ?
+        `${certificates.filter((c: any) => c.status === 'approved').length} approved` :
+        "No certificates uploaded",
       icon: Award,
-      color: "text-gray-500",
-      bgColor: "bg-gray-50",
+      color: certificates.length > 0 ? "text-purple-600" : "text-gray-500",
+      bgColor: certificates.length > 0 ? "bg-purple-50" : "bg-gray-50",
     },
     {
       title: "Pending Applications",
-      value: "0",
-      description: "No pending requests",
+      value: leaveApplications.filter((app: any) => app.status === "pending").length.toString(),
+      description: leaveApplications.length > 0 ?
+        `${leaveApplications.length} total applications` :
+        "No applications submitted",
       icon: FileText,
-      color: "text-gray-500",
-      bgColor: "bg-gray-50",
+      color: leaveApplications.length > 0 ? "text-orange-600" : "text-gray-500",
+      bgColor: leaveApplications.length > 0 ? "bg-orange-50" : "bg-gray-50",
     },
   ];
 
-  // Empty arrays for fresh accounts
-  const recentActivities: any[] = [];
-  const upcomingEvents: any[] = [];
+  // Generate recent activities from real data
+  const recentActivities = [
+    ...certificates.slice(-3).map((cert: any) => ({
+      id: `cert-${cert.id}`,
+      type: "certificate",
+      title: "Certificate uploaded",
+      description: cert.title,
+      time: new Date(cert.uploadDate).toLocaleDateString(),
+      icon: Award,
+      status: cert.status === "approved" ? "success" : cert.status === "rejected" ? "warning" : "info"
+    })),
+    ...leaveApplications.slice(-2).map((leave: any) => ({
+      id: `leave-${leave.id}`,
+      type: "leave",
+      title: "Leave application submitted",
+      description: `${leave.type} leave for ${leave.reason}`,
+      time: new Date(leave.appliedDate).toLocaleDateString(),
+      icon: Plane,
+      status: leave.status === "approved" ? "success" : leave.status === "rejected" ? "warning" : "info"
+    }))
+  ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()).slice(0, 5);
+
+  // Mock upcoming events (in real app, this would come from academic calendar)
+  const upcomingEvents = [
+    {
+      id: 1,
+      title: "Mid-term Examinations",
+      date: "March 25, 2025",
+      time: "9:00 AM",
+      priority: "high"
+    },
+    {
+      id: 2,
+      title: "Project Submission Deadline",
+      date: "March 30, 2025",
+      time: "11:59 PM",
+      priority: "medium"
+    }
+  ];
 
   const quickActions = [
     {
@@ -116,12 +214,12 @@ const StudentDashboard = () => {
     },
   ];
 
-  if (!studentData) {
+  if (!studentData || loading) {
     return (
-      <DashboardLayout userType="student" userName="Loading...">
+      <DashboardLayout userType="student" userName={studentData?.name || "Loading..."}>
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="w-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-gray-600">Loading dashboard...</p>
           </div>
         </div>
