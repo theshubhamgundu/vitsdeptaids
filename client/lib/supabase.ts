@@ -4,8 +4,23 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Check if Supabase is configured
-export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
+// Check if Supabase is configured and key is valid
+const isKeyValid = (key: string) => {
+  if (!key) return false;
+  try {
+    // Basic JWT format check
+    const parts = key.split('.');
+    if (parts.length !== 3) return false;
+
+    // Try to decode the header to validate format
+    const header = JSON.parse(atob(parts[0]));
+    return header.alg && header.typ;
+  } catch {
+    return false;
+  }
+};
+
+export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey && isKeyValid(supabaseAnonKey));
 
 // Create Supabase client only if environment variables are available
 export const supabase = isSupabaseConfigured
