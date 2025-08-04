@@ -76,20 +76,16 @@ const FacultyProfile = () => {
     certifications: [],
     officeHours: "",
     room: "",
-    linkedIn: `https://linkedin.com/in/${facultyData?.name?.toLowerCase().replace(/\s+/g, '-') || 'faculty'}`,
-    googleScholar: "https://scholar.google.com/citations?user=xyz",
-    orcid: "0000-0000-0000-0000",
-    biography: `${facultyData?.name || 'Faculty Member'} is a ${facultyData?.designation || 'Faculty'} in the Department of ${facultyData?.department || 'AI & Data Science'} with ${facultyData?.experience || 0} years of experience in teaching and research.`,
-    currentProjects: [
-      "Research Project 1",
-      "Research Project 2",
-      "Research Project 3"
-    ],
+    linkedIn: "",
+    googleScholar: "",
+    orcid: "",
+    biography: "",
+    currentProjects: [],
     mentorshipStats: {
-      currentStudents: Math.floor(Math.random() * 100), // Random for now
-      graduatedStudents: Math.floor(Math.random() * 200), // Random for now
-      phdStudents: Math.floor(Math.random() * 10),
-      mTechStudents: Math.floor(Math.random() * 20)
+      currentStudents: 0,
+      graduatedStudents: 0,
+      phdStudents: 0,
+      mTechStudents: 0
     }
   });
 
