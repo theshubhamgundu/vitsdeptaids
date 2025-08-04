@@ -202,7 +202,7 @@ const AdminFaculty = () => {
                         id="name"
                         value={newFaculty.name}
                         onChange={(e) => setNewFaculty(prev => ({ ...prev, name: e.target.value }))}
-                        placeholder="Dr. John Doe"
+                        placeholder="Enter faculty name"
                       />
                     </div>
                     <div className="space-y-2">
@@ -224,7 +224,7 @@ const AdminFaculty = () => {
                         type="email"
                         value={newFaculty.email}
                         onChange={(e) => setNewFaculty(prev => ({ ...prev, email: e.target.value }))}
-                        placeholder="faculty@vignanits.ac.in"
+                        placeholder="Enter email address"
                       />
                     </div>
                     <div className="space-y-2">
@@ -271,7 +271,7 @@ const AdminFaculty = () => {
                       id="specialization"
                       value={newFaculty.specialization}
                       onChange={(e) => setNewFaculty(prev => ({ ...prev, specialization: e.target.value }))}
-                      placeholder="Machine Learning, Data Science"
+                      placeholder="Enter specialization areas"
                     />
                   </div>
 
@@ -281,7 +281,7 @@ const AdminFaculty = () => {
                       id="qualification"
                       value={newFaculty.qualification}
                       onChange={(e) => setNewFaculty(prev => ({ ...prev, qualification: e.target.value }))}
-                      placeholder="Ph.D. in Computer Science"
+                      placeholder="Enter qualification"
                     />
                   </div>
 
@@ -301,7 +301,7 @@ const AdminFaculty = () => {
                         id="officeRoom"
                         value={newFaculty.officeRoom}
                         onChange={(e) => setNewFaculty(prev => ({ ...prev, officeRoom: e.target.value }))}
-                        placeholder="Block-A, Room 205"
+                        placeholder="Enter office room number"
                       />
                     </div>
                   </div>
