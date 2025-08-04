@@ -77,6 +77,15 @@ export const verifySupabaseCredentials = async () => {
     }
   } catch (error) {
     console.error("❌ Verification failed:", error);
+
+    if (error.message && error.message.includes('Headers')) {
+      console.error("🔑 Headers Error - This usually means the anon key is corrupted");
+      console.log("💡 Try these solutions:");
+      console.log("   1. Get a fresh anon key from Supabase dashboard");
+      console.log("   2. Make sure there are no extra spaces or characters");
+      console.log("   3. Check if the project is active in Supabase");
+    }
+
     return false;
   }
 };
