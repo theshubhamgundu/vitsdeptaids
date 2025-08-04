@@ -172,9 +172,12 @@ const AdminContent = () => {
       id: Date.now(),
       uploadDate: new Date().toISOString().split("T")[0],
       status: "Published",
+      featured: false,
       tags: newGalleryItem.tags.split(",").map((tag) => tag.trim()),
     };
-    setGallery((prev) => [...prev, item]);
+    const updatedGallery = [...gallery, item];
+    setGallery(updatedGallery);
+    localStorage.setItem('adminGallery', JSON.stringify(updatedGallery));
     setShowGalleryDialog(false);
     setNewGalleryItem({
       title: "",
