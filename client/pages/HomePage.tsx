@@ -44,6 +44,7 @@ import {
   Eye,
   X,
   Trophy,
+  Camera,
 } from "lucide-react";
 
 const HomePage = () => {
