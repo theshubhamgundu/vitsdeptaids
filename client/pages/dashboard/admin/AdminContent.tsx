@@ -63,30 +63,7 @@ import {
 } from "lucide-react";
 
 const AdminContent = () => {
-  const [events, setEvents] = useState([
-    {
-      id: 1,
-      title: "AI/ML Workshop Series",
-      description: "Hands-on workshop covering machine learning fundamentals",
-      date: "2025-03-15",
-      type: "Workshop",
-      status: "Active",
-      featured: true,
-      venue: "Main Auditorium",
-      organizer: "Dr. Anita Verma"
-    },
-    {
-      id: 2,
-      title: "Tech Talk: Future of Data Science",
-      description: "Industry experts discuss emerging trends",
-      date: "2025-03-22",
-      type: "Seminar",
-      status: "Active",
-      featured: false,
-      venue: "Conference Hall",
-      organizer: "Dr. Raj Kumar"
-    }
-  ]);
+  const [events, setEvents] = useState([]);
 
   const [gallery, setGallery] = useState([
     {
@@ -420,7 +397,7 @@ const AdminContent = () => {
             <TabsTrigger value="gallery">📷 Gallery</TabsTrigger>
             <TabsTrigger value="faculty">👨‍🏫 Faculty</TabsTrigger>
             <TabsTrigger value="placements">💼 Placements</TabsTrigger>
-            <TabsTrigger value="achievements">🏆 Achievements</TabsTrigger>
+            <TabsTrigger value="achievements">�� Achievements</TabsTrigger>
           </TabsList>
 
           {/* Events Tab */}
