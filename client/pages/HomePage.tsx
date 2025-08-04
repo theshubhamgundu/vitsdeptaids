@@ -3,6 +3,12 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { getAllFaculty } from "@/services/authService";
 import {
+  getPlacementStats,
+  getFeaturedPlacements,
+  getFeaturedAchievements,
+  getFeaturedGallery
+} from "@/services/homePageService";
+import {
   Card,
   CardContent,
   CardDescription,
