@@ -151,7 +151,9 @@ const AdminContent = () => {
       id: Date.now(),
       status: "Active",
     };
-    setEvents((prev) => [...prev, event]);
+    const updatedEvents = [...events, event];
+    setEvents(updatedEvents);
+    localStorage.setItem('adminEvents', JSON.stringify(updatedEvents));
     setShowEventDialog(false);
     setNewEvent({
       title: "",
