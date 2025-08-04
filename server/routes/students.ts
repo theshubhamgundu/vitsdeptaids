@@ -16,27 +16,27 @@ const mockStudents = [
     address: "123 Tech Street, Hyderabad, Telangana 500001",
     emergencyContact: "+91 9876543211",
     status: "Active",
-    admissionDate: "2021-08-01"
+    admissionDate: "2021-08-01",
   },
   {
-    id: "2", 
+    id: "2",
     hallTicket: "20AI002",
     fullName: "Priya Reddy",
     email: "priya.reddy@vignanits.ac.in",
     phone: "+91 9876543212",
     year: 3,
-    branch: "AI & DS", 
+    branch: "AI & DS",
     semester: 6,
     cgpa: 8.75,
     attendance: 92,
     address: "456 Data Lane, Hyderabad, Telangana 500002",
     emergencyContact: "+91 9876543213",
     status: "Active",
-    admissionDate: "2021-08-01"
+    admissionDate: "2021-08-01",
   },
   {
     id: "3",
-    hallTicket: "20AI003", 
+    hallTicket: "20AI003",
     fullName: "Arjun Kumar",
     email: "arjun.kumar@vignanits.ac.in",
     phone: "+91 9876543214",
@@ -45,11 +45,11 @@ const mockStudents = [
     semester: 4,
     cgpa: 7.85,
     attendance: 78,
-    address: "789 ML Boulevard, Hyderabad, Telangana 500003", 
+    address: "789 ML Boulevard, Hyderabad, Telangana 500003",
     emergencyContact: "+91 9876543215",
     status: "Active",
-    admissionDate: "2022-08-01"
-  }
+    admissionDate: "2022-08-01",
+  },
 ];
 
 interface StudentFilters {
@@ -69,36 +69,41 @@ export const handleGetStudents: RequestHandler = (req, res) => {
 
     // Apply filters
     if (year) {
-      filteredStudents = filteredStudents.filter(s => s.year.toString() === year);
+      filteredStudents = filteredStudents.filter(
+        (s) => s.year.toString() === year,
+      );
     }
-    
+
     if (branch) {
-      filteredStudents = filteredStudents.filter(s => s.branch === branch);
+      filteredStudents = filteredStudents.filter((s) => s.branch === branch);
     }
-    
+
     if (status) {
-      filteredStudents = filteredStudents.filter(s => s.status.toLowerCase() === status.toLowerCase());
+      filteredStudents = filteredStudents.filter(
+        (s) => s.status.toLowerCase() === status.toLowerCase(),
+      );
     }
-    
+
     if (search) {
       const searchLower = search.toLowerCase();
-      filteredStudents = filteredStudents.filter(s => 
-        s.fullName.toLowerCase().includes(searchLower) ||
-        s.hallTicket.toLowerCase().includes(searchLower) ||
-        s.email.toLowerCase().includes(searchLower)
+      filteredStudents = filteredStudents.filter(
+        (s) =>
+          s.fullName.toLowerCase().includes(searchLower) ||
+          s.hallTicket.toLowerCase().includes(searchLower) ||
+          s.email.toLowerCase().includes(searchLower),
       );
     }
 
     res.json({
       success: true,
       data: filteredStudents,
-      total: filteredStudents.length
+      total: filteredStudents.length,
     });
   } catch (error) {
     console.error("Get students error:", error);
     res.status(500).json({
       success: false,
-      message: "Internal server error"
+      message: "Internal server error",
     });
   }
 };
@@ -106,24 +111,24 @@ export const handleGetStudents: RequestHandler = (req, res) => {
 export const handleGetStudent: RequestHandler = (req, res) => {
   try {
     const { id } = req.params;
-    const student = mockStudents.find(s => s.id === id);
-    
+    const student = mockStudents.find((s) => s.id === id);
+
     if (!student) {
       return res.status(404).json({
         success: false,
-        message: "Student not found"
+        message: "Student not found",
       });
     }
 
     res.json({
       success: true,
-      data: student
+      data: student,
     });
   } catch (error) {
     console.error("Get student error:", error);
     res.status(500).json({
       success: false,
-      message: "Internal server error"
+      message: "Internal server error",
     });
   }
 };
@@ -131,12 +136,12 @@ export const handleGetStudent: RequestHandler = (req, res) => {
 export const handleGetStudentAnalysis: RequestHandler = (req, res) => {
   try {
     const { id } = req.params;
-    const student = mockStudents.find(s => s.id === id);
-    
+    const student = mockStudents.find((s) => s.id === id);
+
     if (!student) {
       return res.status(404).json({
         success: false,
-        message: "Student not found"
+        message: "Student not found",
       });
     }
 
@@ -151,14 +156,14 @@ export const handleGetStudentAnalysis: RequestHandler = (req, res) => {
           { semester: 3, cgpa: 8.3 },
           { semester: 4, cgpa: 8.5 },
           { semester: 5, cgpa: 8.6 },
-          { semester: 6, cgpa: 8.45 }
+          { semester: 6, cgpa: 8.45 },
         ],
         subjectWise: [
           { subject: "Machine Learning", marks: 85, grade: "A" },
           { subject: "Data Structures", marks: 88, grade: "A" },
           { subject: "Database Systems", marks: 82, grade: "A" },
-          { subject: "Computer Networks", marks: 78, grade: "B+" }
-        ]
+          { subject: "Computer Networks", marks: 78, grade: "B+" },
+        ],
       },
       attendance: {
         overall: student.attendance,
@@ -166,9 +171,9 @@ export const handleGetStudentAnalysis: RequestHandler = (req, res) => {
           { subject: "Machine Learning", percentage: 90 },
           { subject: "Data Structures", percentage: 85 },
           { subject: "Database Systems", percentage: 88 },
-          { subject: "Computer Networks", percentage: 82 }
+          { subject: "Computer Networks", percentage: 82 },
         ],
-        monthlyTrend: [85, 87, 88, 90, 88, 87]
+        monthlyTrend: [85, 87, 88, 90, 88, 87],
       },
       certificates: {
         approved: 3,
@@ -177,36 +182,46 @@ export const handleGetStudentAnalysis: RequestHandler = (req, res) => {
         list: [
           { title: "AWS Cloud Practitioner", status: "approved" },
           { title: "Google Data Analytics", status: "approved" },
-          { title: "Machine Learning Certification", status: "pending" }
-        ]
+          { title: "Machine Learning Certification", status: "pending" },
+        ],
       },
       achievements: [
         { title: "Best Project Award", year: "2024" },
-        { title: "Hackathon Winner", year: "2023" }
+        { title: "Hackathon Winner", year: "2023" },
       ],
       leaveHistory: [
         { type: "Medical", days: 2, status: "approved", date: "2024-01-15" },
-        { type: "Personal", days: 1, status: "approved", date: "2024-02-20" }
+        { type: "Personal", days: 1, status: "approved", date: "2024-02-20" },
       ],
       riskFactors: [
-        ...(student.attendance < 75 ? [{ type: "attendance", severity: "high", message: "Low attendance" }] : []),
-        ...(student.cgpa < 6.0 ? [{ type: "academic", severity: "high", message: "Low CGPA" }] : [])
+        ...(student.attendance < 75
+          ? [
+              {
+                type: "attendance",
+                severity: "high",
+                message: "Low attendance",
+              },
+            ]
+          : []),
+        ...(student.cgpa < 6.0
+          ? [{ type: "academic", severity: "high", message: "Low CGPA" }]
+          : []),
       ],
       recommendations: [
         "Maintain excellent academic performance",
-        "Consider participating in more technical competitions"
-      ]
+        "Consider participating in more technical competitions",
+      ],
     };
 
     res.json({
       success: true,
-      data: analysisData
+      data: analysisData,
     });
   } catch (error) {
     console.error("Get student analysis error:", error);
     res.status(500).json({
       success: false,
-      message: "Internal server error"
+      message: "Internal server error",
     });
   }
 };
@@ -218,28 +233,36 @@ export const handleGetStudentStats: RequestHandler = (req, res) => {
     const stats = {
       total: mockStudents.length,
       byYear: {
-        1: mockStudents.filter(s => s.year === 1).length,
-        2: mockStudents.filter(s => s.year === 2).length,
-        3: mockStudents.filter(s => s.year === 3).length,
-        4: mockStudents.filter(s => s.year === 4).length
+        1: mockStudents.filter((s) => s.year === 1).length,
+        2: mockStudents.filter((s) => s.year === 2).length,
+        3: mockStudents.filter((s) => s.year === 3).length,
+        4: mockStudents.filter((s) => s.year === 4).length,
       },
       byStatus: {
-        active: mockStudents.filter(s => s.status === "Active").length,
-        inactive: mockStudents.filter(s => s.status === "Inactive").length
+        active: mockStudents.filter((s) => s.status === "Active").length,
+        inactive: mockStudents.filter((s) => s.status === "Inactive").length,
       },
-      averageCgpa: mockStudents.length > 0 ? mockStudents.reduce((sum, s) => sum + s.cgpa, 0) / mockStudents.length : 0,
-      averageAttendance: mockStudents.length > 0 ? mockStudents.reduce((sum, s) => sum + s.attendance, 0) / mockStudents.length : 0
+      averageCgpa:
+        mockStudents.length > 0
+          ? mockStudents.reduce((sum, s) => sum + s.cgpa, 0) /
+            mockStudents.length
+          : 0,
+      averageAttendance:
+        mockStudents.length > 0
+          ? mockStudents.reduce((sum, s) => sum + s.attendance, 0) /
+            mockStudents.length
+          : 0,
     };
 
     res.json({
       success: true,
-      data: stats
+      data: stats,
     });
   } catch (error) {
     console.error("Get student stats error:", error);
     res.status(500).json({
       success: false,
-      message: "Internal server error"
+      message: "Internal server error",
     });
   }
 };

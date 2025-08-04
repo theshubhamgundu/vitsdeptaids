@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -26,7 +32,7 @@ import {
   GraduationCap,
   Building,
   BookOpen,
-  MessageSquare
+  MessageSquare,
 } from "lucide-react";
 
 const HODDashboard = () => {
@@ -36,20 +42,20 @@ const HODDashboard = () => {
     placementRate: 0,
     averageCGPA: 0,
     researchProjects: 0,
-    industryPartnerships: 0
+    industryPartnerships: 0,
   });
 
   const [yearWiseData, setYearWiseData] = useState({
     year1: 0,
     year2: 0,
     year3: 0,
-    year4: 0
+    year4: 0,
   });
 
   const [facultyMetrics, setFacultyMetrics] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  
+
   // Empty arrays for real-time data (no pre-filled mock data)
   const [recentActivities, setRecentActivities] = useState<any[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState<any[]>([]);
@@ -60,29 +66,29 @@ const HODDashboard = () => {
       value: 0,
       target: 90,
       unit: "%",
-      trend: "neutral"
+      trend: "neutral",
     },
     {
       title: "Faculty Retention",
       value: 0,
       target: 95,
       unit: "%",
-      trend: "neutral"
+      trend: "neutral",
     },
     {
       title: "Research Output",
       value: 0,
       target: 40,
       unit: "papers",
-      trend: "neutral"
+      trend: "neutral",
     },
     {
       title: "Industry Projects",
       value: 0,
       target: 10,
       unit: "projects",
-      trend: "neutral"
-    }
+      trend: "neutral",
+    },
   ]);
 
   useEffect(() => {
@@ -92,51 +98,53 @@ const HODDashboard = () => {
   const initializeHODData = async () => {
     try {
       setLoading(true);
-      
+
       // Get current user
       const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
       setCurrentUser(user);
-      
+
       // Get real student data
       const [students, studentStats] = await Promise.all([
         getAllStudents(),
-        getStudentStats()
+        getStudentStats(),
       ]);
-      
+
       // Get faculty data
       const faculty = getAllFaculty();
-      
+
       setDepartmentStats({
         totalStudents: studentStats.total,
         totalFaculty: faculty.length,
         placementRate: 0, // Will be calculated from placement data when available
         averageCGPA: studentStats.averageCgpa || 0,
         researchProjects: 0, // Will be calculated from faculty research data
-        industryPartnerships: 0 // Will be calculated from partnerships data
+        industryPartnerships: 0, // Will be calculated from partnerships data
       });
 
       setYearWiseData({
         year1: studentStats.byYear[1] || 0,
         year2: studentStats.byYear[2] || 0,
         year3: studentStats.byYear[3] || 0,
-        year4: studentStats.byYear[4] || 0
+        year4: studentStats.byYear[4] || 0,
       });
-      
+
       // Map faculty with basic metrics
-      setFacultyMetrics(faculty.map(member => ({
-        name: member.name,
-        designation: member.designation,
-        studentsAssigned: Math.floor(studentStats.total / faculty.length) || 0,
-        researchPapers: 0, // Will be populated from research data
-        workload: 75 // Default workload percentage
-      })));
-      
+      setFacultyMetrics(
+        faculty.map((member) => ({
+          name: member.name,
+          designation: member.designation,
+          studentsAssigned:
+            Math.floor(studentStats.total / faculty.length) || 0,
+          researchPapers: 0, // Will be populated from research data
+          workload: 75, // Default workload percentage
+        })),
+      );
+
       // Start with empty arrays for activities and approvals (real-time data)
       setRecentActivities([]);
       setPendingApprovals([]);
-      
     } catch (error) {
-      console.error('Error initializing HOD data:', error);
+      console.error("Error initializing HOD data:", error);
     } finally {
       setLoading(false);
     }
@@ -150,7 +158,10 @@ const HODDashboard = () => {
       icon: GraduationCap,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
-      change: departmentStats.totalStudents > 0 ? `${departmentStats.totalStudents} enrolled` : "No students yet"
+      change:
+        departmentStats.totalStudents > 0
+          ? `${departmentStats.totalStudents} enrolled`
+          : "No students yet",
     },
     {
       title: "Faculty Members",
@@ -159,7 +170,7 @@ const HODDashboard = () => {
       icon: Users,
       color: "text-green-600",
       bgColor: "bg-green-50",
-      change: `${departmentStats.totalFaculty} active members`
+      change: `${departmentStats.totalFaculty} active members`,
     },
     {
       title: "Placement Rate",
@@ -168,17 +179,23 @@ const HODDashboard = () => {
       icon: Briefcase,
       color: "text-purple-600",
       bgColor: "bg-purple-50",
-      change: "No placement data yet"
+      change: "No placement data yet",
     },
     {
       title: "Avg CGPA",
-      value: departmentStats.averageCGPA > 0 ? departmentStats.averageCGPA.toFixed(2) : "N/A",
+      value:
+        departmentStats.averageCGPA > 0
+          ? departmentStats.averageCGPA.toFixed(2)
+          : "N/A",
       description: "Department average",
       icon: BookOpen,
       color: "text-orange-600",
       bgColor: "bg-orange-50",
-      change: departmentStats.averageCGPA > 0 ? "Based on current data" : "No academic data yet"
-    }
+      change:
+        departmentStats.averageCGPA > 0
+          ? "Based on current data"
+          : "No academic data yet",
+    },
   ];
 
   if (loading) {
@@ -195,7 +212,10 @@ const HODDashboard = () => {
   }
 
   return (
-    <DashboardLayout userType="hod" userName={currentUser?.name || getFacultyByRole("HOD")[0]?.name || "HOD"}>
+    <DashboardLayout
+      userType="hod"
+      userName={currentUser?.name || getFacultyByRole("HOD")[0]?.name || "HOD"}
+    >
       <div className="space-y-6">
         {/* Welcome Section */}
         <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg p-6 text-white">
@@ -204,9 +224,12 @@ const HODDashboard = () => {
               <Crown className="h-8 w-8" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Head of Department Dashboard</h1>
+              <h1 className="text-2xl font-bold">
+                Head of Department Dashboard
+              </h1>
               <p className="text-purple-100">
-                AI & Data Science Department • Vignan Institute of Technology & Science
+                AI & Data Science Department • Vignan Institute of Technology &
+                Science
               </p>
             </div>
           </div>
@@ -224,16 +247,31 @@ const HODDashboard = () => {
             <CardContent>
               <div className="space-y-3">
                 {pendingApprovals.map((approval) => (
-                  <div key={approval.id} className="flex items-center justify-between p-3 bg-white rounded border">
+                  <div
+                    key={approval.id}
+                    className="flex items-center justify-between p-3 bg-white rounded border"
+                  >
                     <div>
                       <h4 className="font-medium">{approval.type}</h4>
-                      <p className="text-sm text-gray-600">{approval.description}</p>
+                      <p className="text-sm text-gray-600">
+                        {approval.description}
+                      </p>
                     </div>
                     <div className="text-right">
-                      <Badge variant={approval.priority === 'high' ? 'destructive' : approval.priority === 'medium' ? 'default' : 'outline'}>
+                      <Badge
+                        variant={
+                          approval.priority === "high"
+                            ? "destructive"
+                            : approval.priority === "medium"
+                              ? "default"
+                              : "outline"
+                        }
+                      >
                         {approval.priority}
                       </Badge>
-                      <p className="text-xs text-gray-500 mt-1">{approval.daysLeft} days left</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {approval.daysLeft} days left
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -249,7 +287,9 @@ const HODDashboard = () => {
                 <CheckCircle className="h-5 w-5" />
                 <span className="font-medium">No pending approvals</span>
               </div>
-              <p className="text-sm text-green-600 mt-1">All administrative tasks are up to date</p>
+              <p className="text-sm text-green-600 mt-1">
+                All administrative tasks are up to date
+              </p>
             </CardContent>
           </Card>
         )}
@@ -259,14 +299,18 @@ const HODDashboard = () => {
           {departmentOverview.map((metric, index) => (
             <Card key={index}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{metric.title}</CardTitle>
+                <CardTitle className="text-sm font-medium">
+                  {metric.title}
+                </CardTitle>
                 <div className={`p-2 rounded-md ${metric.bgColor}`}>
                   <metric.icon className={`h-4 w-4 ${metric.color}`} />
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{metric.value}</div>
-                <p className="text-xs text-muted-foreground">{metric.description}</p>
+                <p className="text-xs text-muted-foreground">
+                  {metric.description}
+                </p>
                 <p className="text-xs text-gray-600 mt-1">{metric.change}</p>
               </CardContent>
             </Card>
@@ -285,19 +329,31 @@ const HODDashboard = () => {
               {departmentStats.totalStudents === 0 ? (
                 <div className="text-center py-8">
                   <GraduationCap className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 text-sm">No students enrolled yet</p>
+                  <p className="text-gray-500 text-sm">
+                    No students enrolled yet
+                  </p>
                   <p className="text-gray-400 text-xs">
-                    Student distribution will appear here once students are enrolled
+                    Student distribution will appear here once students are
+                    enrolled
                   </p>
                 </div>
               ) : (
                 Object.entries(yearWiseData).map(([year, count], index) => (
                   <div key={index} className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="font-medium">{year.replace('year', '')} Year</span>
+                      <span className="font-medium">
+                        {year.replace("year", "")} Year
+                      </span>
                       <span className="text-gray-600">{count} students</span>
                     </div>
-                    <Progress value={departmentStats.totalStudents > 0 ? (count / departmentStats.totalStudents) * 100 : 0} className="h-2" />
+                    <Progress
+                      value={
+                        departmentStats.totalStudents > 0
+                          ? (count / departmentStats.totalStudents) * 100
+                          : 0
+                      }
+                      className="h-2"
+                    />
                   </div>
                 ))
               )}
@@ -308,15 +364,20 @@ const HODDashboard = () => {
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Department KPIs</CardTitle>
-              <CardDescription>Key performance indicators (will be populated with real data)</CardDescription>
+              <CardDescription>
+                Key performance indicators (will be populated with real data)
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              {departmentKPIs.every(kpi => kpi.value === 0) ? (
+              {departmentKPIs.every((kpi) => kpi.value === 0) ? (
                 <div className="text-center py-12">
                   <BarChart3 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 text-sm">No KPI data available yet</p>
+                  <p className="text-gray-500 text-sm">
+                    No KPI data available yet
+                  </p>
                   <p className="text-gray-400 text-xs">
-                    Performance indicators will be calculated as data becomes available
+                    Performance indicators will be calculated as data becomes
+                    available
                   </p>
                 </div>
               ) : (
@@ -326,24 +387,40 @@ const HODDashboard = () => {
                       <div className="flex items-center justify-between">
                         <span className="font-medium">{kpi.title}</span>
                         <div className="flex items-center space-x-2">
-                          {kpi.trend === 'up' ? (
+                          {kpi.trend === "up" ? (
                             <TrendingUp className="h-4 w-4 text-green-600" />
-                          ) : kpi.trend === 'down' ? (
+                          ) : kpi.trend === "down" ? (
                             <TrendingDown className="h-4 w-4 text-red-600" />
                           ) : (
                             <div className="h-4 w-4" />
                           )}
-                          <span className="font-bold">{kpi.value}{kpi.unit}</span>
+                          <span className="font-bold">
+                            {kpi.value}
+                            {kpi.unit}
+                          </span>
                         </div>
                       </div>
                       <div className="flex items-center justify-between text-sm text-gray-600">
-                        <span>Target: {kpi.target}{kpi.unit}</span>
-                        <span className={kpi.value >= kpi.target ? "text-green-600" : "text-red-600"}>
-                          {kpi.value >= kpi.target ? "Target Met" : "Below Target"}
+                        <span>
+                          Target: {kpi.target}
+                          {kpi.unit}
+                        </span>
+                        <span
+                          className={
+                            kpi.value >= kpi.target
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }
+                        >
+                          {kpi.value >= kpi.target
+                            ? "Target Met"
+                            : "Below Target"}
                         </span>
                       </div>
-                      <Progress 
-                        value={kpi.target > 0 ? (kpi.value / kpi.target) * 100 : 0} 
+                      <Progress
+                        value={
+                          kpi.target > 0 ? (kpi.value / kpi.target) * 100 : 0
+                        }
                         className="h-2"
                       />
                     </div>
@@ -358,13 +435,17 @@ const HODDashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle>Faculty Overview</CardTitle>
-            <CardDescription>Current faculty workload and performance metrics</CardDescription>
+            <CardDescription>
+              Current faculty workload and performance metrics
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {facultyMetrics.length === 0 ? (
               <div className="text-center py-12">
                 <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 text-sm">No faculty data available</p>
+                <p className="text-gray-500 text-sm">
+                  No faculty data available
+                </p>
                 <p className="text-gray-400 text-xs">
                   Faculty metrics will appear here once data is available
                 </p>
@@ -376,19 +457,27 @@ const HODDashboard = () => {
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <h3 className="font-semibold">{faculty.name}</h3>
-                        <p className="text-sm text-gray-600">{faculty.designation}</p>
+                        <p className="text-sm text-gray-600">
+                          {faculty.designation}
+                        </p>
                       </div>
-                      <Badge variant="outline">{faculty.studentsAssigned} students</Badge>
+                      <Badge variant="outline">
+                        {faculty.studentsAssigned} students
+                      </Badge>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                       <div>
                         <span className="text-gray-600">Research Papers:</span>
-                        <span className="ml-2 font-medium">{faculty.researchPapers}</span>
+                        <span className="ml-2 font-medium">
+                          {faculty.researchPapers}
+                        </span>
                       </div>
                       <div>
                         <span className="text-gray-600">Workload:</span>
-                        <span className="ml-2 font-medium">{faculty.workload}%</span>
+                        <span className="ml-2 font-medium">
+                          {faculty.workload}%
+                        </span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <span className="text-gray-600">Status:</span>
@@ -401,7 +490,7 @@ const HODDashboard = () => {
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="mt-3">
                       <Progress value={faculty.workload} className="h-2" />
                     </div>
@@ -416,7 +505,9 @@ const HODDashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle>Recent Department Activities</CardTitle>
-            <CardDescription>Latest departmental events and decisions</CardDescription>
+            <CardDescription>
+              Latest departmental events and decisions
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {recentActivities.length === 0 ? (
@@ -430,21 +521,38 @@ const HODDashboard = () => {
             ) : (
               <div className="space-y-4">
                 {recentActivities.map((activity) => (
-                  <div key={activity.id} className="flex items-center space-x-4 p-3 border rounded-lg">
-                    <div className={`p-2 rounded-full ${
-                      activity.status === 'success' ? 'bg-green-50' :
-                      activity.status === 'warning' ? 'bg-orange-50' : 'bg-blue-50'
-                    }`}>
-                      <activity.icon className={`h-5 w-5 ${
-                        activity.status === 'success' ? 'text-green-600' :
-                        activity.status === 'warning' ? 'text-orange-600' : 'text-blue-600'
-                      }`} />
+                  <div
+                    key={activity.id}
+                    className="flex items-center space-x-4 p-3 border rounded-lg"
+                  >
+                    <div
+                      className={`p-2 rounded-full ${
+                        activity.status === "success"
+                          ? "bg-green-50"
+                          : activity.status === "warning"
+                            ? "bg-orange-50"
+                            : "bg-blue-50"
+                      }`}
+                    >
+                      <activity.icon
+                        className={`h-5 w-5 ${
+                          activity.status === "success"
+                            ? "text-green-600"
+                            : activity.status === "warning"
+                              ? "text-orange-600"
+                              : "text-blue-600"
+                        }`}
+                      />
                     </div>
                     <div className="flex-1">
                       <h3 className="font-medium">{activity.title}</h3>
-                      <p className="text-sm text-gray-600">{activity.description}</p>
+                      <p className="text-sm text-gray-600">
+                        {activity.description}
+                      </p>
                     </div>
-                    <span className="text-xs text-gray-500">{activity.time}</span>
+                    <span className="text-xs text-gray-500">
+                      {activity.time}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -456,45 +564,67 @@ const HODDashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle>Department Management</CardTitle>
-            <CardDescription>Key departmental functions and reports</CardDescription>
+            <CardDescription>
+              Key departmental functions and reports
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Link to="/dashboard/hod/students">
-                <Button variant="outline" className="w-full justify-start h-auto p-4">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start h-auto p-4"
+                >
                   <div className="text-left">
                     <GraduationCap className="h-5 w-5 mb-2" />
                     <div className="font-medium">All Students</div>
-                    <div className="text-xs text-gray-600">Department overview</div>
+                    <div className="text-xs text-gray-600">
+                      Department overview
+                    </div>
                   </div>
                 </Button>
               </Link>
-              
+
               <Link to="/dashboard/hod/faculty-leaves">
-                <Button variant="outline" className="w-full justify-start h-auto p-4">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start h-auto p-4"
+                >
                   <div className="text-left">
                     <FileText className="h-5 w-5 mb-2" />
                     <div className="font-medium">Faculty Leaves</div>
-                    <div className="text-xs text-gray-600">Approve requests</div>
+                    <div className="text-xs text-gray-600">
+                      Approve requests
+                    </div>
                   </div>
                 </Button>
               </Link>
-              
+
               <Link to="/dashboard/hod/messages">
-                <Button variant="outline" className="w-full justify-start h-auto p-4">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start h-auto p-4"
+                >
                   <div className="text-left">
                     <MessageSquare className="h-5 w-5 mb-2" />
                     <div className="font-medium">Messages</div>
-                    <div className="text-xs text-gray-600">Department communication</div>
+                    <div className="text-xs text-gray-600">
+                      Department communication
+                    </div>
                   </div>
                 </Button>
               </Link>
-              
-              <Button variant="outline" className="w-full justify-start h-auto p-4">
+
+              <Button
+                variant="outline"
+                className="w-full justify-start h-auto p-4"
+              >
                 <div className="text-left">
                   <Building className="h-5 w-5 mb-2" />
                   <div className="font-medium">Department Plan</div>
-                  <div className="text-xs text-gray-600">Strategic planning</div>
+                  <div className="text-xs text-gray-600">
+                    Strategic planning
+                  </div>
                 </div>
               </Button>
             </div>

@@ -103,7 +103,10 @@ export const authenticateStudent = async (
     // Check localStorage first for newly registered students
     const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
     const localStudent = localUsers.find(
-      (user: any) => user.hallTicket === hallTicket && user.password === password && user.role === "student"
+      (user: any) =>
+        user.hallTicket === hallTicket &&
+        user.password === password &&
+        user.role === "student",
     );
 
     if (localStudent) {

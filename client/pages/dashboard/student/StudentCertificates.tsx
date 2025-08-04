@@ -1,11 +1,17 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -14,7 +20,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { getStudentCertificates, addStudentCertificate, subscribeToStudentData, Certificate } from "@/services/studentDataService";
+import {
+  getStudentCertificates,
+  addStudentCertificate,
+  subscribeToStudentData,
+  Certificate,
+} from "@/services/studentDataService";
 import { useToast } from "@/hooks/use-toast";
 import {
   Upload,
@@ -26,7 +37,7 @@ import {
   CheckCircle,
   XCircle,
   File,
-  Calendar
+  Calendar,
 } from "lucide-react";
 
 const StudentCertificates = () => {
@@ -37,7 +48,7 @@ const StudentCertificates = () => {
     title: "",
     description: "",
     issueDate: "",
-    organization: ""
+    organization: "",
   });
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +97,7 @@ const StudentCertificates = () => {
       status: "approved",
       fileUrl: "/certificates/aws-cert.pdf",
       approvedBy: "Dr. Anita Verma",
-      approvedAt: "2024-02-17"
+      approvedAt: "2024-02-17",
     },
     {
       id: 2,
@@ -98,7 +109,7 @@ const StudentCertificates = () => {
       status: "approved",
       fileUrl: "/certificates/google-cert.pdf",
       approvedBy: "Dr. Rajesh Kumar",
-      approvedAt: "2024-01-22"
+      approvedAt: "2024-01-22",
     },
     {
       id: 3,
@@ -108,7 +119,7 @@ const StudentCertificates = () => {
       issueDate: "2024-03-01",
       uploadDate: "2024-03-02",
       status: "pending",
-      fileUrl: "/certificates/ml-cert.pdf"
+      fileUrl: "/certificates/ml-cert.pdf",
     },
     {
       id: 4,
@@ -119,12 +130,14 @@ const StudentCertificates = () => {
       uploadDate: "2023-12-12",
       status: "rejected",
       fileUrl: "/certificates/python-cert.pdf",
-      rejectionReason: "Certificate image quality is too low. Please upload a clearer image."
-    }
+      rejectionReason:
+        "Certificate image quality is too low. Please upload a clearer image.",
+    },
   ];
 
   // Use demo data if no real certificates exist
-  const displayCertificates = certificates.length > 0 ? certificates : demoCertificates;
+  const displayCertificates =
+    certificates.length > 0 ? certificates : demoCertificates;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -185,7 +198,12 @@ const StudentCertificates = () => {
         });
         setUploadDialogOpen(false);
         setSelectedFile(null);
-        setUploadData({ title: "", description: "", issueDate: "", organization: "" });
+        setUploadData({
+          title: "",
+          description: "",
+          issueDate: "",
+          organization: "",
+        });
         // Reload certificates
         if (currentUser.id) {
           loadCertificates(currentUser.id);
@@ -196,7 +214,8 @@ const StudentCertificates = () => {
     } catch (error) {
       toast({
         title: "Upload Failed",
-        description: "There was an error uploading your certificate. Please try again.",
+        description:
+          "There was an error uploading your certificate. Please try again.",
         variant: "destructive",
       });
     }
@@ -204,14 +223,17 @@ const StudentCertificates = () => {
 
   const stats = {
     total: displayCertificates.length,
-    approved: displayCertificates.filter(c => c.status === "approved").length,
-    pending: displayCertificates.filter(c => c.status === "pending").length,
-    rejected: displayCertificates.filter(c => c.status === "rejected").length
+    approved: displayCertificates.filter((c) => c.status === "approved").length,
+    pending: displayCertificates.filter((c) => c.status === "pending").length,
+    rejected: displayCertificates.filter((c) => c.status === "rejected").length,
   };
 
   if (loading) {
     return (
-      <DashboardLayout userType="student" userName={currentUser?.name || "Student"}>
+      <DashboardLayout
+        userType="student"
+        userName={currentUser?.name || "Student"}
+      >
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -223,7 +245,10 @@ const StudentCertificates = () => {
   }
 
   return (
-    <DashboardLayout userType="student" userName={currentUser?.name || "Student"}>
+    <DashboardLayout
+      userType="student"
+      userName={currentUser?.name || "Student"}
+    >
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -252,7 +277,12 @@ const StudentCertificates = () => {
                     id="title"
                     placeholder="e.g., AWS Cloud Practitioner"
                     value={uploadData.title}
-                    onChange={(e) => setUploadData(prev => ({ ...prev, title: e.target.value }))}
+                    onChange={(e) =>
+                      setUploadData((prev) => ({
+                        ...prev,
+                        title: e.target.value,
+                      }))
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -261,7 +291,12 @@ const StudentCertificates = () => {
                     id="organization"
                     placeholder="e.g., Amazon Web Services"
                     value={uploadData.organization}
-                    onChange={(e) => setUploadData(prev => ({ ...prev, organization: e.target.value }))}
+                    onChange={(e) =>
+                      setUploadData((prev) => ({
+                        ...prev,
+                        organization: e.target.value,
+                      }))
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -270,7 +305,12 @@ const StudentCertificates = () => {
                     id="issueDate"
                     type="date"
                     value={uploadData.issueDate}
-                    onChange={(e) => setUploadData(prev => ({ ...prev, issueDate: e.target.value }))}
+                    onChange={(e) =>
+                      setUploadData((prev) => ({
+                        ...prev,
+                        issueDate: e.target.value,
+                      }))
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -279,7 +319,12 @@ const StudentCertificates = () => {
                     id="description"
                     placeholder="Brief description of the certificate"
                     value={uploadData.description}
-                    onChange={(e) => setUploadData(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) =>
+                      setUploadData((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
                     rows={3}
                   />
                 </div>
@@ -301,7 +346,10 @@ const StudentCertificates = () => {
                     <Upload className="h-4 w-4 mr-2" />
                     Upload
                   </Button>
-                  <Button variant="outline" onClick={() => setUploadDialogOpen(false)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setUploadDialogOpen(false)}
+                  >
                     Cancel
                   </Button>
                 </div>
@@ -314,7 +362,9 @@ const StudentCertificates = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Certificates</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Certificates
+              </CardTitle>
               <Award className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
@@ -327,7 +377,9 @@ const StudentCertificates = () => {
               <CheckCircle className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
+              <div className="text-2xl font-bold text-green-600">
+                {stats.approved}
+              </div>
             </CardContent>
           </Card>
           <Card>
@@ -336,7 +388,9 @@ const StudentCertificates = () => {
               <Clock className="h-4 w-4 text-yellow-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
+              <div className="text-2xl font-bold text-yellow-600">
+                {stats.pending}
+              </div>
             </CardContent>
           </Card>
           <Card>
@@ -345,7 +399,9 @@ const StudentCertificates = () => {
               <XCircle className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
+              <div className="text-2xl font-bold text-red-600">
+                {stats.rejected}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -354,71 +410,89 @@ const StudentCertificates = () => {
         <Card>
           <CardHeader>
             <CardTitle>Your Certificates</CardTitle>
-            <CardDescription>All your uploaded certificates and their verification status</CardDescription>
+            <CardDescription>
+              All your uploaded certificates and their verification status
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {displayCertificates.length === 0 ? (
                 <div className="text-center py-12">
                   <Award className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 text-sm">No certificates uploaded yet</p>
+                  <p className="text-gray-500 text-sm">
+                    No certificates uploaded yet
+                  </p>
                   <p className="text-gray-400 text-xs">
                     Upload your first certificate to get started
                   </p>
                 </div>
               ) : (
                 displayCertificates.map((cert) => (
-                <div key={cert.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-4">
-                      <div className="p-2 bg-blue-50 rounded-lg">
-                        {getStatusIcon(cert.status)}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <h3 className="font-semibold text-lg">{cert.title}</h3>
-                          {getStatusBadge(cert.status)}
+                  <div
+                    key={cert.id}
+                    className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start space-x-4">
+                        <div className="p-2 bg-blue-50 rounded-lg">
+                          {getStatusIcon(cert.status)}
                         </div>
-                        <p className="text-gray-600 mb-2">{cert.description}</p>
-                        <div className="flex items-center space-x-4 text-sm text-gray-500">
-                          <div className="flex items-center">
-                            <Calendar className="h-4 w-4 mr-1" />
-                            Issued: {new Date(cert.issueDate).toLocaleDateString()}
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <h3 className="font-semibold text-lg">
+                              {cert.title}
+                            </h3>
+                            {getStatusBadge(cert.status)}
                           </div>
-                          <div>Organization: {cert.organization}</div>
-                          <div>Uploaded: {new Date(cert.uploadDate).toLocaleDateString()}</div>
-                        </div>
-                        
-                        {cert.status === "approved" && cert.approvedBy && (
-                          <p className="text-sm text-green-600 mt-2">
-                            ✓ Approved by {cert.approvedBy} on {new Date(cert.approvedAt!).toLocaleDateString()}
+                          <p className="text-gray-600 mb-2">
+                            {cert.description}
                           </p>
-                        )}
-                        
-                        {cert.status === "rejected" && cert.rejectionReason && (
-                          <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
-                            <p className="text-sm text-red-800">
-                              <strong>Rejection Reason:</strong> {cert.rejectionReason}
-                            </p>
+                          <div className="flex items-center space-x-4 text-sm text-gray-500">
+                            <div className="flex items-center">
+                              <Calendar className="h-4 w-4 mr-1" />
+                              Issued:{" "}
+                              {new Date(cert.issueDate).toLocaleDateString()}
+                            </div>
+                            <div>Organization: {cert.organization}</div>
+                            <div>
+                              Uploaded:{" "}
+                              {new Date(cert.uploadDate).toLocaleDateString()}
+                            </div>
                           </div>
+
+                          {cert.status === "approved" && cert.approvedBy && (
+                            <p className="text-sm text-green-600 mt-2">
+                              ✓ Approved by {cert.approvedBy} on{" "}
+                              {new Date(cert.approvedAt!).toLocaleDateString()}
+                            </p>
+                          )}
+
+                          {cert.status === "rejected" &&
+                            cert.rejectionReason && (
+                              <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
+                                <p className="text-sm text-red-800">
+                                  <strong>Rejection Reason:</strong>{" "}
+                                  {cert.rejectionReason}
+                                </p>
+                              </div>
+                            )}
+                        </div>
+                      </div>
+
+                      <div className="flex space-x-2">
+                        <Button variant="outline" size="sm">
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                        {cert.status === "approved" && (
+                          <Button variant="outline" size="sm">
+                            <Download className="h-4 w-4 mr-1" />
+                            Download
+                          </Button>
                         )}
                       </div>
-                    </div>
-                    
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm">
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
-                      {cert.status === "approved" && (
-                        <Button variant="outline" size="sm">
-                          <Download className="h-4 w-4 mr-1" />
-                          Download
-                        </Button>
-                      )}
                     </div>
                   </div>
-                </div>
                 ))
               )}
             </div>

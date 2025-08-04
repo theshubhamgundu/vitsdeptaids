@@ -76,8 +76,10 @@ export const getAllStudents = async (): Promise<StudentRecord[]> => {
 
     // Get from localStorage (newly registered students)
     const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
-    const localStudents = localUsers.filter((user: any) => user.role === "student");
-    
+    const localStudents = localUsers.filter(
+      (user: any) => user.role === "student",
+    );
+
     students = localStudents.map((student: any) => ({
       id: student.id,
       hallTicket: student.hallTicket,
@@ -125,11 +127,11 @@ export const getAllStudents = async (): Promise<StudentRecord[]> => {
             admissionDate: student.admission_date || student.created_at,
             createdAt: student.created_at,
           }));
-          
+
           // Merge with local students, avoiding duplicates
-          const existingHallTickets = students.map(s => s.hallTicket);
+          const existingHallTickets = students.map((s) => s.hallTicket);
           const newDbStudents = dbStudentRecords.filter(
-            s => !existingHallTickets.includes(s.hallTicket)
+            (s) => !existingHallTickets.includes(s.hallTicket),
           );
           students = [...students, ...newDbStudents];
         }
@@ -158,7 +160,7 @@ export const getAllStudents = async (): Promise<StudentRecord[]> => {
           emergencyContact: "+91 9876543211",
           admissionDate: "2021-08-01",
           createdAt: "2021-08-01T00:00:00.000Z",
-        }
+        },
       ];
     }
 
@@ -170,51 +172,63 @@ export const getAllStudents = async (): Promise<StudentRecord[]> => {
 };
 
 // Get student by ID
-export const getStudentById = async (studentId: string): Promise<StudentRecord | null> => {
+export const getStudentById = async (
+  studentId: string,
+): Promise<StudentRecord | null> => {
   const students = await getAllStudents();
-  return students.find(s => s.id === studentId) || null;
+  return students.find((s) => s.id === studentId) || null;
 };
 
 // Get student by hall ticket
-export const getStudentByHallTicket = async (hallTicket: string): Promise<StudentRecord | null> => {
+export const getStudentByHallTicket = async (
+  hallTicket: string,
+): Promise<StudentRecord | null> => {
   const students = await getAllStudents();
-  return students.find(s => s.hallTicket === hallTicket) || null;
+  return students.find((s) => s.hallTicket === hallTicket) || null;
 };
 
 // Get student statistics
 export const getStudentStats = async () => {
   const students = await getAllStudents();
-  
+
   const stats = {
     total: students.length,
     byYear: {
-      1: students.filter(s => s.year.includes("1st")).length,
-      2: students.filter(s => s.year.includes("2nd")).length,
-      3: students.filter(s => s.year.includes("3rd")).length,
-      4: students.filter(s => s.year.includes("4th")).length,
+      1: students.filter((s) => s.year.includes("1st")).length,
+      2: students.filter((s) => s.year.includes("2nd")).length,
+      3: students.filter((s) => s.year.includes("3rd")).length,
+      4: students.filter((s) => s.year.includes("4th")).length,
     },
     byStatus: {
-      active: students.filter(s => s.status === "Active").length,
-      inactive: students.filter(s => s.status === "Inactive").length,
-      graduated: students.filter(s => s.status === "Graduated").length,
+      active: students.filter((s) => s.status === "Active").length,
+      inactive: students.filter((s) => s.status === "Inactive").length,
+      graduated: students.filter((s) => s.status === "Graduated").length,
     },
-    averageCgpa: students.length > 0 ? 
-      students.reduce((sum, s) => sum + s.cgpa, 0) / students.length : 0,
-    averageAttendance: students.length > 0 ? 
-      students.reduce((sum, s) => sum + s.attendance, 0) / students.length : 0,
+    averageCgpa:
+      students.length > 0
+        ? students.reduce((sum, s) => sum + s.cgpa, 0) / students.length
+        : 0,
+    averageAttendance:
+      students.length > 0
+        ? students.reduce((sum, s) => sum + s.attendance, 0) / students.length
+        : 0,
   };
 
   return stats;
 };
 
 // Get certificates for a student
-export const getStudentCertificates = async (studentId: string): Promise<Certificate[]> => {
+export const getStudentCertificates = async (
+  studentId: string,
+): Promise<Certificate[]> => {
   try {
     // Get from localStorage first
-    const localCertificates = JSON.parse(localStorage.getItem(`certificates_${studentId}`) || "[]");
-    
+    const localCertificates = JSON.parse(
+      localStorage.getItem(`certificates_${studentId}`) || "[]",
+    );
+
     // TODO: Add Supabase integration for certificates
-    
+
     return localCertificates;
   } catch (error) {
     console.error("Error fetching certificates:", error);
@@ -223,7 +237,10 @@ export const getStudentCertificates = async (studentId: string): Promise<Certifi
 };
 
 // Add a new certificate
-export const addStudentCertificate = async (studentId: string, certificate: Omit<Certificate, "id" | "studentId" | "uploadDate" | "status">): Promise<boolean> => {
+export const addStudentCertificate = async (
+  studentId: string,
+  certificate: Omit<Certificate, "id" | "studentId" | "uploadDate" | "status">,
+): Promise<boolean> => {
   try {
     const newCertificate: Certificate = {
       id: crypto.randomUUID(),
@@ -235,15 +252,20 @@ export const addStudentCertificate = async (studentId: string, certificate: Omit
 
     const existingCertificates = await getStudentCertificates(studentId);
     const updatedCertificates = [...existingCertificates, newCertificate];
-    
-    localStorage.setItem(`certificates_${studentId}`, JSON.stringify(updatedCertificates));
-    
+
+    localStorage.setItem(
+      `certificates_${studentId}`,
+      JSON.stringify(updatedCertificates),
+    );
+
     // Trigger storage event for real-time updates
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: `certificates_${studentId}`,
-      newValue: JSON.stringify(updatedCertificates)
-    }));
-    
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key: `certificates_${studentId}`,
+        newValue: JSON.stringify(updatedCertificates),
+      }),
+    );
+
     return true;
   } catch (error) {
     console.error("Error adding certificate:", error);
@@ -252,9 +274,13 @@ export const addStudentCertificate = async (studentId: string, certificate: Omit
 };
 
 // Get results for a student
-export const getStudentResults = async (studentId: string): Promise<Result[]> => {
+export const getStudentResults = async (
+  studentId: string,
+): Promise<Result[]> => {
   try {
-    const localResults = JSON.parse(localStorage.getItem(`results_${studentId}`) || "[]");
+    const localResults = JSON.parse(
+      localStorage.getItem(`results_${studentId}`) || "[]",
+    );
     return localResults;
   } catch (error) {
     console.error("Error fetching results:", error);
@@ -263,9 +289,13 @@ export const getStudentResults = async (studentId: string): Promise<Result[]> =>
 };
 
 // Get attendance for a student
-export const getStudentAttendance = async (studentId: string): Promise<AttendanceRecord[]> => {
+export const getStudentAttendance = async (
+  studentId: string,
+): Promise<AttendanceRecord[]> => {
   try {
-    const localAttendance = JSON.parse(localStorage.getItem(`attendance_${studentId}`) || "[]");
+    const localAttendance = JSON.parse(
+      localStorage.getItem(`attendance_${studentId}`) || "[]",
+    );
     return localAttendance;
   } catch (error) {
     console.error("Error fetching attendance:", error);
@@ -274,9 +304,13 @@ export const getStudentAttendance = async (studentId: string): Promise<Attendanc
 };
 
 // Get leave applications for a student
-export const getStudentLeaveApplications = async (studentId: string): Promise<LeaveApplication[]> => {
+export const getStudentLeaveApplications = async (
+  studentId: string,
+): Promise<LeaveApplication[]> => {
   try {
-    const localLeaves = JSON.parse(localStorage.getItem(`leaves_${studentId}`) || "[]");
+    const localLeaves = JSON.parse(
+      localStorage.getItem(`leaves_${studentId}`) || "[]",
+    );
     return localLeaves;
   } catch (error) {
     console.error("Error fetching leave applications:", error);
@@ -285,7 +319,10 @@ export const getStudentLeaveApplications = async (studentId: string): Promise<Le
 };
 
 // Add a leave application
-export const addLeaveApplication = async (studentId: string, leave: Omit<LeaveApplication, "id" | "studentId" | "appliedDate" | "status">): Promise<boolean> => {
+export const addLeaveApplication = async (
+  studentId: string,
+  leave: Omit<LeaveApplication, "id" | "studentId" | "appliedDate" | "status">,
+): Promise<boolean> => {
   try {
     const newLeave: LeaveApplication = {
       id: crypto.randomUUID(),
@@ -297,15 +334,17 @@ export const addLeaveApplication = async (studentId: string, leave: Omit<LeaveAp
 
     const existingLeaves = await getStudentLeaveApplications(studentId);
     const updatedLeaves = [...existingLeaves, newLeave];
-    
+
     localStorage.setItem(`leaves_${studentId}`, JSON.stringify(updatedLeaves));
-    
+
     // Trigger storage event for real-time updates
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: `leaves_${studentId}`,
-      newValue: JSON.stringify(updatedLeaves)
-    }));
-    
+    window.dispatchEvent(
+      new StorageEvent("storage", {
+        key: `leaves_${studentId}`,
+        newValue: JSON.stringify(updatedLeaves),
+      }),
+    );
+
     return true;
   } catch (error) {
     console.error("Error adding leave application:", error);
@@ -325,15 +364,19 @@ function getDefaultSemester(year: string): number {
 // Real-time data update listeners
 export const subscribeToStudentData = (callback: () => void) => {
   const handleStorageChange = (event: StorageEvent) => {
-    if (event.key === "localUsers" || event.key?.startsWith("certificates_") || 
-        event.key?.startsWith("results_") || event.key?.startsWith("attendance_") || 
-        event.key?.startsWith("leaves_")) {
+    if (
+      event.key === "localUsers" ||
+      event.key?.startsWith("certificates_") ||
+      event.key?.startsWith("results_") ||
+      event.key?.startsWith("attendance_") ||
+      event.key?.startsWith("leaves_")
+    ) {
       callback();
     }
   };
 
   window.addEventListener("storage", handleStorageChange);
-  
+
   return () => {
     window.removeEventListener("storage", handleStorageChange);
   };

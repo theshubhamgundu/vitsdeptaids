@@ -47,7 +47,13 @@ const StudentRegistration = () => {
   };
 
   const validateForm = () => {
-    if (!formData.hallTicket || !formData.fullName || !formData.year || !formData.password || !formData.confirmPassword) {
+    if (
+      !formData.hallTicket ||
+      !formData.fullName ||
+      !formData.year ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
       setError("Please fill in all required fields");
       return false;
     }
@@ -411,7 +417,8 @@ const StudentRegistration = () => {
                   placeholder="your.email@example.com"
                 />
                 <p className="text-xs text-gray-500">
-                  If not provided, we'll use {formData.hallTicket && `${formData.hallTicket}@vignan.ac.in`}
+                  If not provided, we'll use{" "}
+                  {formData.hallTicket && `${formData.hallTicket}@vignan.ac.in`}
                 </p>
               </div>
 
@@ -426,12 +433,16 @@ const StudentRegistration = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Create Password <span className="text-red-500">*</span></Label>
+                <Label htmlFor="password">
+                  Create Password <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="password"
                   type="password"
                   value={formData.password}
-                  onChange={(e) => handleInputChange("password", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("password", e.target.value)
+                  }
                   placeholder="Enter a secure password"
                   required
                 />
@@ -441,12 +452,16 @@ const StudentRegistration = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password <span className="text-red-500">*</span></Label>
+                <Label htmlFor="confirmPassword">
+                  Confirm Password <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="confirmPassword"
                   type="password"
                   value={formData.confirmPassword}
-                  onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("confirmPassword", e.target.value)
+                  }
                   placeholder="Re-enter your password"
                   required
                 />
