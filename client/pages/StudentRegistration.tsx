@@ -77,19 +77,41 @@ const StudentRegistration = () => {
       }
 
       // Check if student exists in student_data table
-      const { data: studentData, error: searchError } = await supabase
-        .from("student_data")
-        .select("*")
-        .eq("ht_no", formData.hallTicket)
-        .eq("student_name", formData.fullName.toUpperCase())
-        .eq("year", formData.year)
-        .single();
+      let studentData = null;
+      let useLocalFallback = false;
 
-      if (searchError && searchError.code !== "PGRST116") {
-        throw new Error("Database error. Please try again.");
+      try {
+        const { data, error: searchError } = await supabase
+          .from("student_data")
+          .select("*")
+          .eq("ht_no", formData.hallTicket)
+          .eq("student_name", formData.fullName.toUpperCase())
+          .eq("year", formData.year)
+          .single();
+
+        if (searchError && searchError.code !== "PGRST116") {
+          console.warn("Database query failed, using local fallback:", searchError.message);
+          useLocalFallback = true;
+        } else {
+          studentData = data;
+        }
+      } catch (dbError) {
+        console.warn("Database connection failed, using local fallback:", dbError);
+        useLocalFallback = true;
       }
 
-      if (!studentData) {
+      // Use local fallback if database fails
+      if (useLocalFallback) {
+        const isValidStudent = validateStudentLocally(formData.hallTicket, formData.fullName, formData.year);
+        if (!isValidStudent) {
+          setError(
+            "Student data not found in local records. Please verify your Hall Ticket Number, Name, and Year match our records exactly.",
+          );
+          setLoading(false);
+          return;
+        }
+        console.log("✅ Student validated using local fallback data");
+      } else if (!studentData) {
         setError(
           "Student data not found. Please verify your Hall Ticket Number, Name, and Year match our records exactly.",
         );
