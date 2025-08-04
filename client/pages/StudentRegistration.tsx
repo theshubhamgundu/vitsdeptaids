@@ -114,6 +114,12 @@ const StudentRegistration = () => {
           "Database connection failed, using local fallback:",
           dbError,
         );
+
+        // Force local fallback on Headers errors
+        if (dbError.message && dbError.message.includes('Headers')) {
+          console.log("🔑 Headers error - forcing local fallback mode");
+        }
+
         useLocalFallback = true;
       }
 
