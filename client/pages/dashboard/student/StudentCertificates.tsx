@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,20 +14,23 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { 
-  Upload, 
-  Award, 
-  Eye, 
-  Download, 
-  Plus, 
-  Clock, 
-  CheckCircle, 
+import { getStudentCertificates, addStudentCertificate, subscribeToStudentData, Certificate } from "@/services/studentDataService";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Upload,
+  Award,
+  Eye,
+  Download,
+  Plus,
+  Clock,
+  CheckCircle,
   XCircle,
   File,
   Calendar
 } from "lucide-react";
 
 const StudentCertificates = () => {
+  const { toast } = useToast();
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadData, setUploadData] = useState({
@@ -36,9 +39,43 @@ const StudentCertificates = () => {
     issueDate: "",
     organization: ""
   });
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
-  // Mock data - in real app this would come from API
-  const certificates = [
+  useEffect(() => {
+    // Get current user
+    const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
+    setCurrentUser(user);
+
+    if (user.id) {
+      loadCertificates(user.id);
+    }
+
+    // Subscribe to real-time updates
+    const unsubscribe = subscribeToStudentData(() => {
+      if (user.id) {
+        loadCertificates(user.id);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const loadCertificates = async (studentId: string) => {
+    try {
+      setLoading(true);
+      const studentCertificates = await getStudentCertificates(studentId);
+      setCertificates(studentCertificates);
+    } catch (error) {
+      console.error("Error loading certificates:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Demo certificates for display when no real data exists
+  const demoCertificates = [
     {
       id: 1,
       title: "AWS Cloud Practitioner",
@@ -86,6 +123,9 @@ const StudentCertificates = () => {
     }
   ];
 
+  // Use demo data if no real certificates exist
+  const displayCertificates = certificates.length > 0 ? certificates : demoCertificates;
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "approved":
@@ -119,26 +159,71 @@ const StudentCertificates = () => {
     }
   };
 
-  const handleUpload = () => {
-    if (selectedFile && uploadData.title) {
-      // In real app, this would upload to server
-      console.log("Uploading certificate:", uploadData, selectedFile);
-      setUploadDialogOpen(false);
-      setSelectedFile(null);
-      setUploadData({ title: "", description: "", issueDate: "", organization: "" });
-      // Show success toast
+  const handleUpload = async () => {
+    if (!selectedFile || !uploadData.title || !currentUser?.id) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields and select a file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const success = await addStudentCertificate(currentUser.id, {
+        title: uploadData.title,
+        description: uploadData.description,
+        organization: uploadData.organization,
+        issueDate: uploadData.issueDate,
+        fileUrl: `/certificates/${selectedFile.name}`, // In real app, this would be the uploaded file URL
+      });
+
+      if (success) {
+        toast({
+          title: "Certificate Uploaded",
+          description: "Your certificate has been submitted for verification",
+        });
+        setUploadDialogOpen(false);
+        setSelectedFile(null);
+        setUploadData({ title: "", description: "", issueDate: "", organization: "" });
+        // Reload certificates
+        if (currentUser.id) {
+          loadCertificates(currentUser.id);
+        }
+      } else {
+        throw new Error("Failed to upload certificate");
+      }
+    } catch (error) {
+      toast({
+        title: "Upload Failed",
+        description: "There was an error uploading your certificate. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
   const stats = {
-    total: certificates.length,
-    approved: certificates.filter(c => c.status === "approved").length,
-    pending: certificates.filter(c => c.status === "pending").length,
-    rejected: certificates.filter(c => c.status === "rejected").length
+    total: displayCertificates.length,
+    approved: displayCertificates.filter(c => c.status === "approved").length,
+    pending: displayCertificates.filter(c => c.status === "pending").length,
+    rejected: displayCertificates.filter(c => c.status === "rejected").length
   };
 
+  if (loading) {
+    return (
+      <DashboardLayout userType="student" userName={currentUser?.name || "Student"}>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading certificates...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
-    <DashboardLayout userType="student" userName="Rahul Sharma">
+    <DashboardLayout userType="student" userName={currentUser?.name || "Student"}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -273,7 +358,16 @@ const StudentCertificates = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {certificates.map((cert) => (
+              {displayCertificates.length === 0 ? (
+                <div className="text-center py-12">
+                  <Award className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">No certificates uploaded yet</p>
+                  <p className="text-gray-400 text-xs">
+                    Upload your first certificate to get started
+                  </p>
+                </div>
+              ) : (
+                displayCertificates.map((cert) => (
                 <div key={cert.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-4">
@@ -325,7 +419,8 @@ const StudentCertificates = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
