@@ -586,23 +586,46 @@ const HomePage = () => {
               Recognition of our excellence in education and research
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {achievements.map((achievement, index) => (
-              <Card
-                key={index}
-                className="text-center hover:shadow-lg transition-shadow"
-              >
-                <CardHeader>
-                  <achievement.icon className="h-16 w-16 text-green-600 mx-auto mb-4" />
-                  <CardTitle className="text-xl">{achievement.title}</CardTitle>
-                  <Badge className="mb-2">{achievement.year}</Badge>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>{achievement.description}</CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {featuredAchievements.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {featuredAchievements.map((achievement, index) => (
+                <Card
+                  key={index}
+                  className="text-center hover:shadow-lg transition-shadow"
+                >
+                  <CardHeader>
+                    {achievement.imageUrl ? (
+                      <div className="w-24 h-24 mx-auto mb-4 rounded-lg overflow-hidden">
+                        <img
+                          src={achievement.imageUrl}
+                          alt={achievement.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <Award className="h-16 w-16 text-green-600 mx-auto mb-4" />
+                    )}
+                    <CardTitle className="text-xl">{achievement.title}</CardTitle>
+                    <Badge className="mb-2">{new Date(achievement.date).getFullYear()}</Badge>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription>{achievement.description}</CardDescription>
+                    <p className="text-sm text-gray-500 mt-2">
+                      <strong>Recipient:</strong> {achievement.recipient}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trophy className="h-10 w-10 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">No Achievements Yet</h3>
+              <p className="text-gray-500">Achievement records will appear here once added by the admin.</p>
+            </div>
+          )}
         </div>
       </section>
 
