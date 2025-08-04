@@ -119,52 +119,98 @@ const StudentRegistration = () => {
         return;
       }
 
-      // Check if user profile already exists
-      const { data: existingUser } = await tables
-        .userProfiles()
-        ?.select("*")
-        .eq("hall_ticket", formData.hallTicket)
-        .single();
+      // If using local fallback, skip database operations and create local user
+      if (useLocalFallback) {
+        console.log("⚠️ Using local fallback - creating temporary user session");
 
-      if (existingUser) {
-        setError(
-          "Account already exists for this hall ticket. Please login instead.",
-        );
-        setLoading(false);
-        return;
-      }
+        // Check if user already exists in localStorage
+        const existingUsers = JSON.parse(localStorage.getItem('localUsers') || '[]');
+        const existingUser = existingUsers.find(u => u.hallTicket === formData.hallTicket);
 
-      // Create user profile
-      const userProfileId = crypto.randomUUID();
-      const { error: userError } = await tables.userProfiles()?.insert([
-        {
+        if (existingUser) {
+          setError("Account already exists for this hall ticket. Please login instead.");
+          setLoading(false);
+          return;
+        }
+
+        // Create local user record
+        const userProfileId = crypto.randomUUID();
+        const newUser = {
           id: userProfileId,
-          email: `${formData.hallTicket}@vignan.ac.in`,
+          name: formData.fullName,
           role: "student",
-          hall_ticket: formData.hallTicket,
-          name: formData.fullName,
-          year: formData.year,
-          is_active: true,
-        },
-      ]);
-
-      if (userError) throw userError;
-
-      // Create student record
-      const { error: studentError } = await tables.students()?.insert([
-        {
-          id: crypto.randomUUID(),
-          user_id: userProfileId,
-          hall_ticket: formData.hallTicket,
-          name: formData.fullName,
+          hallTicket: formData.hallTicket,
           email: `${formData.hallTicket}@vignan.ac.in`,
           year: formData.year,
-          section: "A", // Default section since there's only one
-          is_active: true,
-        },
-      ]);
+          section: "A",
+          createdAt: new Date().toISOString()
+        };
 
-      if (studentError) throw studentError;
+        existingUsers.push(newUser);
+        localStorage.setItem('localUsers', JSON.stringify(existingUsers));
+
+        // Store current user session
+        localStorage.setItem('currentUser', JSON.stringify(newUser));
+      } else {
+        // Normal database operations
+        // Check if user profile already exists
+        const { data: existingUser } = await tables
+          .userProfiles()
+          ?.select("*")
+          .eq("hall_ticket", formData.hallTicket)
+          .single();
+
+        if (existingUser) {
+          setError(
+            "Account already exists for this hall ticket. Please login instead.",
+          );
+          setLoading(false);
+          return;
+        }
+
+        // Create user profile
+        const userProfileId = crypto.randomUUID();
+        const { error: userError } = await tables.userProfiles()?.insert([
+          {
+            id: userProfileId,
+            email: `${formData.hallTicket}@vignan.ac.in`,
+            role: "student",
+            hall_ticket: formData.hallTicket,
+            name: formData.fullName,
+            year: formData.year,
+            is_active: true,
+          },
+        ]);
+
+        if (userError) throw userError;
+
+        // Create student record
+        const { error: studentError } = await tables.students()?.insert([
+          {
+            id: crypto.randomUUID(),
+            user_id: userProfileId,
+            hall_ticket: formData.hallTicket,
+            name: formData.fullName,
+            email: `${formData.hallTicket}@vignan.ac.in`,
+            year: formData.year,
+            section: "A", // Default section since there's only one
+            is_active: true,
+          },
+        ]);
+
+        if (studentError) throw studentError;
+
+        // Store user data for auto-login
+        localStorage.setItem('currentUser', JSON.stringify({
+          id: userProfileId,
+          name: formData.fullName,
+          role: "student",
+          hallTicket: formData.hallTicket,
+          email: `${formData.hallTicket}@vignan.ac.in`,
+          year: formData.year,
+          section: "A",
+        }));
+      }
 
       toast({
         title: "Registration Successful!",
