@@ -70,20 +70,27 @@ const StudentRegistration = () => {
         throw new Error("Database not available. Please try again later.");
       }
 
-      // Test database connection first
-      try {
-        const connectionTest = await testDatabaseConnection();
-        if (!connectionTest) {
-          throw new Error(
-            "Database connection test failed. Please check the console for details.",
-          );
-        }
-      } catch (testError) {
-        if (testError.message && testError.message.includes("Headers")) {
-          console.log("🔑 Headers error detected - using local fallback only");
-          // Skip database test and force local fallback
-        } else {
-          throw testError;
+      // Test database connection first (skip if Supabase not configured properly)
+      let skipDatabase = false;
+
+      if (!supabase) {
+        console.log("⚠️ Supabase not configured - using local fallback only");
+        skipDatabase = true;
+      } else {
+        try {
+          const connectionTest = await testDatabaseConnection();
+          if (!connectionTest) {
+            console.log("⚠️ Database test failed - using local fallback only");
+            skipDatabase = true;
+          }
+        } catch (testError) {
+          if (testError.message && testError.message.includes("Headers")) {
+            console.log("🔑 Headers error detected - using local fallback only");
+            skipDatabase = true;
+          } else {
+            console.log("⚠️ Database connection issue - using local fallback only");
+            skipDatabase = true;
+          }
         }
       }
 
