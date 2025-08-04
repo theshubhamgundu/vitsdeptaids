@@ -499,23 +499,37 @@ const HomePage = () => {
               Department photos and videos
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((item) => (
-              <Card key={item} className="hover:shadow-lg transition-shadow">
-                <div className="aspect-video bg-gradient-to-br from-blue-400 to-purple-500 rounded-t-lg flex items-center justify-center">
-                  <span className="text-white font-semibold">
-                    Gallery Item {item}
-                  </span>
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-2">Event/Activity {item}</h3>
-                  <p className="text-sm text-gray-600">
-                    Description of the event or activity
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {featuredGallery.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredGallery.map((item, index) => (
+                <Card key={index} className="hover:shadow-lg transition-shadow">
+                  <div className="aspect-video rounded-t-lg overflow-hidden">
+                    <img
+                      src={item.imageUrl}
+                      alt={item.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = "/api/placeholder/300/200";
+                      }}
+                    />
+                  </div>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold mb-2">{item.title}</h3>
+                    <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                    <Badge variant="secondary" className="text-xs">{item.category}</Badge>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Camera className="h-10 w-10 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">No Gallery Items Yet</h3>
+              <p className="text-gray-500">Gallery items will appear here once added by the admin.</p>
+            </div>
+          )}
         </div>
       </section>
 
