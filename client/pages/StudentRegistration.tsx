@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase, tables } from "@/lib/supabase";
+import { testDatabaseConnection } from "@/utils/databaseTest";
 import { GraduationCap, ArrowLeft, User, CheckCircle } from "lucide-react";
 
 const StudentRegistration = () => {
