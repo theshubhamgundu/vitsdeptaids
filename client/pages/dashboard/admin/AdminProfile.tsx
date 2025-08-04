@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import {
   User,
@@ -13,20 +12,15 @@ import {
   Save,
   X,
   Camera,
-  Settings,
-  Shield,
-  Key,
   Mail,
   Phone,
   MapPin,
   Calendar,
-  Building,
   UserCheck
 } from "lucide-react";
 
 const AdminProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState("personal");
 
   const [profileData, setProfileData] = useState({
     personal: {
@@ -42,43 +36,7 @@ const AdminProfile = () => {
     },
     professional: {
       designation: "System Administrator",
-      department: "Administration",
-      institute: "Vignan Institute of Technology & Science",
-      joiningDate: "2018-01-01",
-      experience: "6+ years",
-      responsibilities: [
-        "System administration and maintenance",
-        "User account management",
-        "Database administration",
-        "Security management",
-        "Technical support"
-      ],
-      officeLocation: "Admin Block, Room 105",
-      workingHours: "9:00 AM - 6:00 PM"
-    },
-    security: {
-      lastLogin: "2024-12-20 10:30:00",
-      loginAttempts: 0,
-      accountStatus: "Active",
-      twoFactorEnabled: true,
-      sessionTimeout: "30 minutes",
-      permissionLevel: "Super Admin",
-      accessRights: [
-        "User Management",
-        "System Configuration",
-        "Database Access",
-        "Report Generation",
-        "Security Settings"
-      ]
-    },
-    system: {
-      systemRole: "Super Administrator",
-      createdDate: "2018-01-01",
-      lastModified: "2024-12-20",
-      databaseAccess: "Full Access",
-      backupAccess: true,
-      serverAccess: true,
-      logAccess: true
+      department: "Administration"
     }
   });
 
@@ -124,392 +82,204 @@ const AdminProfile = () => {
   const currentData = isEditing ? editedData : profileData;
 
   return (
-    <DashboardLayout userType="admin" userName="Admin User">
+    <DashboardLayout userType="admin" userName={currentData.personal.name}>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Admin Profile</h1>
-            <p className="text-gray-600">Manage your administrative profile and system settings</p>
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
+              <UserCheck className="h-6 w-6 text-blue-500 mr-2" />
+              Admin Profile
+            </h1>
+            <p className="text-gray-600">Manage your personal information</p>
           </div>
-          <div className="flex space-x-2">
-            {!isEditing ? (
-              <Button onClick={handleEdit}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Profile
+          {!isEditing ? (
+            <Button onClick={handleEdit} className="bg-blue-600 hover:bg-blue-700">
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Profile
+            </Button>
+          ) : (
+            <div className="flex space-x-2">
+              <Button onClick={handleSave} className="bg-green-600 hover:bg-green-700">
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
               </Button>
-            ) : (
-              <div className="flex space-x-2">
-                <Button onClick={handleSave}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
-                </Button>
-                <Button variant="outline" onClick={handleCancel}>
-                  <X className="h-4 w-4 mr-2" />
-                  Cancel
-                </Button>
-              </div>
-            )}
-          </div>
+              <Button onClick={handleCancel} variant="outline">
+                <X className="h-4 w-4 mr-2" />
+                Cancel
+              </Button>
+            </div>
+          )}
         </div>
 
-        <Tabs defaultValue="personal" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="personal">Personal</TabsTrigger>
-            <TabsTrigger value="professional">Professional</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
-            <TabsTrigger value="system">System</TabsTrigger>
-          </TabsList>
-
-          {/* Personal Information */}
-          <TabsContent value="personal" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <User className="h-5 w-5" />
-                  <span>Personal Information</span>
-                </CardTitle>
-                <CardDescription>Basic personal details and contact information</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Profile Photo Section */}
-                <div className="flex items-center space-x-6">
-                  <div className="relative">
-                    <div className="w-24 h-24 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center overflow-hidden">
-                      {currentData.personal.profilePhoto ? (
-                        <img 
-                          src={currentData.personal.profilePhoto} 
-                          alt="Profile" 
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <UserCheck className="h-12 w-12 text-white" />
-                      )}
-                    </div>
-                    {isEditing && (
-                      <label className="absolute bottom-0 right-0 bg-white rounded-full p-1 border cursor-pointer">
-                        <Camera className="h-4 w-4 text-gray-600" />
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handlePhotoUpload}
-                          className="hidden"
-                        />
-                      </label>
+        {/* Personal Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Personal Information</CardTitle>
+            <CardDescription>Basic personal details and contact information</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Profile Photo Section */}
+              <div className="flex flex-col items-center space-y-4">
+                <div className="relative">
+                  <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200 border-4 border-blue-200">
+                    {currentData.personal.profilePhoto ? (
+                      <img 
+                        src={currentData.personal.profilePhoto} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                        <User className="h-16 w-16 text-white" />
+                      </div>
                     )}
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold">{currentData.personal.name}</h3>
-                    <p className="text-gray-600">{currentData.professional.designation}</p>
-                    <Badge className="mt-1">{currentData.security.permissionLevel}</Badge>
-                  </div>
+                  {isEditing && (
+                    <label className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-2 cursor-pointer hover:bg-blue-700">
+                      <Camera className="h-4 w-4" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
                 </div>
+                <div className="text-center">
+                  <h3 className="font-semibold text-lg">{currentData.personal.name}</h3>
+                  <p className="text-gray-600">{currentData.professional.designation}</p>
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                    {currentData.professional.department}
+                  </Badge>
+                </div>
+              </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="name">Full Name</Label>
+              {/* Personal Details */}
+              <div className="lg:col-span-2 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Full Name</Label>
                     {isEditing ? (
                       <Input
-                        id="name"
                         value={currentData.personal.name}
                         onChange={(e) => handleInputChange('personal', 'name', e.target.value)}
                       />
                     ) : (
-                      <p className="mt-1 text-gray-900">{currentData.personal.name}</p>
+                      <div className="flex items-center space-x-2">
+                        <User className="h-4 w-4 text-gray-500" />
+                        <span>{currentData.personal.name}</span>
+                      </div>
                     )}
                   </div>
                   
-                  <div>
+                  <div className="space-y-2">
                     <Label>Employee ID</Label>
-                    <p className="mt-1 text-gray-900 font-mono">{currentData.personal.employeeId}</p>
+                    <div className="flex items-center space-x-2">
+                      <UserCheck className="h-4 w-4 text-blue-500" />
+                      <span>{currentData.personal.employeeId}</span>
+                    </div>
                   </div>
-
-                  <div>
-                    <Label htmlFor="email">Email Address</Label>
+                  
+                  <div className="space-y-2">
+                    <Label>Email Address</Label>
                     {isEditing ? (
                       <Input
-                        id="email"
                         type="email"
                         value={currentData.personal.email}
                         onChange={(e) => handleInputChange('personal', 'email', e.target.value)}
                       />
                     ) : (
-                      <div className="flex items-center mt-1">
-                        <Mail className="h-4 w-4 mr-2 text-gray-400" />
+                      <div className="flex items-center space-x-2">
+                        <Mail className="h-4 w-4 text-gray-500" />
                         <span>{currentData.personal.email}</span>
                       </div>
                     )}
                   </div>
-
-                  <div>
-                    <Label htmlFor="phone">Phone Number</Label>
+                  
+                  <div className="space-y-2">
+                    <Label>Phone Number</Label>
                     {isEditing ? (
                       <Input
-                        id="phone"
                         value={currentData.personal.phone}
                         onChange={(e) => handleInputChange('personal', 'phone', e.target.value)}
                       />
                     ) : (
-                      <div className="flex items-center mt-1">
-                        <Phone className="h-4 w-4 mr-2 text-gray-400" />
+                      <div className="flex items-center space-x-2">
+                        <Phone className="h-4 w-4 text-gray-500" />
                         <span>{currentData.personal.phone}</span>
                       </div>
                     )}
                   </div>
-
-                  <div>
-                    <Label htmlFor="dob">Date of Birth</Label>
+                  
+                  <div className="space-y-2">
+                    <Label>Date of Birth</Label>
                     {isEditing ? (
                       <Input
-                        id="dob"
                         type="date"
                         value={currentData.personal.dateOfBirth}
                         onChange={(e) => handleInputChange('personal', 'dateOfBirth', e.target.value)}
                       />
                     ) : (
-                      <div className="flex items-center mt-1">
-                        <Calendar className="h-4 w-4 mr-2 text-gray-400" />
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="h-4 w-4 text-gray-500" />
                         <span>{new Date(currentData.personal.dateOfBirth).toLocaleDateString()}</span>
                       </div>
                     )}
                   </div>
-
-                  <div>
-                    <Label htmlFor="bloodGroup">Blood Group</Label>
+                  
+                  <div className="space-y-2">
+                    <Label>Blood Group</Label>
                     {isEditing ? (
                       <Input
-                        id="bloodGroup"
                         value={currentData.personal.bloodGroup}
                         onChange={(e) => handleInputChange('personal', 'bloodGroup', e.target.value)}
                       />
                     ) : (
-                      <p className="mt-1 text-gray-900">{currentData.personal.bloodGroup}</p>
+                      <div className="flex items-center space-x-2">
+                        <span className="w-4 h-4 bg-red-500 rounded-full"></span>
+                        <span>{currentData.personal.bloodGroup}</span>
+                      </div>
                     )}
                   </div>
                 </div>
-
-                <div>
-                  <Label htmlFor="address">Address</Label>
+                
+                <div className="space-y-2">
+                  <Label>Address</Label>
                   {isEditing ? (
                     <Textarea
-                      id="address"
                       value={currentData.personal.address}
                       onChange={(e) => handleInputChange('personal', 'address', e.target.value)}
                       rows={3}
                     />
                   ) : (
-                    <div className="flex items-start mt-1">
-                      <MapPin className="h-4 w-4 mr-2 text-gray-400 mt-0.5" />
+                    <div className="flex items-start space-x-2">
+                      <MapPin className="h-4 w-4 text-gray-500 mt-1" />
                       <span>{currentData.personal.address}</span>
                     </div>
                   )}
                 </div>
-
-                <div>
-                  <Label htmlFor="emergencyContact">Emergency Contact</Label>
+                
+                <div className="space-y-2">
+                  <Label>Emergency Contact</Label>
                   {isEditing ? (
                     <Input
-                      id="emergencyContact"
                       value={currentData.personal.emergencyContact}
                       onChange={(e) => handleInputChange('personal', 'emergencyContact', e.target.value)}
                     />
                   ) : (
-                    <div className="flex items-center mt-1">
-                      <Phone className="h-4 w-4 mr-2 text-gray-400" />
+                    <div className="flex items-center space-x-2">
+                      <Phone className="h-4 w-4 text-red-500" />
                       <span>{currentData.personal.emergencyContact}</span>
                     </div>
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Professional Information */}
-          <TabsContent value="professional" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Settings className="h-5 w-5" />
-                  <span>Professional Information</span>
-                </CardTitle>
-                <CardDescription>Current position and professional details</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label>Designation</Label>
-                    <p className="mt-1 text-gray-900 font-semibold">{currentData.professional.designation}</p>
-                  </div>
-                  
-                  <div>
-                    <Label>Department</Label>
-                    <p className="mt-1 text-gray-900">{currentData.professional.department}</p>
-                  </div>
-
-                  <div>
-                    <Label>Institute</Label>
-                    <div className="flex items-center mt-1">
-                      <Building className="h-4 w-4 mr-2 text-gray-400" />
-                      <span>{currentData.professional.institute}</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label>Joining Date</Label>
-                    <div className="flex items-center mt-1">
-                      <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-                      <span>{new Date(currentData.professional.joiningDate).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Label>Experience</Label>
-                    <p className="mt-1 text-gray-900">{currentData.professional.experience}</p>
-                  </div>
-
-                  <div>
-                    <Label>Office Location</Label>
-                    <div className="flex items-center mt-1">
-                      <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                      <span>{currentData.professional.officeLocation}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <Label>Key Responsibilities</Label>
-                  <ul className="mt-2 space-y-1">
-                    {currentData.professional.responsibilities.map((responsibility, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="text-blue-600 mr-2">•</span>
-                        <span className="text-gray-700">{responsibility}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div>
-                  <Label>Working Hours</Label>
-                  <p className="mt-1 text-gray-900">{currentData.professional.workingHours}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Security Information */}
-          <TabsContent value="security" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Shield className="h-5 w-5" />
-                  <span>Security Settings</span>
-                </CardTitle>
-                <CardDescription>Account security and access control settings</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label>Permission Level</Label>
-                    <Badge className="mt-1 bg-red-100 text-red-800">{currentData.security.permissionLevel}</Badge>
-                  </div>
-                  
-                  <div>
-                    <Label>Account Status</Label>
-                    <Badge className="mt-1 bg-green-100 text-green-800">{currentData.security.accountStatus}</Badge>
-                  </div>
-
-                  <div>
-                    <Label>Last Login</Label>
-                    <p className="mt-1 text-gray-900">{new Date(currentData.security.lastLogin).toLocaleString()}</p>
-                  </div>
-
-                  <div>
-                    <Label>Session Timeout</Label>
-                    <p className="mt-1 text-gray-900">{currentData.security.sessionTimeout}</p>
-                  </div>
-
-                  <div>
-                    <Label>Two-Factor Authentication</Label>
-                    <Badge className={`mt-1 ${currentData.security.twoFactorEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {currentData.security.twoFactorEnabled ? 'Enabled' : 'Disabled'}
-                    </Badge>
-                  </div>
-
-                  <div>
-                    <Label>Failed Login Attempts</Label>
-                    <p className="mt-1 text-gray-900">{currentData.security.loginAttempts}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <Label>Access Rights</Label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {currentData.security.accessRights.map((right, index) => (
-                      <Badge key={index} variant="outline">{right}</Badge>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* System Information */}
-          <TabsContent value="system" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Key className="h-5 w-5" />
-                  <span>System Information</span>
-                </CardTitle>
-                <CardDescription>System-level information and technical details</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label>System Role</Label>
-                    <p className="mt-1 text-gray-900 font-semibold">{currentData.system.systemRole}</p>
-                  </div>
-                  
-                  <div>
-                    <Label>Account Created</Label>
-                    <p className="mt-1 text-gray-900">{new Date(currentData.system.createdDate).toLocaleDateString()}</p>
-                  </div>
-
-                  <div>
-                    <Label>Last Modified</Label>
-                    <p className="mt-1 text-gray-900">{new Date(currentData.system.lastModified).toLocaleDateString()}</p>
-                  </div>
-
-                  <div>
-                    <Label>Database Access</Label>
-                    <Badge className="mt-1 bg-blue-100 text-blue-800">{currentData.system.databaseAccess}</Badge>
-                  </div>
-
-                  <div>
-                    <Label>Backup Access</Label>
-                    <Badge className={`mt-1 ${currentData.system.backupAccess ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {currentData.system.backupAccess ? 'Enabled' : 'Disabled'}
-                    </Badge>
-                  </div>
-
-                  <div>
-                    <Label>Server Access</Label>
-                    <Badge className={`mt-1 ${currentData.system.serverAccess ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {currentData.system.serverAccess ? 'Enabled' : 'Disabled'}
-                    </Badge>
-                  </div>
-
-                  <div>
-                    <Label>Log Access</Label>
-                    <Badge className={`mt-1 ${currentData.system.logAccess ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {currentData.system.logAccess ? 'Enabled' : 'Disabled'}
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
