@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,42 +7,84 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { Camera, Edit, Save, X } from "lucide-react";
+import { Camera, Edit, Save, X, User } from "lucide-react";
+
+interface StudentData {
+  id: string;
+  name: string;
+  role: string;
+  hallTicket: string;
+  email: string;
+  year: string;
+  section: string;
+}
 
 const StudentProfile = () => {
+  const [studentData, setStudentData] = useState<StudentData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
-    fullName: "Rahul Sharma",
-    hallTicket: "20AI001",
-    email: "rahul.sharma@vignanits.ac.in",
-    phone: "+91 9876543210",
-    year: 3,
+    fullName: "",
+    hallTicket: "",
+    email: "",
+    phone: "",
+    year: "",
     branch: "AI & DS",
-    semester: 6,
-    address: "123 Tech Street, Hyderabad, Telangana 500001",
-    emergencyContact: "+91 9876543211",
-    fatherName: "Suresh Sharma",
-    motherName: "Priya Sharma",
-    dateOfBirth: "2003-05-15",
-    bloodGroup: "O+",
-    admissionDate: "2021-08-01",
-    counsellor: "Dr. Anita Verma",
+    section: "",
+    address: "",
+    emergencyContact: "",
+    fatherName: "",
+    motherName: "",
+    dateOfBirth: "",
+    bloodGroup: "",
+    admissionDate: "",
+    counsellor: "",
     status: "Active",
     profilePhoto: null
   });
 
+  useEffect(() => {
+    // Get current user from localStorage
+    const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+    setStudentData(currentUser);
+    
+    // Initialize profile data with actual user data
+    if (currentUser) {
+      setProfileData(prev => ({
+        ...prev,
+        fullName: currentUser.name || "",
+        hallTicket: currentUser.hallTicket || "",
+        email: currentUser.email || "",
+        year: currentUser.year || "",
+        section: currentUser.section || ""
+      }));
+    }
+  }, []);
+
   const handleSave = () => {
-    // In real app, this would save to API
+    // Save updated profile data to localStorage
+    if (studentData) {
+      const updatedUser = {
+        ...studentData,
+        name: profileData.fullName,
+        email: profileData.email,
+        year: profileData.year,
+        section: profileData.section
+      };
+      
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      setStudentData(updatedUser);
+    }
+    
     setIsEditing(false);
     alert("Profile updated successfully!");
   };
 
-  const handlePhotoUpload = (event) => {
-    const file = event.target.files[0];
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (e) => {
-        setProfileData(prev => ({ ...prev, profilePhoto: e.target.result }));
+        setProfileData(prev => ({ ...prev, profilePhoto: e.target?.result as string }));
       };
       reader.readAsDataURL(file);
     }
@@ -50,21 +92,44 @@ const StudentProfile = () => {
 
   const handleCancel = () => {
     setIsEditing(false);
-    // Reset form data if needed
+    // Reset form data to original values
+    if (studentData) {
+      setProfileData(prev => ({
+        ...prev,
+        fullName: studentData.name || "",
+        hallTicket: studentData.hallTicket || "",
+        email: studentData.email || "",
+        year: studentData.year || "",
+        section: studentData.section || ""
+      }));
+    }
   };
 
   const academicInfo = [
-    { label: "Hall Ticket", value: profileData.hallTicket },
-    { label: "Year", value: `${profileData.year}rd Year` },
+    { label: "Hall Ticket", value: profileData.hallTicket || "Not provided" },
+    { label: "Year", value: profileData.year || "Not provided" },
     { label: "Branch", value: profileData.branch },
-    { label: "Current Semester", value: profileData.semester },
-    { label: "Admission Date", value: new Date(profileData.admissionDate).toLocaleDateString() },
+    { label: "Section", value: profileData.section || "Not provided" },
+    { label: "Admission Date", value: profileData.admissionDate || "Not provided" },
     { label: "Status", value: profileData.status },
-    { label: "Counsellor", value: profileData.counsellor }
+    { label: "Counsellor", value: profileData.counsellor || "Not assigned" }
   ];
 
+  if (!studentData) {
+    return (
+      <DashboardLayout userType="student" userName="Loading...">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading profile...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
-    <DashboardLayout userType="student" userName={profileData.fullName}>
+    <DashboardLayout userType="student" userName={studentData.name}>
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Profile Header */}
         <Card>
@@ -99,9 +164,12 @@ const StudentProfile = () => {
             <div className="flex items-center space-x-6">
               <div className="relative">
                 <Avatar className="h-24 w-24">
-                  <AvatarImage src={profileData.profilePhoto || "/api/placeholder/100/100"} />
+                  <AvatarImage src={profileData.profilePhoto || undefined} />
                   <AvatarFallback className="text-2xl">
-                    {profileData.fullName.split(' ').map(n => n[0]).join('')}
+                    {profileData.fullName ? 
+                      profileData.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 
+                      <User className="h-8 w-8" />
+                    }
                   </AvatarFallback>
                 </Avatar>
                 {isEditing && (
@@ -129,10 +197,10 @@ const StudentProfile = () => {
                 )}
               </div>
               <div>
-                <h2 className="text-2xl font-bold">{profileData.fullName}</h2>
-                <p className="text-gray-600">{profileData.hallTicket}</p>
+                <h2 className="text-2xl font-bold">{profileData.fullName || "Student Name"}</h2>
+                <p className="text-gray-600">{profileData.hallTicket || "Hall Ticket"}</p>
                 <div className="flex items-center space-x-2 mt-2">
-                  <Badge variant="outline">{profileData.year}rd Year</Badge>
+                  <Badge variant="outline">{profileData.year || "Year"}</Badge>
                   <Badge variant="outline">{profileData.branch}</Badge>
                   <Badge className="bg-green-100 text-green-800">{profileData.status}</Badge>
                 </div>
@@ -156,6 +224,7 @@ const StudentProfile = () => {
                   value={profileData.fullName}
                   disabled={!isEditing}
                   onChange={(e) => setProfileData(prev => ({ ...prev, fullName: e.target.value }))}
+                  placeholder="Enter your full name"
                 />
               </div>
               <div className="space-y-2">
@@ -166,6 +235,7 @@ const StudentProfile = () => {
                   value={profileData.email}
                   disabled={!isEditing}
                   onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="Enter your email address"
                 />
               </div>
               <div className="space-y-2">
@@ -175,6 +245,7 @@ const StudentProfile = () => {
                   value={profileData.phone}
                   disabled={!isEditing}
                   onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Enter your phone number"
                 />
               </div>
               <div className="space-y-2">
@@ -194,6 +265,7 @@ const StudentProfile = () => {
                   value={profileData.bloodGroup}
                   disabled={!isEditing}
                   onChange={(e) => setProfileData(prev => ({ ...prev, bloodGroup: e.target.value }))}
+                  placeholder="Enter your blood group"
                 />
               </div>
               <div className="space-y-2">
@@ -203,6 +275,7 @@ const StudentProfile = () => {
                   value={profileData.emergencyContact}
                   disabled={!isEditing}
                   onChange={(e) => setProfileData(prev => ({ ...prev, emergencyContact: e.target.value }))}
+                  placeholder="Emergency contact number"
                 />
               </div>
             </div>
@@ -214,6 +287,7 @@ const StudentProfile = () => {
                 disabled={!isEditing}
                 onChange={(e) => setProfileData(prev => ({ ...prev, address: e.target.value }))}
                 rows={3}
+                placeholder="Enter your complete address"
               />
             </div>
           </CardContent>
@@ -234,6 +308,7 @@ const StudentProfile = () => {
                   value={profileData.fatherName}
                   disabled={!isEditing}
                   onChange={(e) => setProfileData(prev => ({ ...prev, fatherName: e.target.value }))}
+                  placeholder="Enter father's name"
                 />
               </div>
               <div className="space-y-2">
@@ -243,6 +318,7 @@ const StudentProfile = () => {
                   value={profileData.motherName}
                   disabled={!isEditing}
                   onChange={(e) => setProfileData(prev => ({ ...prev, motherName: e.target.value }))}
+                  placeholder="Enter mother's name"
                 />
               </div>
             </div>
