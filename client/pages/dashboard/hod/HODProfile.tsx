@@ -33,10 +33,10 @@ const HODProfile = () => {
       email: hodData?.email || "hod@vignan.ac.in",
       phone: hodData?.phone || "+91 9876543210",
       employeeId: hodData?.facultyId || "VIT-AIML-001",
-      dateOfBirth: "1980-05-15",
-      address: "123, Faculty Colony, Hyderabad, Telangana - 500032",
-      emergencyContact: "+91 9876543211",
-      bloodGroup: "A+",
+      dateOfBirth: "",
+      address: "",
+      emergencyContact: "",
+      bloodGroup: "",
       profilePhoto: null
     },
     professional: {
