@@ -241,7 +241,9 @@ const AdminContent = () => {
       id: Date.now(),
       imageUrl: "/api/placeholder/300/200",
     };
-    setAchievements((prev) => [...prev, achievement]);
+    const updatedAchievements = [...achievements, achievement];
+    setAchievements(updatedAchievements);
+    localStorage.setItem('adminAchievements', JSON.stringify(updatedAchievements));
     setShowAchievementDialog(false);
     setNewAchievement({
       title: "",
