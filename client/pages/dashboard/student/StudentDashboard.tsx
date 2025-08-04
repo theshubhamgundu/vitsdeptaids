@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,113 +20,64 @@ import {
   AlertCircle
 } from "lucide-react";
 
-const StudentDashboard = () => {
-  // Mock data - in real app this would come from API
-  const studentData = {
-    name: "Rahul Sharma",
-    hallTicket: "20AI001",
-    year: 3,
-    branch: "AI & DS",
-    semester: 6,
-    cgpa: 8.45,
-    attendance: 88,
-    profilePhoto: "/api/placeholder/100/100"
-  };
+interface StudentData {
+  id: string;
+  name: string;
+  role: string;
+  hallTicket: string;
+  email: string;
+  year: string;
+  section: string;
+}
 
+const StudentDashboard = () => {
+  const [studentData, setStudentData] = useState<StudentData | null>(null);
+
+  useEffect(() => {
+    // Get current user from localStorage
+    const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+    setStudentData(currentUser);
+  }, []);
+
+  // Default empty states for fresh accounts
   const quickStats = [
     {
       title: "Overall CGPA",
-      value: studentData.cgpa.toString(),
-      description: "Current semester",
+      value: "N/A",
+      description: "No data available",
       icon: TrendingUp,
-      color: "text-green-600",
-      bgColor: "bg-green-50"
+      color: "text-gray-500",
+      bgColor: "bg-gray-50"
     },
     {
       title: "Attendance",
-      value: `${studentData.attendance}%`,
-      description: "This semester",
+      value: "N/A",
+      description: "No data available",
       icon: Calendar,
-      color: studentData.attendance >= 75 ? "text-green-600" : "text-red-600",
-      bgColor: studentData.attendance >= 75 ? "bg-green-50" : "bg-red-50"
+      color: "text-gray-500",
+      bgColor: "bg-gray-50"
     },
     {
       title: "Certificates",
-      value: "12",
-      description: "Approved",
+      value: "0",
+      description: "No certificates uploaded",
       icon: Award,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50"
+      color: "text-gray-500",
+      bgColor: "bg-gray-50"
     },
     {
       title: "Pending Applications",
-      value: "2",
-      description: "Leave requests",
+      value: "0",
+      description: "No pending requests",
       icon: FileText,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50"
+      color: "text-gray-500",
+      bgColor: "bg-gray-50"
     }
   ];
 
-  const recentActivities = [
-    {
-      id: 1,
-      type: "result",
-      title: "Mid-term results published",
-      description: "Machine Learning - 85/100",
-      time: "2 hours ago",
-      icon: BarChart3,
-      status: "success"
-    },
-    {
-      id: 2,
-      type: "certificate",
-      title: "Certificate approved",
-      description: "AWS Cloud Practitioner",
-      time: "1 day ago",
-      icon: Award,
-      status: "success"
-    },
-    {
-      id: 3,
-      type: "material",
-      title: "New study material",
-      description: "Deep Learning - Neural Networks",
-      time: "2 days ago",
-      icon: BookOpen,
-      status: "info"
-    },
-    {
-      id: 4,
-      type: "leave",
-      title: "Leave application pending",
-      description: "Medical leave for 2 days",
-      time: "3 days ago",
-      icon: Plane,
-      status: "warning"
-    }
-  ];
-
-  const upcomingEvents = [
-    {
-      title: "Data Science Project Submission",
-      date: "March 20, 2025",
-      time: "11:59 PM",
-      priority: "high"
-    },
-    {
-      title: "Machine Learning Mid-term Exam",
-      date: "March 25, 2025", 
-      time: "10:00 AM",
-      priority: "high"
-    },
-    {
-      title: "Industry Expert Talk",
-      date: "March 28, 2025",
-      time: "2:00 PM",
-      priority: "medium"
-    }
-  ];
+  // Empty arrays for fresh accounts
+  const recentActivities: any[] = [];
+  const upcomingEvents: any[] = [];
 
   const quickActions = [
     {
@@ -158,6 +110,19 @@ const StudentDashboard = () => {
     }
   ];
 
+  if (!studentData) {
+    return (
+      <DashboardLayout userType="student" userName="Loading...">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading dashboard...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout userType="student" userName={studentData.name}>
       <div className="space-y-6">
@@ -170,7 +135,7 @@ const StudentDashboard = () => {
             <div>
               <h1 className="text-2xl font-bold">Welcome back, {studentData.name}!</h1>
               <p className="text-blue-100">
-                {studentData.hallTicket} • Year {studentData.year} • {studentData.branch} • Semester {studentData.semester}
+                {studentData.hallTicket} • {studentData.year} • AI & DS • Section {studentData.section}
               </p>
             </div>
           </div>
@@ -229,18 +194,28 @@ const StudentDashboard = () => {
               <CardTitle>Upcoming Events</CardTitle>
               <CardDescription>Important dates and deadlines</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {upcomingEvents.map((event, index) => (
-                <div key={index} className="border-l-4 border-blue-500 pl-4">
-                  <div className="flex items-center justify-between mb-1">
-                    <h3 className="font-medium text-sm">{event.title}</h3>
-                    <Badge variant={event.priority === 'high' ? 'destructive' : 'default'}>
-                      {event.priority}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-600">{event.date} at {event.time}</p>
+            <CardContent>
+              {upcomingEvents.length === 0 ? (
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">No upcoming events</p>
+                  <p className="text-gray-400 text-xs">Events will appear here when available</p>
                 </div>
-              ))}
+              ) : (
+                <div className="space-y-4">
+                  {upcomingEvents.map((event, index) => (
+                    <div key={index} className="border-l-4 border-blue-500 pl-4">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-medium text-sm">{event.title}</h3>
+                        <Badge variant={event.priority === 'high' ? 'destructive' : 'default'}>
+                          {event.priority}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600">{event.date} at {event.time}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -252,58 +227,48 @@ const StudentDashboard = () => {
             <CardDescription>Your latest updates and notifications</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-center space-x-4 p-3 border rounded-lg">
-                  <div className={`p-2 rounded-full ${
-                    activity.status === 'success' ? 'bg-green-50' :
-                    activity.status === 'warning' ? 'bg-orange-50' : 'bg-blue-50'
-                  }`}>
-                    <activity.icon className={`h-5 w-5 ${
-                      activity.status === 'success' ? 'text-green-600' :
-                      activity.status === 'warning' ? 'text-orange-600' : 'text-blue-600'
-                    }`} />
+            {recentActivities.length === 0 ? (
+              <div className="text-center py-8">
+                <Bell className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm">No recent activities</p>
+                <p className="text-gray-400 text-xs">Your activities will appear here</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentActivities.map((activity) => (
+                  <div key={activity.id} className="flex items-center space-x-4 p-3 border rounded-lg">
+                    <div className={`p-2 rounded-full ${
+                      activity.status === 'success' ? 'bg-green-50' :
+                      activity.status === 'warning' ? 'bg-orange-50' : 'bg-blue-50'
+                    }`}>
+                      <activity.icon className={`h-5 w-5 ${
+                        activity.status === 'success' ? 'text-green-600' :
+                        activity.status === 'warning' ? 'text-orange-600' : 'text-blue-600'
+                      }`} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium">{activity.title}</h3>
+                      <p className="text-sm text-gray-600">{activity.description}</p>
+                    </div>
+                    <span className="text-xs text-gray-500">{activity.time}</span>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium">{activity.title}</h3>
-                    <p className="text-sm text-gray-600">{activity.description}</p>
-                  </div>
-                  <span className="text-xs text-gray-500">{activity.time}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Attendance Progress */}
+        {/* Academic Performance - Empty State */}
         <Card>
           <CardHeader>
-            <CardTitle>Attendance Progress</CardTitle>
-            <CardDescription>Your attendance across all subjects</CardDescription>
+            <CardTitle>Academic Performance</CardTitle>
+            <CardDescription>Your grades and attendance overview</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm font-medium">Overall Attendance</span>
-                  <span className="text-sm text-gray-600">{studentData.attendance}%</span>
-                </div>
-                <Progress value={studentData.attendance} className="h-2" />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <div className="text-center p-3 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">6</div>
-                  <div className="text-sm text-gray-600">Above 85%</div>
-                </div>
-                <div className="text-center p-3 bg-yellow-50 rounded-lg">
-                  <div className="text-2xl font-bold text-yellow-600">2</div>
-                  <div className="text-sm text-gray-600">75-85%</div>
-                </div>
-                <div className="text-center p-3 bg-red-50 rounded-lg">
-                  <div className="text-2xl font-bold text-red-600">0</div>
-                  <div className="text-sm text-gray-600">Below 75%</div>
-                </div>
-              </div>
+            <div className="text-center py-8">
+              <BarChart3 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500 text-sm">No academic data available</p>
+              <p className="text-gray-400 text-xs">Performance data will appear once grades are posted</p>
             </div>
           </CardContent>
         </Card>
