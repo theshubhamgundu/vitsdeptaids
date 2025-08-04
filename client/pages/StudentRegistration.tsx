@@ -155,8 +155,8 @@ const StudentRegistration = () => {
         return;
       }
 
-      // If using local fallback, skip database operations and create local user
-      if (useLocalFallback) {
+      // If using local fallback or database is unavailable, skip database operations and create local user
+      if (useLocalFallback || skipDatabase) {
         console.log(
           "⚠️ Using local fallback - creating temporary user session",
         );
