@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { useToast } from "@/hooks/use-toast";
-import {
-  CreditCard,
-  ExternalLink,
-  IndianRupee
-} from "lucide-react";
+import { CreditCard, ExternalLink, IndianRupee } from "lucide-react";
 
 const StudentFees = () => {
   const { toast } = useToast();
@@ -16,11 +18,16 @@ const StudentFees = () => {
     // Simple redirect to external payment link
     toast({
       title: "Redirecting to Payment Gateway",
-      description: "You will be redirected to ICICI Bank EazyPay for secure payment.",
+      description:
+        "You will be redirected to ICICI Bank EazyPay for secure payment.",
     });
 
     setTimeout(() => {
-      window.open("https://eazypay.icicibank.com/eazypayLink?P1=/2/SVNghjulFgj4uw2vsXQ==", '_blank', 'noopener,noreferrer');
+      window.open(
+        "https://eazypay.icicibank.com/eazypayLink?P1=/2/SVNghjulFgj4uw2vsXQ==",
+        "_blank",
+        "noopener,noreferrer",
+      );
     }, 1000);
   };
 
@@ -30,7 +37,9 @@ const StudentFees = () => {
         {/* Header */}
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Fee Payment</h1>
-          <p className="text-gray-600 text-lg">Pay your academic fees securely online</p>
+          <p className="text-gray-600 text-lg">
+            Pay your academic fees securely online
+          </p>
         </div>
 
         {/* Pay Online Card */}
@@ -42,7 +51,8 @@ const StudentFees = () => {
               </div>
               <CardTitle className="text-2xl">Online Fee Payment</CardTitle>
               <CardDescription>
-                Make your fee payment quickly and securely through our online portal
+                Make your fee payment quickly and securely through our online
+                portal
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center space-y-6">
@@ -57,7 +67,7 @@ const StudentFees = () => {
                   • Digital receipt generation
                 </p>
               </div>
-              
+
               <Button
                 onClick={handlePayOnline}
                 className="w-full bg-blue-600 hover:bg-blue-700 h-12 text-lg"
@@ -84,7 +94,9 @@ const StudentFees = () => {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
               <div>
-                <h3 className="font-semibold mb-2">Accepted Payment Methods:</h3>
+                <h3 className="font-semibold mb-2">
+                  Accepted Payment Methods:
+                </h3>
                 <ul className="space-y-1 text-gray-600">
                   <li>• Credit Cards (Visa, MasterCard, Rupay)</li>
                   <li>• Debit Cards (All major banks)</li>
@@ -92,7 +104,7 @@ const StudentFees = () => {
                   <li>• UPI Payments</li>
                 </ul>
               </div>
-              
+
               <div>
                 <h3 className="font-semibold mb-2">Important Notes:</h3>
                 <ul className="space-y-1 text-gray-600">
