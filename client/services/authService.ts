@@ -100,36 +100,59 @@ export const authenticateStudent = async (
   password: string,
 ): Promise<Student | null> => {
   try {
-    // For now, use simple authentication - in production, implement proper password hashing
-    if (hallTicket === "20AI001" && password === "student123") {
-      const { data: student, error } = await tables
-        .students()
-        .select("*")
-        .eq("hall_ticket", hallTicket)
-        .single();
+    // Check localStorage first for newly registered students
+    const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
+    const localStudent = localUsers.find(
+      (user: any) =>
+        user.hallTicket === hallTicket &&
+        user.password === password &&
+        user.role === "student",
+    );
 
-      if (error) {
-        console.error("Student fetch error:", error);
-        // Return default student if not found in database
-        return {
-          id: "student1",
-          name: "Rahul Sharma",
-          hallTicket: "20AI001",
-          email: "student@vignan.ac.in",
-          year: "3rd Year",
-          section: "A",
-        };
-      }
-
+    if (localStudent) {
       return {
-        id: student.id,
-        name: student.name,
-        hallTicket: student.hall_ticket,
-        email: student.email,
-        year: student.year,
-        section: student.section || "A",
+        id: localStudent.id,
+        name: localStudent.name,
+        hallTicket: localStudent.hallTicket,
+        email: localStudent.email,
+        year: localStudent.year,
+        section: localStudent.section || "A",
       };
     }
+
+    // Check Supabase database if available
+    const studentsTable = tables.students();
+    if (studentsTable) {
+      const { data: student, error } = await studentsTable
+        .select("*")
+        .eq("hall_ticket", hallTicket)
+        .eq("password", password) // In production, use proper password hashing
+        .single();
+
+      if (!error && student) {
+        return {
+          id: student.id,
+          name: student.name,
+          hallTicket: student.hall_ticket,
+          email: student.email,
+          year: student.year,
+          section: student.section || "A",
+        };
+      }
+    }
+
+    // Fallback to hardcoded demo student
+    if (hallTicket === "20AI001" && password === "student123") {
+      return {
+        id: "demo-student",
+        name: "Demo Student",
+        hallTicket: "20AI001",
+        email: "demo@vignan.ac.in",
+        year: "3rd Year",
+        section: "A",
+      };
+    }
+
     return null;
   } catch (error) {
     console.error("Error authenticating student:", error);

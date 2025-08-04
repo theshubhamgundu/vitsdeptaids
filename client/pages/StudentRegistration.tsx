@@ -35,6 +35,10 @@ const StudentRegistration = () => {
     hallTicket: "",
     fullName: "",
     year: "",
+    password: "",
+    confirmPassword: "",
+    email: "",
+    phone: "",
   });
 
   const handleInputChange = (field: string, value: any) => {
@@ -43,8 +47,14 @@ const StudentRegistration = () => {
   };
 
   const validateForm = () => {
-    if (!formData.hallTicket || !formData.fullName || !formData.year) {
-      setError("Please fill in all fields");
+    if (
+      !formData.hallTicket ||
+      !formData.fullName ||
+      !formData.year ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
+      setError("Please fill in all required fields");
       return false;
     }
 
@@ -52,6 +62,23 @@ const StudentRegistration = () => {
     const hallTicketPattern = /^[0-9]{2}[0-9]{3}[A-Z][0-9]{4}$/;
     if (!hallTicketPattern.test(formData.hallTicket)) {
       setError("Please enter a valid hall ticket number (e.g., 23891A7205)");
+      return false;
+    }
+
+    // Validate password
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return false;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return false;
+    }
+
+    // Validate email if provided
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setError("Please enter a valid email address");
       return false;
     }
 
@@ -188,10 +215,15 @@ const StudentRegistration = () => {
           name: formData.fullName,
           role: "student",
           hallTicket: formData.hallTicket,
-          email: `${formData.hallTicket}@vignan.ac.in`,
+          email: formData.email || `${formData.hallTicket}@vignan.ac.in`,
+          phone: formData.phone || "",
           year: formData.year,
           section: "A",
+          password: formData.password, // Store password for authentication
           createdAt: new Date().toISOString(),
+          cgpa: 0.0,
+          attendance: 0,
+          status: "Active",
         };
 
         existingUsers.push(newUser);
@@ -256,7 +288,8 @@ const StudentRegistration = () => {
             name: formData.fullName,
             role: "student",
             hallTicket: formData.hallTicket,
-            email: `${formData.hallTicket}@vignan.ac.in`,
+            email: formData.email || `${formData.hallTicket}@vignan.ac.in`,
+            phone: formData.phone || "",
             year: formData.year,
             section: "A",
           }),
@@ -366,11 +399,72 @@ const StudentRegistration = () => {
                     <SelectValue placeholder="Select your year" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="1st Year">1st Year</SelectItem>
                     <SelectItem value="2nd Year">2nd Year</SelectItem>
                     <SelectItem value="3rd Year">3rd Year</SelectItem>
                     <SelectItem value="4th Year">4th Year</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address (Optional)</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  placeholder="your.email@example.com"
+                />
+                <p className="text-xs text-gray-500">
+                  If not provided, we'll use{" "}
+                  {formData.hallTicket && `${formData.hallTicket}@vignan.ac.in`}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number (Optional)</Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange("phone", e.target.value)}
+                  placeholder="+91 9876543210"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">
+                  Create Password <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    handleInputChange("password", e.target.value)
+                  }
+                  placeholder="Enter a secure password"
+                  required
+                />
+                <p className="text-xs text-gray-500">
+                  Password must be at least 6 characters long
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">
+                  Confirm Password <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(e) =>
+                    handleInputChange("confirmPassword", e.target.value)
+                  }
+                  placeholder="Re-enter your password"
+                  required
+                />
               </div>
             </div>
 
