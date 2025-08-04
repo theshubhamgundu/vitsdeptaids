@@ -119,7 +119,7 @@ const FacultyProfile = () => {
   };
 
   return (
-    <DashboardLayout userType="faculty" userName="Dr. Anita Verma">
+    <DashboardLayout userType="faculty" userName={profile.name}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
