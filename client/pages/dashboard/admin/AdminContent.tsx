@@ -65,30 +65,7 @@ import {
 const AdminContent = () => {
   const [events, setEvents] = useState([]);
 
-  const [gallery, setGallery] = useState([
-    {
-      id: 1,
-      title: "Department Lab",
-      description: "State-of-the-art AI lab facility",
-      category: "Infrastructure",
-      imageUrl: "/api/placeholder/300/200",
-      uploadDate: "2025-03-01",
-      status: "Published",
-      photographer: "Admin",
-      tags: ["lab", "infrastructure", "AI"]
-    },
-    {
-      id: 2,
-      title: "Student Project Demo",
-      description: "Final year project presentations",
-      category: "Academic",
-      imageUrl: "/api/placeholder/300/200",
-      uploadDate: "2025-02-28",
-      status: "Published",
-      photographer: "Dr. Smith",
-      tags: ["students", "projects", "demo"]
-    }
-  ]);
+  const [gallery, setGallery] = useState([]);
 
   const [facultyData, setFacultyData] = useState([]);
 
@@ -397,7 +374,7 @@ const AdminContent = () => {
             <TabsTrigger value="gallery">📷 Gallery</TabsTrigger>
             <TabsTrigger value="faculty">👨‍🏫 Faculty</TabsTrigger>
             <TabsTrigger value="placements">💼 Placements</TabsTrigger>
-            <TabsTrigger value="achievements">�� Achievements</TabsTrigger>
+            <TabsTrigger value="achievements">🏆 Achievements</TabsTrigger>
           </TabsList>
 
           {/* Events Tab */}
