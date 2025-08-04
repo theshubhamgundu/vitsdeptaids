@@ -68,6 +68,12 @@ const StudentRegistration = () => {
         throw new Error("Database not available. Please try again later.");
       }
 
+      // Test database connection first
+      const connectionTest = await testDatabaseConnection();
+      if (!connectionTest) {
+        throw new Error("Database connection test failed. Please check the console for details.");
+      }
+
       // Check if student exists in student_data table
       const { data: studentData, error: searchError } = await supabase
         .from("student_data")
