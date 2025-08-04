@@ -69,34 +69,7 @@ const AdminContent = () => {
 
   const [facultyData, setFacultyData] = useState([]);
 
-  const [placements, setPlacements] = useState([
-    {
-      id: 1,
-      studentName: "Rahul Sharma",
-      hallTicket: "20AI001",
-      company: "TechCorp Solutions",
-      position: "Software Engineer",
-      package: "12.5",
-      placementDate: "2025-02-15",
-      featured: true,
-      location: "Bangalore",
-      companyType: "Product",
-      offerType: "Full-time"
-    },
-    {
-      id: 2,
-      studentName: "Priya Reddy",
-      hallTicket: "20AI002",
-      company: "DataTech Industries",
-      position: "Data Scientist",
-      package: "15.0",
-      placementDate: "2025-02-20",
-      featured: true,
-      location: "Hyderabad",
-      companyType: "Service",
-      offerType: "Full-time"
-    }
-  ]);
+  const [placements, setPlacements] = useState([]);
 
   const [achievements, setAchievements] = useState([
     {
