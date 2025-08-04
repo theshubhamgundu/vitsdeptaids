@@ -75,6 +75,23 @@ const AdminContent = () => {
 
   const [facultyData, setFacultyData] = useState([]);
 
+  // Load existing data from localStorage on component mount
+  useEffect(() => {
+    try {
+      const savedEvents = localStorage.getItem('adminEvents');
+      const savedGallery = localStorage.getItem('adminGallery');
+      const savedPlacements = localStorage.getItem('adminPlacements');
+      const savedAchievements = localStorage.getItem('adminAchievements');
+
+      if (savedEvents) setEvents(JSON.parse(savedEvents));
+      if (savedGallery) setGallery(JSON.parse(savedGallery));
+      if (savedPlacements) setPlacements(JSON.parse(savedPlacements));
+      if (savedAchievements) setAchievements(JSON.parse(savedAchievements));
+    } catch (error) {
+      console.error('Error loading admin data from localStorage:', error);
+    }
+  }, []);
+
   const [placements, setPlacements] = useState([]);
 
   const [achievements, setAchievements] = useState([]);
