@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { getAllStudents } from "@/services/studentDataService";
 import { 
   Users, 
   Upload, 
@@ -21,129 +22,113 @@ import {
 } from "lucide-react";
 
 const FacultyDashboard = () => {
-  const [facultyData, setFacultyData] = useState({
-    name: "Dr. Anita Verma",
-    employeeId: "FAC001",
-    designation: "Assistant Professor",
-    department: "AI & DS",
-    specialization: "Computer Vision, Deep Learning",
-    totalStudents: 85,
-    pendingResults: 12,
-    materialsUploaded: 24,
-    messagesCount: 8
-  });
+  const [facultyData, setFacultyData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [studentCount, setStudentCount] = useState(0);
+  
+  useEffect(() => {
+    initializeFacultyData();
+  }, []);
 
-  const [quickStats, setQuickStats] = useState([
+  const initializeFacultyData = async () => {
+    try {
+      // Get current user from localStorage
+      const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+      
+      if (currentUser.role === "faculty" || currentUser.role === "hod") {
+        // Get student count for this faculty
+        const students = await getAllStudents();
+        const count = students.length;
+        
+        setFacultyData({
+          name: currentUser.name || "Faculty Member",
+          employeeId: currentUser.facultyId || "N/A",
+          designation: currentUser.designation || "Faculty",
+          department: "AI & DS",
+          specialization: "Data Science and Artificial Intelligence",
+          totalStudents: count,
+          pendingResults: 0,
+          materialsUploaded: 0,
+          messagesCount: 0
+        });
+        setStudentCount(count);
+      } else {
+        // Fallback for demo
+        setFacultyData({
+          name: "Faculty Member",
+          employeeId: "FAC001",
+          designation: "Faculty",
+          department: "AI & DS",
+          specialization: "Data Science and Artificial Intelligence",
+          totalStudents: 0,
+          pendingResults: 0,
+          materialsUploaded: 0,
+          messagesCount: 0
+        });
+      }
+    } catch (error) {
+      console.error("Error initializing faculty data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading || !facultyData) {
+    return (
+      <DashboardLayout userType="faculty" userName="Loading...">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading dashboard...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const quickStats = [
     {
       title: "Total Students",
-      value: "85",
-      description: "Under your guidance",
+      value: studentCount.toString(),
+      description: studentCount > 0 ? "Under department guidance" : "No students yet",
       icon: Users,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
+      color: studentCount > 0 ? "text-blue-600" : "text-gray-500",
+      bgColor: studentCount > 0 ? "bg-blue-50" : "bg-gray-50",
       link: "/dashboard/faculty/students"
     },
     {
       title: "Pending Results",
-      value: "12",
-      description: "Awaiting entry",
+      value: "0",
+      description: "No pending entries",
       icon: BarChart3,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50",
+      color: "text-gray-500",
+      bgColor: "bg-gray-50",
       link: "/dashboard/faculty/results"
     },
     {
       title: "Study Materials",
-      value: "24",
-      description: "Uploaded this semester",
+      value: "0",
+      description: "No materials uploaded",
       icon: Upload,
-      color: "text-green-600",
-      bgColor: "bg-green-50",
+      color: "text-gray-500",
+      bgColor: "bg-gray-50",
       link: "/dashboard/faculty/materials"
     },
     {
       title: "Messages",
-      value: "8",
-      description: "Unread notifications",
+      value: "0",
+      description: "No unread notifications",
       icon: MessageSquare,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
+      color: "text-gray-500",
+      bgColor: "bg-gray-50",
       link: "/dashboard/faculty/messages"
     }
-  ]);
+  ];
 
-  const [recentActivities, setRecentActivities] = useState([
-    {
-      id: 1,
-      type: "result",
-      title: "Results uploaded for Machine Learning",
-      description: "Mid-term exam results for 3rd year students",
-      time: "2 hours ago",
-      icon: BarChart3,
-      status: "success"
-    },
-    {
-      id: 2,
-      type: "material",
-      title: "New study material uploaded",
-      description: "Deep Learning - Neural Networks PPT",
-      time: "5 hours ago",
-      icon: Upload,
-      status: "success"
-    },
-    {
-      id: 3,
-      type: "message",
-      title: "Message sent to 2nd year students",
-      description: "Assignment deadline reminder",
-      time: "1 day ago",
-      icon: MessageSquare,
-      status: "info"
-    },
-    {
-      id: 4,
-      type: "student",
-      title: "Student consultation scheduled",
-      description: "Rahul Sharma - Project guidance",
-      time: "2 days ago",
-      icon: Users,
-      status: "info"
-    }
-  ]);
-
-  const [upcomingTasks, setUpcomingTasks] = useState([
-    {
-      title: "Submit Final Exam Results",
-      dueDate: "March 25, 2025",
-      priority: "high",
-      subject: "Machine Learning"
-    },
-    {
-      title: "Faculty Meeting",
-      dueDate: "March 22, 2025",
-      priority: "medium",
-      subject: "Department Planning"
-    },
-    {
-      title: "Project Review Session",
-      dueDate: "March 24, 2025",
-      priority: "high",
-      subject: "Final Year Projects"
-    },
-    {
-      title: "Upload Course Materials",
-      dueDate: "March 26, 2025",
-      priority: "low",
-      subject: "Computer Vision"
-    }
-  ]);
-
-  const [subjectProgress, setSubjectProgress] = useState([
-    { subject: "Machine Learning", completed: 85, total: 100 },
-    { subject: "Computer Vision", completed: 70, total: 100 },
-    { subject: "Data Structures", completed: 95, total: 100 },
-    { subject: "Deep Learning", completed: 60, total: 100 }
-  ]);
+  // Empty states for new faculty accounts
+  const recentActivities: any[] = [];
+  const upcomingTasks: any[] = [];
+  const subjectProgress: any[] = [];
 
   return (
     <DashboardLayout userType="faculty" userName={facultyData.name}>
@@ -194,16 +179,28 @@ const FacultyDashboard = () => {
               <CardTitle>Course Progress</CardTitle>
               <CardDescription>Semester progress for your subjects</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {subjectProgress.map((subject, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium">{subject.subject}</span>
-                    <span className="text-gray-600">{subject.completed}%</span>
-                  </div>
-                  <Progress value={subject.completed} className="h-2" />
+            <CardContent>
+              {subjectProgress.length === 0 ? (
+                <div className="text-center py-12">
+                  <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">No courses assigned yet</p>
+                  <p className="text-gray-400 text-xs">
+                    Course assignments will appear here once configured
+                  </p>
                 </div>
-              ))}
+              ) : (
+                <div className="space-y-4">
+                  {subjectProgress.map((subject, index) => (
+                    <div key={index} className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="font-medium">{subject.subject}</span>
+                        <span className="text-gray-600">{subject.completed}%</span>
+                      </div>
+                      <Progress value={subject.completed} className="h-2" />
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -213,19 +210,31 @@ const FacultyDashboard = () => {
               <CardTitle>Upcoming Tasks</CardTitle>
               <CardDescription>Important deadlines and events</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {upcomingTasks.map((task, index) => (
-                <div key={index} className="border-l-4 border-green-500 pl-4">
-                  <div className="flex items-center justify-between mb-1">
-                    <h3 className="font-medium text-sm">{task.title}</h3>
-                    <Badge variant={task.priority === 'high' ? 'destructive' : task.priority === 'medium' ? 'default' : 'outline'}>
-                      {task.priority}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-600">{task.subject}</p>
-                  <p className="text-xs text-gray-500">{task.dueDate}</p>
+            <CardContent>
+              {upcomingTasks.length === 0 ? (
+                <div className="text-center py-8">
+                  <Clock className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">No upcoming tasks</p>
+                  <p className="text-gray-400 text-xs">
+                    Tasks and deadlines will appear here
+                  </p>
                 </div>
-              ))}
+              ) : (
+                <div className="space-y-4">
+                  {upcomingTasks.map((task, index) => (
+                    <div key={index} className="border-l-4 border-green-500 pl-4">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-medium text-sm">{task.title}</h3>
+                        <Badge variant={task.priority === 'high' ? 'destructive' : task.priority === 'medium' ? 'default' : 'outline'}>
+                          {task.priority}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600">{task.subject}</p>
+                      <p className="text-xs text-gray-500">{task.dueDate}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -237,26 +246,36 @@ const FacultyDashboard = () => {
             <CardDescription>Your latest actions and updates</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-center space-x-4 p-3 border rounded-lg">
-                  <div className={`p-2 rounded-full ${
-                    activity.status === 'success' ? 'bg-green-50' :
-                    activity.status === 'warning' ? 'bg-orange-50' : 'bg-blue-50'
-                  }`}>
-                    <activity.icon className={`h-5 w-5 ${
-                      activity.status === 'success' ? 'text-green-600' :
-                      activity.status === 'warning' ? 'text-orange-600' : 'text-blue-600'
-                    }`} />
+            {recentActivities.length === 0 ? (
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm">No recent activities</p>
+                <p className="text-gray-400 text-xs">
+                  Your activities will appear here as you use the system
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentActivities.map((activity) => (
+                  <div key={activity.id} className="flex items-center space-x-4 p-3 border rounded-lg">
+                    <div className={`p-2 rounded-full ${
+                      activity.status === 'success' ? 'bg-green-50' :
+                      activity.status === 'warning' ? 'bg-orange-50' : 'bg-blue-50'
+                    }`}>
+                      <activity.icon className={`h-5 w-5 ${
+                        activity.status === 'success' ? 'text-green-600' :
+                        activity.status === 'warning' ? 'text-orange-600' : 'text-blue-600'
+                      }`} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium">{activity.title}</h3>
+                      <p className="text-sm text-gray-600">{activity.description}</p>
+                    </div>
+                    <span className="text-xs text-gray-500">{activity.time}</span>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium">{activity.title}</h3>
-                    <p className="text-sm text-gray-600">{activity.description}</p>
-                  </div>
-                  <span className="text-xs text-gray-500">{activity.time}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
