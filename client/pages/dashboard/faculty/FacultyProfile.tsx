@@ -70,12 +70,12 @@ const FacultyProfile = () => {
     specialization: facultyData?.specialization || "Computer Science",
     subjects: facultyData?.specialization?.split(", ") || ["Computer Science"],
     researchInterests: facultyData?.specialization?.split(", ") || ["Computer Science"],
-    publications: Math.floor(Math.random() * 50), // Random for now
-    conferences: Math.floor(Math.random() * 30), // Random for now
-    awards: ["Excellence Award", "Teaching Award"],
-    certifications: ["Industry Certification"],
-    officeHours: "Monday-Friday, 2:00 PM - 4:00 PM",
-    room: `Faculty Block - Room 20${facultyData?.id || 1}`,
+    publications: 0,
+    conferences: 0,
+    awards: [],
+    certifications: [],
+    officeHours: "",
+    room: "",
     linkedIn: `https://linkedin.com/in/${facultyData?.name?.toLowerCase().replace(/\s+/g, '-') || 'faculty'}`,
     googleScholar: "https://scholar.google.com/citations?user=xyz",
     orcid: "0000-0000-0000-0000",
