@@ -3,20 +3,21 @@ import { createClient } from "@supabase/supabase-js";
 
 export const verifySupabaseCredentials = async () => {
   const url = "https://kncqarmijdchduwkrani.supabase.co";
-  const key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuY3Fhcm1pamRjaGR1d2tyYW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU1NzY4MDEsImV4cCI6MjA1MTE1MjgwMX0.SShpQfnqGjwdOUWp9Q5lnhJCQXNhVwqw_iZOk4Rau7A";
+  const key =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtuY3Fhcm1pamRjaGR1d2tyYW5pIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU1NzY4MDEsImV4cCI6MjA1MTE1MjgwMX0.SShpQfnqGjwdOUWp9Q5lnhJCQXNhVwqw_iZOk4Rau7A";
 
   console.log("🔍 Verifying Supabase credentials...");
   console.log("🌐 URL:", url);
   console.log("🔑 Key (first 50 chars):", key.substring(0, 50) + "...");
 
   // Validate key format
-  if (!key.startsWith('eyJ') || !key.includes('.')) {
+  if (!key.startsWith("eyJ") || !key.includes(".")) {
     console.error("❌ Invalid anon key format - key should be a JWT token");
     return false;
   }
 
   // Check for common issues
-  const cleanKey = key.trim().replace(/\s+/g, '');
+  const cleanKey = key.trim().replace(/\s+/g, "");
   if (cleanKey !== key) {
     console.warn("⚠️ Key contains whitespace - using cleaned version");
   }
@@ -78,8 +79,10 @@ export const verifySupabaseCredentials = async () => {
   } catch (error) {
     console.error("❌ Verification failed:", error);
 
-    if (error.message && error.message.includes('Headers')) {
-      console.error("🔑 Headers Error - This usually means the anon key is corrupted");
+    if (error.message && error.message.includes("Headers")) {
+      console.error(
+        "🔑 Headers Error - This usually means the anon key is corrupted",
+      );
       console.log("💡 Try these solutions:");
       console.log("   1. Get a fresh anon key from Supabase dashboard");
       console.log("   2. Make sure there are no extra spaces or characters");

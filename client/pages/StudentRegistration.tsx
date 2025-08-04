@@ -79,7 +79,7 @@ const StudentRegistration = () => {
           );
         }
       } catch (testError) {
-        if (testError.message && testError.message.includes('Headers')) {
+        if (testError.message && testError.message.includes("Headers")) {
           console.log("🔑 Headers error detected - using local fallback only");
           // Skip database test and force local fallback
         } else {
@@ -116,7 +116,7 @@ const StudentRegistration = () => {
         );
 
         // Force local fallback on Headers errors
-        if (dbError.message && dbError.message.includes('Headers')) {
+        if (dbError.message && dbError.message.includes("Headers")) {
           console.log("🔑 Headers error - forcing local fallback mode");
         }
 
