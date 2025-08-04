@@ -96,38 +96,40 @@ const StudentRegistration = () => {
 
       // Check if student exists in student_data table
       let studentData = null;
-      let useLocalFallback = false;
+      let useLocalFallback = skipDatabase;
 
-      try {
-        const { data, error: searchError } = await supabase
-          .from("student_data")
-          .select("*")
-          .eq("ht_no", formData.hallTicket)
-          .eq("student_name", formData.fullName.toUpperCase())
-          .eq("year", formData.year)
-          .single();
+      if (!skipDatabase) {
+        try {
+          const { data, error: searchError } = await supabase
+            .from("student_data")
+            .select("*")
+            .eq("ht_no", formData.hallTicket)
+            .eq("student_name", formData.fullName.toUpperCase())
+            .eq("year", formData.year)
+            .single();
 
-        if (searchError && searchError.code !== "PGRST116") {
+          if (searchError && searchError.code !== "PGRST116") {
+            console.warn(
+              "Database query failed, using local fallback:",
+              searchError.message,
+            );
+            useLocalFallback = true;
+          } else {
+            studentData = data;
+          }
+        } catch (dbError) {
           console.warn(
-            "Database query failed, using local fallback:",
-            searchError.message,
+            "Database connection failed, using local fallback:",
+            dbError,
           );
+
+          // Force local fallback on Headers errors
+          if (dbError.message && dbError.message.includes("Headers")) {
+            console.log("🔑 Headers error - forcing local fallback mode");
+          }
+
           useLocalFallback = true;
-        } else {
-          studentData = data;
         }
-      } catch (dbError) {
-        console.warn(
-          "Database connection failed, using local fallback:",
-          dbError,
-        );
-
-        // Force local fallback on Headers errors
-        if (dbError.message && dbError.message.includes("Headers")) {
-          console.log("🔑 Headers error - forcing local fallback mode");
-        }
-
-        useLocalFallback = true;
       }
 
       // Use local fallback if database fails
