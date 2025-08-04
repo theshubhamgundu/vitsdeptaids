@@ -364,8 +364,7 @@ const HomePage = () => {
                   <CardDescription>{member.designation}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-gray-600 mb-2">{member.specialization}</p>
-                  <Badge variant="outline">{member.experience}</Badge>
+                  {/* Removed specialization and experience display */}
                 </CardContent>
               </Card>
             ))}
