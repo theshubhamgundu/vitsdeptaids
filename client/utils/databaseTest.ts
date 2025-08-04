@@ -16,8 +16,24 @@ export const testDatabaseConnection = async () => {
     supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : "❌ Not set",
   );
 
+  // Check if key format is valid before attempting connection
+  if (supabaseAnonKey) {
+    try {
+      const parts = supabaseAnonKey.split('.');
+      if (parts.length !== 3) {
+        console.error("❌ Invalid anon key format - not a valid JWT");
+        console.log("💡 Using local fallback mode instead");
+        return false;
+      }
+    } catch {
+      console.error("❌ Anon key validation failed");
+      console.log("💡 Using local fallback mode instead");
+      return false;
+    }
+  }
+
   if (!isSupabaseConfigured) {
-    console.error("❌ Supabase environment variables not configured");
+    console.error("❌ Supabase environment variables not configured properly");
     console.log("💡 Make sure these environment variables are set:");
     console.log(
       "   VITE_SUPABASE_URL=https://kncqarmijdchduwkrani.supabase.co",
@@ -25,6 +41,9 @@ export const testDatabaseConnection = async () => {
     console.log(
       "   VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     );
+    console.log("🔧 For Vercel deployment:");
+    console.log("   1. Go to Vercel dashboard → Settings → Environment Variables");
+    console.log("   2. Add both variables and redeploy");
     return false;
   }
 
