@@ -70,6 +70,16 @@ export const testDatabaseConnection = async () => {
     return true;
   } catch (error) {
     console.error("❌ Unexpected error:", error);
+
+    if (error.message && error.message.includes('Headers')) {
+      console.error("🔑 Headers Error - Anon key appears to be corrupted");
+      console.log("💡 The system will use local fallback for student validation");
+      console.log("🔧 To fix this properly:");
+      console.log("   1. Go to your Supabase dashboard");
+      console.log("   2. Get a fresh anon key from Settings → API");
+      console.log("   3. Update your environment variables");
+    }
+
     return false;
   }
 };
