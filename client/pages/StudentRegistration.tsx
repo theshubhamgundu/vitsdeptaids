@@ -45,8 +45,8 @@ const StudentRegistration = () => {
       return false;
     }
 
-    // Validate hall ticket format
-    const hallTicketPattern = /^[0-9]{2}[A-Z]{2,4}[0-9]{3}$/;
+    // Validate hall ticket format - matches patterns like 23891A7205, 24891A7201, etc.
+    const hallTicketPattern = /^[0-9]{2}[0-9]{3}[A-Z][0-9]{4}$/;
     if (!hallTicketPattern.test(formData.hallTicket)) {
       setError("Please enter a valid hall ticket number (e.g., 23891A7205)");
       return false;
