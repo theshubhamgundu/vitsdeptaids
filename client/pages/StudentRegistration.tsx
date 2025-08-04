@@ -218,20 +218,6 @@ const StudentRegistration = () => {
           "Your account has been created. Complete your profile in the dashboard.",
       });
 
-      // Store user data for auto-login
-      localStorage.setItem(
-        "currentUser",
-        JSON.stringify({
-          id: userProfileId,
-          name: formData.fullName,
-          role: "student",
-          hallTicket: formData.hallTicket,
-          email: `${formData.hallTicket}@vignan.ac.in`,
-          year: formData.year,
-          section: "A",
-        }),
-      );
-
       // Redirect to student dashboard
       navigate("/dashboard/student");
     } catch (error: any) {
