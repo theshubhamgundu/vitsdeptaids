@@ -9,7 +9,7 @@ const isKeyValid = (key: string) => {
   if (!key) return false;
   try {
     // Basic JWT format check
-    const parts = key.split('.');
+    const parts = key.split(".");
     if (parts.length !== 3) return false;
 
     // Try to decode the header to validate format
@@ -20,7 +20,11 @@ const isKeyValid = (key: string) => {
   }
 };
 
-export const isSupabaseConfigured = !!(supabaseUrl && supabaseAnonKey && isKeyValid(supabaseAnonKey));
+export const isSupabaseConfigured = !!(
+  supabaseUrl &&
+  supabaseAnonKey &&
+  isKeyValid(supabaseAnonKey)
+);
 
 // Create Supabase client only if environment variables are available
 export const supabase = isSupabaseConfigured

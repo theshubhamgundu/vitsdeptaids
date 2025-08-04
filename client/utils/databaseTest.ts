@@ -19,7 +19,7 @@ export const testDatabaseConnection = async () => {
   // Check if key format is valid before attempting connection
   if (supabaseAnonKey) {
     try {
-      const parts = supabaseAnonKey.split('.');
+      const parts = supabaseAnonKey.split(".");
       if (parts.length !== 3) {
         console.error("❌ Invalid anon key format - not a valid JWT");
         console.log("💡 Using local fallback mode instead");
@@ -42,7 +42,9 @@ export const testDatabaseConnection = async () => {
       "   VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     );
     console.log("🔧 For Vercel deployment:");
-    console.log("   1. Go to Vercel dashboard → Settings → Environment Variables");
+    console.log(
+      "   1. Go to Vercel dashboard → Settings → Environment Variables",
+    );
     console.log("   2. Add both variables and redeploy");
     return false;
   }

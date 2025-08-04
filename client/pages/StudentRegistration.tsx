@@ -85,10 +85,14 @@ const StudentRegistration = () => {
           }
         } catch (testError) {
           if (testError.message && testError.message.includes("Headers")) {
-            console.log("🔑 Headers error detected - using local fallback only");
+            console.log(
+              "🔑 Headers error detected - using local fallback only",
+            );
             skipDatabase = true;
           } else {
-            console.log("⚠️ Database connection issue - using local fallback only");
+            console.log(
+              "⚠️ Database connection issue - using local fallback only",
+            );
             skipDatabase = true;
           }
         }
