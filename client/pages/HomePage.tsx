@@ -529,45 +529,46 @@ const HomePage = () => {
               Outstanding placement records and industry partnerships
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center">
-              <CardHeader>
-                <div className="text-4xl font-bold text-green-600 mb-2">
-                  95%
-                </div>
-                <CardTitle>Placement Rate</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Students successfully placed in top companies
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="text-center">
-              <CardHeader>
-                <div className="text-4xl font-bold text-blue-600 mb-2">50+</div>
-                <CardTitle>Partner Companies</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Leading tech companies for placements
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="text-center">
-              <CardHeader>
-                <div className="text-4xl font-bold text-purple-600 mb-2">
-                  ₹12L
-                </div>
-                <CardTitle>Highest Package</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600">
-                  Maximum package offered to our students
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+          {featuredPlacements.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredPlacements.map((placement, index) => (
+                <Card key={index} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="text-lg">{placement.studentName}</CardTitle>
+                    <CardDescription>{placement.hallTicket}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Company:</span>
+                        <span className="font-medium">{placement.company}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Position:</span>
+                        <span className="font-medium">{placement.position}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Package:</span>
+                        <span className="font-bold text-green-600">₹{placement.package}L</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Location:</span>
+                        <span className="font-medium">{placement.location}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <GraduationCap className="h-10 w-10 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">No Placement Records Yet</h3>
+              <p className="text-gray-500">Placement records will appear here once added by the admin.</p>
+            </div>
+          )}
         </div>
       </section>
 
