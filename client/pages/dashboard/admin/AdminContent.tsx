@@ -71,30 +71,7 @@ const AdminContent = () => {
 
   const [placements, setPlacements] = useState([]);
 
-  const [achievements, setAchievements] = useState([
-    {
-      id: 1,
-      title: "Best Department Award 2024",
-      description: "Recognized as the best AI & Data Science department in the state",
-      category: "Institutional",
-      awardedBy: "State Government",
-      date: "2024-12-15",
-      recipient: "Department of AI & Data Science",
-      featured: true,
-      imageUrl: "/api/placeholder/300/200"
-    },
-    {
-      id: 2,
-      title: "IEEE Student Paper Competition Winner",
-      description: "First place in national level IEEE student paper competition",
-      category: "Student",
-      awardedBy: "IEEE India",
-      date: "2025-01-20",
-      recipient: "Amit Kumar (20AI003)",
-      featured: true,
-      imageUrl: "/api/placeholder/300/200"
-    }
-  ]);
+  const [achievements, setAchievements] = useState([]);
 
   // Dialog states
   const [showEventDialog, setShowEventDialog] = useState(false);
