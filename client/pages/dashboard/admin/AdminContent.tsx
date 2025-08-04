@@ -217,7 +217,9 @@ const AdminContent = () => {
       ...newPlacement,
       id: Date.now(),
     };
-    setPlacements((prev) => [...prev, placement]);
+    const updatedPlacements = [...placements, placement];
+    setPlacements(updatedPlacements);
+    localStorage.setItem('adminPlacements', JSON.stringify(updatedPlacements));
     setShowPlacementDialog(false);
     setNewPlacement({
       studentName: "",
