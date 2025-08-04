@@ -71,9 +71,7 @@ const HomePage = () => {
       setFaculty(facultyData.map(member => ({
         name: member.name,
         designation: member.designation,
-        specialization: member.specialization,
         image: "/api/placeholder/150/150", // Keep placeholder for now
-        experience: `${member.experience} years`
       })));
     };
     loadFaculty();
