@@ -126,26 +126,7 @@ const HomePage = () => {
     };
   }, []);
 
-  const achievements = [
-    {
-      title: "Best Department Award 2024",
-      description: "Recognized for excellence in AI & Data Science education",
-      icon: Award,
-      year: "2024",
-    },
-    {
-      title: "100% Placement Record",
-      description: "All eligible students placed in top companies",
-      icon: GraduationCap,
-      year: "2024",
-    },
-    {
-      title: "Research Publications",
-      description: "50+ papers published in international journals",
-      icon: BarChart,
-      year: "2024",
-    },
-  ];
+  // Dynamic achievements loaded from admin data
 
   const specializations = [
     {
