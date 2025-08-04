@@ -43,6 +43,7 @@ import {
   BookOpen,
   Eye,
   X,
+  Trophy,
 } from "lucide-react";
 
 const HomePage = () => {
