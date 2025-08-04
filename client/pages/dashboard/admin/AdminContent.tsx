@@ -259,19 +259,27 @@ const AdminContent = () => {
   const handleDelete = (id, type) => {
     switch (type) {
       case "event":
-        setEvents((prev) => prev.filter((item) => item.id !== id));
+        const updatedEvents = events.filter((item) => item.id !== id);
+        setEvents(updatedEvents);
+        localStorage.setItem('adminEvents', JSON.stringify(updatedEvents));
         break;
       case "gallery":
-        setGallery((prev) => prev.filter((item) => item.id !== id));
+        const updatedGallery = gallery.filter((item) => item.id !== id);
+        setGallery(updatedGallery);
+        localStorage.setItem('adminGallery', JSON.stringify(updatedGallery));
         break;
       case "faculty":
         setFacultyData((prev) => prev.filter((item) => item.id !== id));
         break;
       case "placement":
-        setPlacements((prev) => prev.filter((item) => item.id !== id));
+        const updatedPlacements = placements.filter((item) => item.id !== id);
+        setPlacements(updatedPlacements);
+        localStorage.setItem('adminPlacements', JSON.stringify(updatedPlacements));
         break;
       case "achievement":
-        setAchievements((prev) => prev.filter((item) => item.id !== id));
+        const updatedAchievements = achievements.filter((item) => item.id !== id);
+        setAchievements(updatedAchievements);
+        localStorage.setItem('adminAchievements', JSON.stringify(updatedAchievements));
         break;
     }
   };
