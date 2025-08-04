@@ -78,17 +78,17 @@ const AdminContent = () => {
   // Load existing data from localStorage on component mount
   useEffect(() => {
     try {
-      const savedEvents = localStorage.getItem('adminEvents');
-      const savedGallery = localStorage.getItem('adminGallery');
-      const savedPlacements = localStorage.getItem('adminPlacements');
-      const savedAchievements = localStorage.getItem('adminAchievements');
+      const savedEvents = localStorage.getItem("adminEvents");
+      const savedGallery = localStorage.getItem("adminGallery");
+      const savedPlacements = localStorage.getItem("adminPlacements");
+      const savedAchievements = localStorage.getItem("adminAchievements");
 
       if (savedEvents) setEvents(JSON.parse(savedEvents));
       if (savedGallery) setGallery(JSON.parse(savedGallery));
       if (savedPlacements) setPlacements(JSON.parse(savedPlacements));
       if (savedAchievements) setAchievements(JSON.parse(savedAchievements));
     } catch (error) {
-      console.error('Error loading admin data from localStorage:', error);
+      console.error("Error loading admin data from localStorage:", error);
     }
   }, []);
 
@@ -170,7 +170,7 @@ const AdminContent = () => {
     };
     const updatedEvents = [...events, event];
     setEvents(updatedEvents);
-    localStorage.setItem('adminEvents', JSON.stringify(updatedEvents));
+    localStorage.setItem("adminEvents", JSON.stringify(updatedEvents));
     setShowEventDialog(false);
     setNewEvent({
       title: "",
@@ -194,7 +194,7 @@ const AdminContent = () => {
     };
     const updatedGallery = [...gallery, item];
     setGallery(updatedGallery);
-    localStorage.setItem('adminGallery', JSON.stringify(updatedGallery));
+    localStorage.setItem("adminGallery", JSON.stringify(updatedGallery));
     setShowGalleryDialog(false);
     setNewGalleryItem({
       title: "",
@@ -236,7 +236,7 @@ const AdminContent = () => {
     };
     const updatedPlacements = [...placements, placement];
     setPlacements(updatedPlacements);
-    localStorage.setItem('adminPlacements', JSON.stringify(updatedPlacements));
+    localStorage.setItem("adminPlacements", JSON.stringify(updatedPlacements));
     setShowPlacementDialog(false);
     setNewPlacement({
       studentName: "",
@@ -260,7 +260,10 @@ const AdminContent = () => {
     };
     const updatedAchievements = [...achievements, achievement];
     setAchievements(updatedAchievements);
-    localStorage.setItem('adminAchievements', JSON.stringify(updatedAchievements));
+    localStorage.setItem(
+      "adminAchievements",
+      JSON.stringify(updatedAchievements),
+    );
     setShowAchievementDialog(false);
     setNewAchievement({
       title: "",
@@ -278,12 +281,12 @@ const AdminContent = () => {
       case "event":
         const updatedEvents = events.filter((item) => item.id !== id);
         setEvents(updatedEvents);
-        localStorage.setItem('adminEvents', JSON.stringify(updatedEvents));
+        localStorage.setItem("adminEvents", JSON.stringify(updatedEvents));
         break;
       case "gallery":
         const updatedGallery = gallery.filter((item) => item.id !== id);
         setGallery(updatedGallery);
-        localStorage.setItem('adminGallery', JSON.stringify(updatedGallery));
+        localStorage.setItem("adminGallery", JSON.stringify(updatedGallery));
         break;
       case "faculty":
         setFacultyData((prev) => prev.filter((item) => item.id !== id));
@@ -291,12 +294,20 @@ const AdminContent = () => {
       case "placement":
         const updatedPlacements = placements.filter((item) => item.id !== id);
         setPlacements(updatedPlacements);
-        localStorage.setItem('adminPlacements', JSON.stringify(updatedPlacements));
+        localStorage.setItem(
+          "adminPlacements",
+          JSON.stringify(updatedPlacements),
+        );
         break;
       case "achievement":
-        const updatedAchievements = achievements.filter((item) => item.id !== id);
+        const updatedAchievements = achievements.filter(
+          (item) => item.id !== id,
+        );
         setAchievements(updatedAchievements);
-        localStorage.setItem('adminAchievements', JSON.stringify(updatedAchievements));
+        localStorage.setItem(
+          "adminAchievements",
+          JSON.stringify(updatedAchievements),
+        );
         break;
     }
   };

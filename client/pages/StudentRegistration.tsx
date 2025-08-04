@@ -73,7 +73,9 @@ const StudentRegistration = () => {
       // Test database connection first
       const connectionTest = await testDatabaseConnection();
       if (!connectionTest) {
-        throw new Error("Database connection test failed. Please check the console for details.");
+        throw new Error(
+          "Database connection test failed. Please check the console for details.",
+        );
       }
 
       // Check if student exists in student_data table
@@ -90,19 +92,29 @@ const StudentRegistration = () => {
           .single();
 
         if (searchError && searchError.code !== "PGRST116") {
-          console.warn("Database query failed, using local fallback:", searchError.message);
+          console.warn(
+            "Database query failed, using local fallback:",
+            searchError.message,
+          );
           useLocalFallback = true;
         } else {
           studentData = data;
         }
       } catch (dbError) {
-        console.warn("Database connection failed, using local fallback:", dbError);
+        console.warn(
+          "Database connection failed, using local fallback:",
+          dbError,
+        );
         useLocalFallback = true;
       }
 
       // Use local fallback if database fails
       if (useLocalFallback) {
-        const isValidStudent = validateStudentLocally(formData.hallTicket, formData.fullName, formData.year);
+        const isValidStudent = validateStudentLocally(
+          formData.hallTicket,
+          formData.fullName,
+          formData.year,
+        );
         if (!isValidStudent) {
           setError(
             "Student data not found in local records. Please verify your Hall Ticket Number, Name, and Year match our records exactly.",
@@ -121,14 +133,22 @@ const StudentRegistration = () => {
 
       // If using local fallback, skip database operations and create local user
       if (useLocalFallback) {
-        console.log("⚠️ Using local fallback - creating temporary user session");
+        console.log(
+          "⚠️ Using local fallback - creating temporary user session",
+        );
 
         // Check if user already exists in localStorage
-        const existingUsers = JSON.parse(localStorage.getItem('localUsers') || '[]');
-        const existingUser = existingUsers.find(u => u.hallTicket === formData.hallTicket);
+        const existingUsers = JSON.parse(
+          localStorage.getItem("localUsers") || "[]",
+        );
+        const existingUser = existingUsers.find(
+          (u) => u.hallTicket === formData.hallTicket,
+        );
 
         if (existingUser) {
-          setError("Account already exists for this hall ticket. Please login instead.");
+          setError(
+            "Account already exists for this hall ticket. Please login instead.",
+          );
           setLoading(false);
           return;
         }
@@ -143,14 +163,14 @@ const StudentRegistration = () => {
           email: `${formData.hallTicket}@vignan.ac.in`,
           year: formData.year,
           section: "A",
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
         };
 
         existingUsers.push(newUser);
-        localStorage.setItem('localUsers', JSON.stringify(existingUsers));
+        localStorage.setItem("localUsers", JSON.stringify(existingUsers));
 
         // Store current user session
-        localStorage.setItem('currentUser', JSON.stringify(newUser));
+        localStorage.setItem("currentUser", JSON.stringify(newUser));
       } else {
         // Normal database operations
         // Check if user profile already exists
@@ -201,15 +221,18 @@ const StudentRegistration = () => {
         if (studentError) throw studentError;
 
         // Store user data for auto-login
-        localStorage.setItem('currentUser', JSON.stringify({
-          id: userProfileId,
-          name: formData.fullName,
-          role: "student",
-          hallTicket: formData.hallTicket,
-          email: `${formData.hallTicket}@vignan.ac.in`,
-          year: formData.year,
-          section: "A",
-        }));
+        localStorage.setItem(
+          "currentUser",
+          JSON.stringify({
+            id: userProfileId,
+            name: formData.fullName,
+            role: "student",
+            hallTicket: formData.hallTicket,
+            email: `${formData.hallTicket}@vignan.ac.in`,
+            year: formData.year,
+            section: "A",
+          }),
+        );
       }
 
       toast({

@@ -6,7 +6,7 @@ import {
   getPlacementStats,
   getFeaturedPlacements,
   getFeaturedAchievements,
-  getFeaturedGallery
+  getFeaturedGallery,
 } from "@/services/homePageService";
 import {
   Card,
@@ -85,7 +85,7 @@ const HomePage = () => {
     placementRate: 0,
     totalStudents: 0,
     companiesCount: 0,
-    highestPackage: 0
+    highestPackage: 0,
   });
   const [featuredPlacements, setFeaturedPlacements] = useState([]);
   const [featuredAchievements, setFeaturedAchievements] = useState([]);
@@ -121,10 +121,10 @@ const HomePage = () => {
       loadDynamicData();
     };
 
-    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener("storage", handleStorageChange);
     };
   }, []);
 
@@ -516,8 +516,12 @@ const HomePage = () => {
                   </div>
                   <CardContent className="p-4">
                     <h3 className="font-semibold mb-2">{item.title}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                    <Badge variant="secondary" className="text-xs">{item.category}</Badge>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {item.description}
+                    </p>
+                    <Badge variant="secondary" className="text-xs">
+                      {item.category}
+                    </Badge>
                   </CardContent>
                 </Card>
               ))}
@@ -527,8 +531,12 @@ const HomePage = () => {
               <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Camera className="h-10 w-10 text-gray-400" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">No Gallery Items Yet</h3>
-              <p className="text-gray-500">Gallery items will appear here once added by the admin.</p>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                No Gallery Items Yet
+              </h3>
+              <p className="text-gray-500">
+                Gallery items will appear here once added by the admin.
+              </p>
             </div>
           )}
         </div>
@@ -550,7 +558,9 @@ const HomePage = () => {
               {featuredPlacements.map((placement, index) => (
                 <Card key={index} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
-                    <CardTitle className="text-lg">{placement.studentName}</CardTitle>
+                    <CardTitle className="text-lg">
+                      {placement.studentName}
+                    </CardTitle>
                     <CardDescription>{placement.hallTicket}</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -561,15 +571,21 @@ const HomePage = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Position:</span>
-                        <span className="font-medium">{placement.position}</span>
+                        <span className="font-medium">
+                          {placement.position}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Package:</span>
-                        <span className="font-bold text-green-600">₹{placement.package}L</span>
+                        <span className="font-bold text-green-600">
+                          ₹{placement.package}L
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Location:</span>
-                        <span className="font-medium">{placement.location}</span>
+                        <span className="font-medium">
+                          {placement.location}
+                        </span>
                       </div>
                     </div>
                   </CardContent>
@@ -581,8 +597,12 @@ const HomePage = () => {
               <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <GraduationCap className="h-10 w-10 text-gray-400" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">No Placement Records Yet</h3>
-              <p className="text-gray-500">Placement records will appear here once added by the admin.</p>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                No Placement Records Yet
+              </h3>
+              <p className="text-gray-500">
+                Placement records will appear here once added by the admin.
+              </p>
             </div>
           )}
         </div>
@@ -621,8 +641,12 @@ const HomePage = () => {
                     ) : (
                       <Award className="h-16 w-16 text-green-600 mx-auto mb-4" />
                     )}
-                    <CardTitle className="text-xl">{achievement.title}</CardTitle>
-                    <Badge className="mb-2">{new Date(achievement.date).getFullYear()}</Badge>
+                    <CardTitle className="text-xl">
+                      {achievement.title}
+                    </CardTitle>
+                    <Badge className="mb-2">
+                      {new Date(achievement.date).getFullYear()}
+                    </Badge>
                   </CardHeader>
                   <CardContent>
                     <CardDescription>{achievement.description}</CardDescription>
@@ -638,8 +662,12 @@ const HomePage = () => {
               <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Trophy className="h-10 w-10 text-gray-400" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">No Achievements Yet</h3>
-              <p className="text-gray-500">Achievement records will appear here once added by the admin.</p>
+              <h3 className="text-xl font-semibold text-gray-600 mb-2">
+                No Achievements Yet
+              </h3>
+              <p className="text-gray-500">
+                Achievement records will appear here once added by the admin.
+              </p>
             </div>
           )}
         </div>

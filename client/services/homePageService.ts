@@ -35,10 +35,10 @@ export interface GalleryItem {
 // Get placement data from localStorage (where admin stores it)
 export const getPlacementData = (): PlacementRecord[] => {
   try {
-    const placements = localStorage.getItem('adminPlacements');
+    const placements = localStorage.getItem("adminPlacements");
     return placements ? JSON.parse(placements) : [];
   } catch (error) {
-    console.error('Error loading placement data:', error);
+    console.error("Error loading placement data:", error);
     return [];
   }
 };
@@ -46,10 +46,10 @@ export const getPlacementData = (): PlacementRecord[] => {
 // Get achievement data from localStorage
 export const getAchievementData = (): Achievement[] => {
   try {
-    const achievements = localStorage.getItem('adminAchievements');
+    const achievements = localStorage.getItem("adminAchievements");
     return achievements ? JSON.parse(achievements) : [];
   } catch (error) {
-    console.error('Error loading achievement data:', error);
+    console.error("Error loading achievement data:", error);
     return [];
   }
 };
@@ -57,10 +57,10 @@ export const getAchievementData = (): Achievement[] => {
 // Get gallery data from localStorage
 export const getGalleryData = (): GalleryItem[] => {
   try {
-    const gallery = localStorage.getItem('adminGallery');
+    const gallery = localStorage.getItem("adminGallery");
     return gallery ? JSON.parse(gallery) : [];
   } catch (error) {
-    console.error('Error loading gallery data:', error);
+    console.error("Error loading gallery data:", error);
     return [];
   }
 };
@@ -68,25 +68,27 @@ export const getGalleryData = (): GalleryItem[] => {
 // Calculate placement statistics from the placement data
 export const getPlacementStats = () => {
   const placements = getPlacementData();
-  
+
   if (placements.length === 0) {
     return {
       placementRate: 0,
       totalStudents: 0,
       companiesCount: 0,
-      highestPackage: 0
+      highestPackage: 0,
     };
   }
 
-  const uniqueCompanies = new Set(placements.map(p => p.company)).size;
-  const packages = placements.map(p => parseFloat(p.package)).filter(p => !isNaN(p));
+  const uniqueCompanies = new Set(placements.map((p) => p.company)).size;
+  const packages = placements
+    .map((p) => parseFloat(p.package))
+    .filter((p) => !isNaN(p));
   const highestPackage = packages.length > 0 ? Math.max(...packages) : 0;
-  
+
   return {
     placementRate: 100, // Assuming all entries are placed students
     totalStudents: placements.length,
     companiesCount: uniqueCompanies,
-    highestPackage: highestPackage
+    highestPackage: highestPackage,
   };
 };
 
@@ -94,16 +96,20 @@ export const getPlacementStats = () => {
 export const getFeaturedPlacements = (limit: number = 6): PlacementRecord[] => {
   const placements = getPlacementData();
   return placements
-    .filter(p => p.featured)
+    .filter((p) => p.featured)
     .slice(0, limit)
-    .sort((a, b) => new Date(b.placementDate).getTime() - new Date(a.placementDate).getTime());
+    .sort(
+      (a, b) =>
+        new Date(b.placementDate).getTime() -
+        new Date(a.placementDate).getTime(),
+    );
 };
 
 // Get featured achievements for display
 export const getFeaturedAchievements = (limit: number = 3): Achievement[] => {
   const achievements = getAchievementData();
   return achievements
-    .filter(a => a.featured)
+    .filter((a) => a.featured)
     .slice(0, limit)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 };
@@ -112,7 +118,10 @@ export const getFeaturedAchievements = (limit: number = 3): Achievement[] => {
 export const getFeaturedGallery = (limit: number = 6): GalleryItem[] => {
   const gallery = getGalleryData();
   return gallery
-    .filter(g => g.featured)
+    .filter((g) => g.featured)
     .slice(0, limit)
-    .sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime());
+    .sort(
+      (a, b) =>
+        new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime(),
+    );
 };
