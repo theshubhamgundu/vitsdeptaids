@@ -275,26 +275,6 @@ const FacultyProfile = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Address</Label>
-                  {isEditing ? (
-                    <Textarea
-                      value={editProfile.address}
-                      onChange={(e) =>
-                        setEditProfile((prev) => ({
-                          ...prev,
-                          address: e.target.value,
-                        }))
-                      }
-                      rows={3}
-                    />
-                  ) : (
-                    <div className="flex items-start space-x-2">
-                      <MapPin className="h-4 w-4 text-gray-500 mt-1" />
-                      <span>{profile.address}</span>
-                    </div>
-                  )}
-                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
