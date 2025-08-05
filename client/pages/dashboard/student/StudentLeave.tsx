@@ -68,12 +68,6 @@ const StudentLeave = () => {
     documents: [],
   });
 
-  const [leaveBalance] = useState({
-    medical: { used: 0, total: 15, remaining: 15 },
-    personal: { used: 0, total: 10, remaining: 10 },
-    emergency: { used: 0, total: 5, remaining: 5 },
-    casual: { used: 0, total: 12, remaining: 12 },
-  });
 
   const leaveTypes = [
     "Medical Leave",
@@ -157,13 +151,6 @@ const StudentLeave = () => {
     alert("Leave application submitted successfully!");
   };
 
-  const getLeaveTypeStats = (type) => {
-    const applications = leaveApplications.filter(
-      (app) => app.type === type && app.status === "Approved",
-    );
-    const totalDays = applications.reduce((sum, app) => sum + app.days, 0);
-    return { applications: applications.length, days: totalDays };
-  };
 
   if (!currentUser) {
     return (
