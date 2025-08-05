@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +54,7 @@ import {
 } from "lucide-react";
 
 const FacultyMessages = () => {
+  const { user } = useAuth();
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -265,7 +267,7 @@ const FacultyMessages = () => {
   };
 
   return (
-    <DashboardLayout userType="faculty" userName="Dr. Anita Verma">
+    <DashboardLayout userType="faculty" userName={user?.name || "Faculty"}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
