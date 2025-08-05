@@ -697,55 +697,74 @@ const AdminTools = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredStudents.map((student) => (
-                      <TableRow key={student.id}>
-                        <TableCell>
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                              <User className="h-4 w-4 text-gray-500" />
-                            </div>
-                            <div>
-                              <div className="font-medium">{student.name}</div>
-                              <div className="text-sm text-gray-600">{student.branch}</div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-mono">{student.hallTicket}</TableCell>
-                        <TableCell>
-                          <div>
-                            <div>{student.year}</div>
-                            <div className="text-sm text-gray-600">{student.semester}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            <div>{student.email}</div>
-                            <div className="text-gray-600">{student.phone}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={student.cgpa >= 8.5 ? "default" : student.cgpa >= 7.5 ? "secondary" : "outline"}>
-                            {student.cgpa}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <div className="text-sm">{student.attendance}%</div>
-                            <div className={`w-2 h-2 rounded-full ${student.attendance >= 75 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button size="sm" variant="ghost">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="ghost">
-                              <Edit className="h-4 w-4" />
-                            </Button>
+                    {studentsLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          <div className="flex items-center justify-center space-x-2">
+                            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                            <span>Loading students...</span>
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : filteredStudents.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          <div className="text-gray-500">
+                            {students.length === 0 ? 'No students found in database' : 'No students match the search criteria'}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredStudents.map((student) => (
+                        <TableRow key={student.id}>
+                          <TableCell>
+                            <div className="flex items-center space-x-3">
+                              <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                                <User className="h-4 w-4 text-gray-500" />
+                              </div>
+                              <div>
+                                <div className="font-medium">{student.fullName || student.name}</div>
+                                <div className="text-sm text-gray-600">{student.branch || 'AI & DS'}</div>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-mono">{student.hallTicket}</TableCell>
+                          <TableCell>
+                            <div>
+                              <div>{student.year}</div>
+                              <div className="text-sm text-gray-600">{student.semester ? `${student.semester} Semester` : 'N/A'}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm">
+                              <div>{student.email}</div>
+                              <div className="text-gray-600">{student.phone}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={(student.cgpa || 0) >= 8.5 ? "default" : (student.cgpa || 0) >= 7.5 ? "secondary" : "outline"}>
+                              {student.cgpa || 'N/A'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <div className="text-sm">{student.attendance || 0}%</div>
+                              <div className={`w-2 h-2 rounded-full ${(student.attendance || 0) >= 75 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button size="sm" variant="ghost">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button size="sm" variant="ghost">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
