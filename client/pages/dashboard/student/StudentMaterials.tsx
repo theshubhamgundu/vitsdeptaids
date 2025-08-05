@@ -193,8 +193,21 @@ const StudentMaterials = () => {
     alert(`Downloading ${material.title}...`);
   };
 
+  if (!currentUser) {
+    return (
+      <DashboardLayout userType="student" userName="Loading...">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading materials...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
-    <DashboardLayout userType="student" userName="Rahul Sharma">
+    <DashboardLayout userType="student" userName={currentUser.name || "Student"}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
