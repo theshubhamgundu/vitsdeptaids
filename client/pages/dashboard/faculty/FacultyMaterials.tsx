@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,7 @@ import {
 } from "lucide-react";
 
 const FacultyMaterials = () => {
+  const { user } = useAuth();
   const [materials, setMaterials] = useState([
     {
       id: 1,
@@ -221,7 +223,7 @@ const FacultyMaterials = () => {
   const totalDownloads = materials.reduce((acc, material) => acc + material.downloads, 0);
 
   return (
-    <DashboardLayout userType="faculty" userName="Dr. Anita Verma">
+    <DashboardLayout userType="faculty" userName={user?.name || "Faculty"}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
