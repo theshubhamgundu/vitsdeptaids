@@ -379,15 +379,6 @@ const AdminStudents = () => {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button
-              onClick={() =>
-                (window.location.href = "/dashboard/admin/students/create")
-              }
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create Student
-            </Button>
             <Button onClick={exportStudents} variant="outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
               Export Data
