@@ -69,10 +69,10 @@ const StudentLeave = () => {
   });
 
   const [leaveBalance] = useState({
-    medical: { used: 6, total: 15, remaining: 9 },
-    personal: { used: 3, total: 10, remaining: 7 },
-    emergency: { used: 1, total: 5, remaining: 4 },
-    casual: { used: 2, total: 12, remaining: 10 },
+    medical: { used: 0, total: 15, remaining: 15 },
+    personal: { used: 0, total: 10, remaining: 10 },
+    emergency: { used: 0, total: 5, remaining: 5 },
+    casual: { used: 0, total: 12, remaining: 12 },
   });
 
   const leaveTypes = [
