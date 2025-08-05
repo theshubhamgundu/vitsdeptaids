@@ -62,7 +62,7 @@ const StudentLeave = () => {
       reason: "Fever and flu symptoms, doctor advised rest",
       status: "Approved",
       appliedDate: "2024-12-10",
-      approvedBy: "Dr. Priya Sharma",
+      approvedBy: "HOD",
       approvedDate: "2024-12-11",
       comments: "Medical certificate verified. Get well soon!",
       documents: ["medical_certificate.pdf"]
@@ -76,7 +76,7 @@ const StudentLeave = () => {
       reason: "Family function - cousin's wedding",
       status: "Approved",
       appliedDate: "2024-11-15",
-      approvedBy: "Dr. Priya Sharma",
+      approvedBy: "HOD",
       approvedDate: "2024-11-16",
       comments: "Approved for family occasion",
       documents: []
@@ -90,7 +90,7 @@ const StudentLeave = () => {
       reason: "Grandmother's hospitalization",
       status: "Approved",
       appliedDate: "2024-10-28",
-      approvedBy: "Dr. Priya Sharma",
+      approvedBy: "HOD",
       approvedDate: "2024-10-28",
       comments: "Emergency leave approved. Hope everything is fine.",
       documents: []
