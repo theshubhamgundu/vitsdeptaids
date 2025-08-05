@@ -47,12 +47,14 @@ import {
 } from "lucide-react";
 
 const StudentResults = () => {
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
+    setCurrentUser(user);
+  }, []);
+
   const [studentData] = useState({
-    name: "Rahul Sharma",
-    hallTicket: "20AI001",
-    year: "3rd Year",
-    semester: "6th Semester",
-    branch: "AI & DS",
     currentCGPA: 8.45,
     currentSGPA: 8.72
   });
