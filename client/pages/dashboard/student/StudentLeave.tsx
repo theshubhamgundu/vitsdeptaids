@@ -45,7 +45,13 @@ import {
 } from "lucide-react";
 
 const StudentLeave = () => {
+  const [currentUser, setCurrentUser] = useState(null);
   const [showApplicationDialog, setShowApplicationDialog] = useState(false);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
+    setCurrentUser(user);
+  }, []);
   const [leaveApplications, setLeaveApplications] = useState([
     {
       id: 1,
