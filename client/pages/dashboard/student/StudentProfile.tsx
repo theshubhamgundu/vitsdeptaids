@@ -63,7 +63,9 @@ const StudentProfile = () => {
         phone: currentUser.phone || "",
         year: currentUser.year || "",
         section: currentUser.section || "",
-        admissionDate: currentUser.createdAt ? new Date(currentUser.createdAt).toISOString().split('T')[0] : "",
+        admissionDate: currentUser.createdAt
+          ? new Date(currentUser.createdAt).toISOString().split("T")[0]
+          : "",
       }));
     }
   }, []);
@@ -85,7 +87,9 @@ const StudentProfile = () => {
 
       // Also update the localUsers array if the user exists there
       const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
-      const userIndex = localUsers.findIndex((user: any) => user.id === studentData.id);
+      const userIndex = localUsers.findIndex(
+        (user: any) => user.id === studentData.id,
+      );
       if (userIndex !== -1) {
         localUsers[userIndex] = { ...localUsers[userIndex], ...updatedUser };
         localStorage.setItem("localUsers", JSON.stringify(localUsers));

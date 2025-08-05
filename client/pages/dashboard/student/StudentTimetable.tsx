@@ -177,7 +177,9 @@ const StudentTimetable = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Class Timetable</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Class Timetable
+            </h1>
             <p className="text-gray-600">
               Your weekly class schedule and upcoming sessions
             </p>
@@ -436,14 +438,17 @@ const StudentTimetable = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Upcoming Classes</CardTitle>
-                <CardDescription>Next few classes in your schedule</CardDescription>
+                <CardDescription>
+                  Next few classes in your schedule
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-center py-8">
                   <Clock className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500 text-sm">No upcoming classes</p>
                   <p className="text-gray-400 text-xs">
-                    Upcoming classes will appear here when timetable is available
+                    Upcoming classes will appear here when timetable is
+                    available
                   </p>
                 </div>
               </CardContent>
@@ -463,7 +468,8 @@ const StudentTimetable = () => {
                 <div>
                   <div className="font-medium">Timetable Updates</div>
                   <div className="text-sm text-gray-600">
-                    Timetables are updated by the administration and may change due to faculty availability or special events.
+                    Timetables are updated by the administration and may change
+                    due to faculty availability or special events.
                   </div>
                 </div>
               </div>
@@ -472,7 +478,8 @@ const StudentTimetable = () => {
                 <div>
                   <div className="font-medium">Class Changes</div>
                   <div className="text-sm text-gray-600">
-                    Always check for last-minute updates on the notice board or department announcements.
+                    Always check for last-minute updates on the notice board or
+                    department announcements.
                   </div>
                 </div>
               </div>
@@ -481,7 +488,8 @@ const StudentTimetable = () => {
                 <div>
                   <div className="font-medium">Attendance</div>
                   <div className="text-sm text-gray-600">
-                    Maintain at least 85% attendance as per university regulations.
+                    Maintain at least 85% attendance as per university
+                    regulations.
                   </div>
                 </div>
               </div>
