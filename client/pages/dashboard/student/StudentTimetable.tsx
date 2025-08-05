@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -23,7 +29,7 @@ import {
   ChevronRight,
   RefreshCw,
   AlertCircle,
-  Info
+  Info,
 } from "lucide-react";
 
 const StudentTimetable = () => {
@@ -41,14 +47,14 @@ const StudentTimetable = () => {
         hallTicket: user.hallTicket || "N/A",
         year: user.year || "1st Year",
         semester: "6th Semester", // Could be derived from year
-        branch: user.branch || "AI & DS"
+        branch: user.branch || "AI & DS",
       });
     }
   }, []);
 
   const timeSlots = [
     "9:00 - 9:50",
-    "9:50 - 10:40", 
+    "9:50 - 10:40",
     "10:40 - 11:00", // Break
     "11:00 - 11:50",
     "11:50 - 12:40",
@@ -56,132 +62,454 @@ const StudentTimetable = () => {
     "1:30 - 2:20",
     "2:20 - 3:10",
     "3:10 - 4:00",
-    "4:00 - 4:50"
+    "4:00 - 4:50",
   ];
 
-  const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const weekDays = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
 
   // Year-wise timetable data - this would come from the admin timetable uploads
   const timetableByYear = {
     "1st Year": {
       Monday: [
-        { subject: "Mathematics I", faculty: "Dr. Rajesh Kumar", room: "CSE-101", type: "Theory" },
-        { subject: "Programming Fundamentals", faculty: "Dr. Anita Verma", room: "Lab-101", type: "Lab" },
+        {
+          subject: "Mathematics I",
+          faculty: "Dr. Rajesh Kumar",
+          room: "CSE-101",
+          type: "Theory",
+        },
+        {
+          subject: "Programming Fundamentals",
+          faculty: "Dr. Anita Verma",
+          room: "Lab-101",
+          type: "Lab",
+        },
         { subject: "Break", faculty: "", room: "", type: "break" },
-        { subject: "Physics", faculty: "Dr. Priya Sharma", room: "CSE-102", type: "Theory" },
-        { subject: "English Communication", faculty: "Prof. Sarah Johnson", room: "CSE-103", type: "Theory" },
+        {
+          subject: "Physics",
+          faculty: "Dr. Priya Sharma",
+          room: "CSE-102",
+          type: "Theory",
+        },
+        {
+          subject: "English Communication",
+          faculty: "Prof. Sarah Johnson",
+          room: "CSE-103",
+          type: "Theory",
+        },
         { subject: "Lunch Break", faculty: "", room: "", type: "break" },
-        { subject: "Programming Lab", faculty: "Dr. Anita Verma", room: "Lab-101", type: "Lab" },
-        { subject: "Programming Lab", faculty: "Dr. Anita Verma", room: "Lab-101", type: "Lab" },
-        { subject: "Tutorial", faculty: "Class Teacher", room: "CSE-101", type: "tutorial" },
-        { subject: "Library", faculty: "", room: "Library", type: "study" }
+        {
+          subject: "Programming Lab",
+          faculty: "Dr. Anita Verma",
+          room: "Lab-101",
+          type: "Lab",
+        },
+        {
+          subject: "Programming Lab",
+          faculty: "Dr. Anita Verma",
+          room: "Lab-101",
+          type: "Lab",
+        },
+        {
+          subject: "Tutorial",
+          faculty: "Class Teacher",
+          room: "CSE-101",
+          type: "tutorial",
+        },
+        { subject: "Library", faculty: "", room: "Library", type: "study" },
       ],
       // More days would be here...
     },
     "2nd Year": {
       Monday: [
-        { subject: "Data Structures", faculty: "Dr. Rajesh Kumar", room: "CSE-201", type: "Theory" },
-        { subject: "Database Systems", faculty: "Dr. Suresh Reddy", room: "CSE-202", type: "Theory" },
+        {
+          subject: "Data Structures",
+          faculty: "Dr. Rajesh Kumar",
+          room: "CSE-201",
+          type: "Theory",
+        },
+        {
+          subject: "Database Systems",
+          faculty: "Dr. Suresh Reddy",
+          room: "CSE-202",
+          type: "Theory",
+        },
         { subject: "Break", faculty: "", room: "", type: "break" },
-        { subject: "Computer Networks", faculty: "Dr. Kavitha Rao", room: "CSE-203", type: "Theory" },
-        { subject: "Statistics", faculty: "Dr. Anita Verma", room: "CSE-204", type: "Theory" },
+        {
+          subject: "Computer Networks",
+          faculty: "Dr. Kavitha Rao",
+          room: "CSE-203",
+          type: "Theory",
+        },
+        {
+          subject: "Statistics",
+          faculty: "Dr. Anita Verma",
+          room: "CSE-204",
+          type: "Theory",
+        },
         { subject: "Lunch Break", faculty: "", room: "", type: "break" },
-        { subject: "Database Lab", faculty: "Dr. Suresh Reddy", room: "DB Lab-201", type: "Lab" },
-        { subject: "Database Lab", faculty: "Dr. Suresh Reddy", room: "DB Lab-201", type: "Lab" },
-        { subject: "Data Structures Lab", faculty: "Dr. Rajesh Kumar", room: "DS Lab-202", type: "Lab" },
-        { subject: "Free Period", faculty: "", room: "", type: "free" }
+        {
+          subject: "Database Lab",
+          faculty: "Dr. Suresh Reddy",
+          room: "DB Lab-201",
+          type: "Lab",
+        },
+        {
+          subject: "Database Lab",
+          faculty: "Dr. Suresh Reddy",
+          room: "DB Lab-201",
+          type: "Lab",
+        },
+        {
+          subject: "Data Structures Lab",
+          faculty: "Dr. Rajesh Kumar",
+          room: "DS Lab-202",
+          type: "Lab",
+        },
+        { subject: "Free Period", faculty: "", room: "", type: "free" },
       ],
       // More days would be here...
     },
     "3rd Year": {
       Monday: [
-        { subject: "Machine Learning", faculty: "Dr. Priya Sharma", room: "ML Lab-301", type: "Lab" },
-        { subject: "Machine Learning", faculty: "Dr. Priya Sharma", room: "ML Lab-301", type: "Lab" },
+        {
+          subject: "Machine Learning",
+          faculty: "Dr. Priya Sharma",
+          room: "ML Lab-301",
+          type: "Lab",
+        },
+        {
+          subject: "Machine Learning",
+          faculty: "Dr. Priya Sharma",
+          room: "ML Lab-301",
+          type: "Lab",
+        },
         { subject: "Break", faculty: "", room: "", type: "break" },
-        { subject: "Data Structures", faculty: "Dr. Rajesh Kumar", room: "CSE-205", type: "Theory" },
-        { subject: "Database Management", faculty: "Dr. Suresh Reddy", room: "CSE-210", type: "Theory" },
+        {
+          subject: "Data Structures",
+          faculty: "Dr. Rajesh Kumar",
+          room: "CSE-205",
+          type: "Theory",
+        },
+        {
+          subject: "Database Management",
+          faculty: "Dr. Suresh Reddy",
+          room: "CSE-210",
+          type: "Theory",
+        },
         { subject: "Lunch Break", faculty: "", room: "", type: "break" },
-        { subject: "Python Programming", faculty: "Dr. Anita Verma", room: "Lab-102", type: "Lab" },
-        { subject: "Python Programming", faculty: "Dr. Anita Verma", room: "Lab-102", type: "Lab" },
-        { subject: "Statistics", faculty: "Dr. Kavitha Rao", room: "CSE-208", type: "Theory" },
-        { subject: "Library", faculty: "", room: "Library", type: "study" }
+        {
+          subject: "Python Programming",
+          faculty: "Dr. Anita Verma",
+          room: "Lab-102",
+          type: "Lab",
+        },
+        {
+          subject: "Python Programming",
+          faculty: "Dr. Anita Verma",
+          room: "Lab-102",
+          type: "Lab",
+        },
+        {
+          subject: "Statistics",
+          faculty: "Dr. Kavitha Rao",
+          room: "CSE-208",
+          type: "Theory",
+        },
+        { subject: "Library", faculty: "", room: "Library", type: "study" },
       ],
       Tuesday: [
-        { subject: "Computer Vision", faculty: "Dr. Anita Verma", room: "CV Lab-302", type: "Lab" },
-        { subject: "Computer Vision", faculty: "Dr. Anita Verma", room: "CV Lab-302", type: "Lab" },
+        {
+          subject: "Computer Vision",
+          faculty: "Dr. Anita Verma",
+          room: "CV Lab-302",
+          type: "Lab",
+        },
+        {
+          subject: "Computer Vision",
+          faculty: "Dr. Anita Verma",
+          room: "CV Lab-302",
+          type: "Lab",
+        },
         { subject: "Break", faculty: "", room: "", type: "break" },
-        { subject: "Machine Learning", faculty: "Dr. Priya Sharma", room: "CSE-201", type: "Theory" },
-        { subject: "Data Mining", faculty: "Dr. Rajesh Kumar", room: "CSE-205", type: "Theory" },
+        {
+          subject: "Machine Learning",
+          faculty: "Dr. Priya Sharma",
+          room: "CSE-201",
+          type: "Theory",
+        },
+        {
+          subject: "Data Mining",
+          faculty: "Dr. Rajesh Kumar",
+          room: "CSE-205",
+          type: "Theory",
+        },
         { subject: "Lunch Break", faculty: "", room: "", type: "break" },
-        { subject: "Seminar", faculty: "All Faculty", room: "Seminar Hall", type: "seminar" },
-        { subject: "Project Work", faculty: "Project Guide", room: "Project Lab", type: "project" },
-        { subject: "Project Work", faculty: "Project Guide", room: "Project Lab", type: "project" },
-        { subject: "Free Period", faculty: "", room: "", type: "free" }
+        {
+          subject: "Seminar",
+          faculty: "All Faculty",
+          room: "Seminar Hall",
+          type: "seminar",
+        },
+        {
+          subject: "Project Work",
+          faculty: "Project Guide",
+          room: "Project Lab",
+          type: "project",
+        },
+        {
+          subject: "Project Work",
+          faculty: "Project Guide",
+          room: "Project Lab",
+          type: "project",
+        },
+        { subject: "Free Period", faculty: "", room: "", type: "free" },
       ],
       Wednesday: [
-        { subject: "Database Management", faculty: "Dr. Suresh Reddy", room: "DB Lab-303", type: "Lab" },
-        { subject: "Database Management", faculty: "Dr. Suresh Reddy", room: "DB Lab-303", type: "Lab" },
+        {
+          subject: "Database Management",
+          faculty: "Dr. Suresh Reddy",
+          room: "DB Lab-303",
+          type: "Lab",
+        },
+        {
+          subject: "Database Management",
+          faculty: "Dr. Suresh Reddy",
+          room: "DB Lab-303",
+          type: "Lab",
+        },
         { subject: "Break", faculty: "", room: "", type: "break" },
-        { subject: "Statistics", faculty: "Dr. Kavitha Rao", room: "CSE-208", type: "Theory" },
-        { subject: "Computer Vision", faculty: "Dr. Anita Verma", room: "CSE-203", type: "Theory" },
+        {
+          subject: "Statistics",
+          faculty: "Dr. Kavitha Rao",
+          room: "CSE-208",
+          type: "Theory",
+        },
+        {
+          subject: "Computer Vision",
+          faculty: "Dr. Anita Verma",
+          room: "CSE-203",
+          type: "Theory",
+        },
         { subject: "Lunch Break", faculty: "", room: "", type: "break" },
-        { subject: "Data Structures", faculty: "Dr. Rajesh Kumar", room: "DS Lab-304", type: "Lab" },
-        { subject: "Data Structures", faculty: "Dr. Rajesh Kumar", room: "DS Lab-304", type: "Lab" },
-        { subject: "Machine Learning", faculty: "Dr. Priya Sharma", room: "CSE-201", type: "Theory" },
-        { subject: "Tutorial", faculty: "Class Teacher", room: "CSE-205", type: "tutorial" }
+        {
+          subject: "Data Structures",
+          faculty: "Dr. Rajesh Kumar",
+          room: "DS Lab-304",
+          type: "Lab",
+        },
+        {
+          subject: "Data Structures",
+          faculty: "Dr. Rajesh Kumar",
+          room: "DS Lab-304",
+          type: "Lab",
+        },
+        {
+          subject: "Machine Learning",
+          faculty: "Dr. Priya Sharma",
+          room: "CSE-201",
+          type: "Theory",
+        },
+        {
+          subject: "Tutorial",
+          faculty: "Class Teacher",
+          room: "CSE-205",
+          type: "tutorial",
+        },
       ],
       Thursday: [
-        { subject: "Natural Language Processing", faculty: "Dr. Suresh Reddy", room: "NLP Lab-305", type: "Lab" },
-        { subject: "Natural Language Processing", faculty: "Dr. Suresh Reddy", room: "NLP Lab-305", type: "Lab" },
+        {
+          subject: "Natural Language Processing",
+          faculty: "Dr. Suresh Reddy",
+          room: "NLP Lab-305",
+          type: "Lab",
+        },
+        {
+          subject: "Natural Language Processing",
+          faculty: "Dr. Suresh Reddy",
+          room: "NLP Lab-305",
+          type: "Lab",
+        },
         { subject: "Break", faculty: "", room: "", type: "break" },
-        { subject: "Python Programming", faculty: "Dr. Anita Verma", room: "CSE-204", type: "Theory" },
-        { subject: "Data Mining", faculty: "Dr. Rajesh Kumar", room: "CSE-205", type: "Theory" },
+        {
+          subject: "Python Programming",
+          faculty: "Dr. Anita Verma",
+          room: "CSE-204",
+          type: "Theory",
+        },
+        {
+          subject: "Data Mining",
+          faculty: "Dr. Rajesh Kumar",
+          room: "CSE-205",
+          type: "Theory",
+        },
         { subject: "Lunch Break", faculty: "", room: "", type: "break" },
-        { subject: "Big Data Analytics", faculty: "Dr. Priya Sharma", room: "BD Lab-306", type: "Lab" },
-        { subject: "Big Data Analytics", faculty: "Dr. Priya Sharma", room: "BD Lab-306", type: "Lab" },
-        { subject: "Statistics", faculty: "Dr. Kavitha Rao", room: "CSE-208", type: "Theory" },
-        { subject: "Free Period", faculty: "", room: "", type: "free" }
+        {
+          subject: "Big Data Analytics",
+          faculty: "Dr. Priya Sharma",
+          room: "BD Lab-306",
+          type: "Lab",
+        },
+        {
+          subject: "Big Data Analytics",
+          faculty: "Dr. Priya Sharma",
+          room: "BD Lab-306",
+          type: "Lab",
+        },
+        {
+          subject: "Statistics",
+          faculty: "Dr. Kavitha Rao",
+          room: "CSE-208",
+          type: "Theory",
+        },
+        { subject: "Free Period", faculty: "", room: "", type: "free" },
       ],
       Friday: [
-        { subject: "Project Work", faculty: "Project Guide", room: "Project Lab", type: "project" },
-        { subject: "Project Work", faculty: "Project Guide", room: "Project Lab", type: "project" },
+        {
+          subject: "Project Work",
+          faculty: "Project Guide",
+          room: "Project Lab",
+          type: "project",
+        },
+        {
+          subject: "Project Work",
+          faculty: "Project Guide",
+          room: "Project Lab",
+          type: "project",
+        },
         { subject: "Break", faculty: "", room: "", type: "break" },
-        { subject: "Natural Language Processing", faculty: "Dr. Suresh Reddy", room: "CSE-206", type: "Theory" },
-        { subject: "Big Data Analytics", faculty: "Dr. Priya Sharma", room: "CSE-207", type: "Theory" },
+        {
+          subject: "Natural Language Processing",
+          faculty: "Dr. Suresh Reddy",
+          room: "CSE-206",
+          type: "Theory",
+        },
+        {
+          subject: "Big Data Analytics",
+          faculty: "Dr. Priya Sharma",
+          room: "CSE-207",
+          type: "Theory",
+        },
         { subject: "Lunch Break", faculty: "", room: "", type: "break" },
-        { subject: "Comprehensive Lab", faculty: "All Faculty", room: "Comp Lab-307", type: "Lab" },
-        { subject: "Comprehensive Lab", faculty: "All Faculty", room: "Comp Lab-307", type: "Lab" },
-        { subject: "Review Meeting", faculty: "HOD", room: "Conference Room", type: "meeting" },
-        { subject: "Library", faculty: "", room: "Library", type: "study" }
+        {
+          subject: "Comprehensive Lab",
+          faculty: "All Faculty",
+          room: "Comp Lab-307",
+          type: "Lab",
+        },
+        {
+          subject: "Comprehensive Lab",
+          faculty: "All Faculty",
+          room: "Comp Lab-307",
+          type: "Lab",
+        },
+        {
+          subject: "Review Meeting",
+          faculty: "HOD",
+          room: "Conference Room",
+          type: "meeting",
+        },
+        { subject: "Library", faculty: "", room: "Library", type: "study" },
       ],
       Saturday: [
-        { subject: "Guest Lecture", faculty: "Industry Expert", room: "Auditorium", type: "lecture" },
-        { subject: "Workshop", faculty: "External Faculty", room: "Workshop Hall", type: "workshop" },
+        {
+          subject: "Guest Lecture",
+          faculty: "Industry Expert",
+          room: "Auditorium",
+          type: "lecture",
+        },
+        {
+          subject: "Workshop",
+          faculty: "External Faculty",
+          room: "Workshop Hall",
+          type: "workshop",
+        },
         { subject: "Break", faculty: "", room: "", type: "break" },
-        { subject: "Skill Development", faculty: "Training Team", room: "Skills Lab", type: "training" },
-        { subject: "Skill Development", faculty: "Training Team", room: "Skills Lab", type: "training" },
+        {
+          subject: "Skill Development",
+          faculty: "Training Team",
+          room: "Skills Lab",
+          type: "training",
+        },
+        {
+          subject: "Skill Development",
+          faculty: "Training Team",
+          room: "Skills Lab",
+          type: "training",
+        },
         { subject: "Lunch Break", faculty: "", room: "", type: "break" },
-        { subject: "Sports/Cultural", faculty: "Sports Coordinator", room: "Ground/Hall", type: "activity" },
-        { subject: "Sports/Cultural", faculty: "Sports Coordinator", room: "Ground/Hall", type: "activity" },
+        {
+          subject: "Sports/Cultural",
+          faculty: "Sports Coordinator",
+          room: "Ground/Hall",
+          type: "activity",
+        },
+        {
+          subject: "Sports/Cultural",
+          faculty: "Sports Coordinator",
+          room: "Ground/Hall",
+          type: "activity",
+        },
         { subject: "Free Period", faculty: "", room: "", type: "free" },
-        { subject: "Free Period", faculty: "", room: "", type: "free" }
-      ]
+        { subject: "Free Period", faculty: "", room: "", type: "free" },
+      ],
     },
     "4th Year": {
       Monday: [
-        { subject: "Advanced AI", faculty: "Dr. Priya Sharma", room: "AI Lab-401", type: "Lab" },
-        { subject: "Advanced AI", faculty: "Dr. Priya Sharma", room: "AI Lab-401", type: "Lab" },
+        {
+          subject: "Advanced AI",
+          faculty: "Dr. Priya Sharma",
+          room: "AI Lab-401",
+          type: "Lab",
+        },
+        {
+          subject: "Advanced AI",
+          faculty: "Dr. Priya Sharma",
+          room: "AI Lab-401",
+          type: "Lab",
+        },
         { subject: "Break", faculty: "", room: "", type: "break" },
-        { subject: "Research Methodology", faculty: "Dr. Rajesh Kumar", room: "CSE-401", type: "Theory" },
-        { subject: "Industry Training", faculty: "Industry Mentor", room: "Training Hall", type: "training" },
+        {
+          subject: "Research Methodology",
+          faculty: "Dr. Rajesh Kumar",
+          room: "CSE-401",
+          type: "Theory",
+        },
+        {
+          subject: "Industry Training",
+          faculty: "Industry Mentor",
+          room: "Training Hall",
+          type: "training",
+        },
         { subject: "Lunch Break", faculty: "", room: "", type: "break" },
-        { subject: "Capstone Project", faculty: "Project Guide", room: "Project Lab", type: "project" },
-        { subject: "Capstone Project", faculty: "Project Guide", room: "Project Lab", type: "project" },
-        { subject: "Capstone Project", faculty: "Project Guide", room: "Project Lab", type: "project" },
-        { subject: "Free Period", faculty: "", room: "", type: "free" }
+        {
+          subject: "Capstone Project",
+          faculty: "Project Guide",
+          room: "Project Lab",
+          type: "project",
+        },
+        {
+          subject: "Capstone Project",
+          faculty: "Project Guide",
+          room: "Project Lab",
+          type: "project",
+        },
+        {
+          subject: "Capstone Project",
+          faculty: "Project Guide",
+          room: "Project Lab",
+          type: "project",
+        },
+        { subject: "Free Period", faculty: "", room: "", type: "free" },
       ],
       // More days would be here...
-    }
+    },
   };
 
   useEffect(() => {
@@ -192,7 +520,7 @@ const StudentTimetable = () => {
       setLoading(true);
       try {
         // In real app, this would be an API call to fetch timetable based on student's year and semester
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API delay
 
         const yearTimetable = timetableByYear[studentInfo.year];
         if (yearTimetable) {
@@ -245,8 +573,8 @@ const StudentTimetable = () => {
   const getCurrentWeekDates = () => {
     const today = new Date();
     const startOfWeek = new Date(today);
-    startOfWeek.setDate(today.getDate() - today.getDay() + 1 + (currentWeek * 7));
-    
+    startOfWeek.setDate(today.getDate() - today.getDay() + 1 + currentWeek * 7);
+
     const weekDates = [];
     for (let i = 0; i < 6; i++) {
       const date = new Date(startOfWeek);
@@ -272,25 +600,35 @@ const StudentTimetable = () => {
     const currentMinute = currentTime.getMinutes();
     const currentTimeMinutes = currentHour * 60 + currentMinute;
 
-    return todayClasses.filter((classItem, index) => {
-      if (classItem.type === "break" || classItem.type === "free") return false;
-      const timeSlot = timeSlots[index];
-      const startTime = timeSlot.split(" - ")[0];
-      const [startHour, startMinute] = startTime.split(":").map(Number);
-      const startTimeMinutes = startHour * 60 + startMinute;
-      return startTimeMinutes > currentTimeMinutes;
-    }).slice(0, 3);
+    return todayClasses
+      .filter((classItem, index) => {
+        if (classItem.type === "break" || classItem.type === "free")
+          return false;
+        const timeSlot = timeSlots[index];
+        const startTime = timeSlot.split(" - ")[0];
+        const [startHour, startMinute] = startTime.split(":").map(Number);
+        const startTimeMinutes = startHour * 60 + startMinute;
+        return startTimeMinutes > currentTimeMinutes;
+      })
+      .slice(0, 3);
   };
 
   if (loading || !studentInfo) {
     return (
-      <DashboardLayout userType="student" userName={studentInfo?.name || "Loading..."}>
+      <DashboardLayout
+        userType="student"
+        userName={studentInfo?.name || "Loading..."}
+      >
         <div className="space-y-6">
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <RefreshCw className="h-8 w-8 animate-spin mx-auto text-blue-600 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-700">Loading your timetable...</h3>
-              <p className="text-gray-500">Fetching schedule for {studentInfo?.year || "your year"}</p>
+              <h3 className="text-lg font-semibold text-gray-700">
+                Loading your timetable...
+              </h3>
+              <p className="text-gray-500">
+                Fetching schedule for {studentInfo?.year || "your year"}
+              </p>
             </div>
           </div>
         </div>
@@ -307,10 +645,13 @@ const StudentTimetable = () => {
               <CardContent className="pt-6">
                 <div className="text-center">
                   <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-700 mb-2">Timetable Not Available</h3>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                    Timetable Not Available
+                  </h3>
                   <p className="text-gray-500 mb-4">{error}</p>
                   <p className="text-sm text-gray-400">
-                    Please contact the academic office or your HOD for the latest timetable.
+                    Please contact the academic office or your HOD for the
+                    latest timetable.
                   </p>
                   <Button
                     onClick={() => window.location.reload()}
@@ -335,7 +676,9 @@ const StudentTimetable = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Timetable</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              Timetable
+            </h1>
             <p className="text-sm sm:text-base text-gray-600">
               {studentInfo.year} • {studentInfo.semester} • {studentInfo.branch}
             </p>
@@ -365,14 +708,19 @@ const StudentTimetable = () => {
             <div className="flex items-start space-x-4">
               <Info className="h-5 w-5 text-blue-600 mt-0.5" />
               <div>
-                <h3 className="font-semibold text-blue-900">Current Academic Information</h3>
+                <h3 className="font-semibold text-blue-900">
+                  Current Academic Information
+                </h3>
                 <div className="text-sm text-blue-700 mt-1">
-                  <span className="font-medium">Year:</span> {studentInfo.year} | 
-                  <span className="font-medium"> Semester:</span> {studentInfo.semester} | 
-                  <span className="font-medium"> Branch:</span> {studentInfo.branch}
+                  <span className="font-medium">Year:</span> {studentInfo.year}{" "}
+                  |<span className="font-medium"> Semester:</span>{" "}
+                  {studentInfo.semester} |
+                  <span className="font-medium"> Branch:</span>{" "}
+                  {studentInfo.branch}
                 </div>
                 <p className="text-xs text-blue-600 mt-1">
-                  This timetable is specifically designed for your current academic year and semester.
+                  This timetable is specifically designed for your current
+                  academic year and semester.
                 </p>
               </div>
             </div>
@@ -383,17 +731,23 @@ const StudentTimetable = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Today's Classes</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Today's Classes
+              </CardTitle>
               <Clock className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-600">
-                {getTodayClasses().filter(c => c.type !== "break" && c.type !== "free").length}
+                {
+                  getTodayClasses().filter(
+                    (c) => c.type !== "break" && c.type !== "free",
+                  ).length
+                }
               </div>
               <p className="text-xs text-muted-foreground">Classes scheduled</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Next Class</CardTitle>
@@ -408,18 +762,23 @@ const StudentTimetable = () => {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Current Time</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Current Time
+              </CardTitle>
               <Calendar className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
               <div className="text-lg font-bold text-purple-600">
-                {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {new Date().toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </div>
               <p className="text-xs text-muted-foreground">
-                {new Date().toLocaleDateString([], { weekday: 'long' })}
+                {new Date().toLocaleDateString([], { weekday: "long" })}
               </p>
             </CardContent>
           </Card>
@@ -440,28 +799,29 @@ const StudentTimetable = () => {
                   <div>
                     <CardTitle>Weekly Timetable - {studentInfo.year}</CardTitle>
                     <CardDescription>
-                      Week of {weekDates[0].toLocaleDateString()} - {weekDates[5].toLocaleDateString()}
+                      Week of {weekDates[0].toLocaleDateString()} -{" "}
+                      {weekDates[5].toLocaleDateString()}
                     </CardDescription>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => setCurrentWeek(currentWeek - 1)}
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => setCurrentWeek(0)}
                       disabled={currentWeek === 0}
                     >
                       This Week
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => setCurrentWeek(currentWeek + 1)}
                     >
                       <ChevronRight className="h-4 w-4" />
@@ -480,7 +840,10 @@ const StudentTimetable = () => {
                             <div>
                               <div className="font-semibold">{day}</div>
                               <div className="text-xs text-gray-500">
-                                {weekDates[index].toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                                {weekDates[index].toLocaleDateString([], {
+                                  month: "short",
+                                  day: "numeric",
+                                })}
                               </div>
                             </div>
                           </TableHead>
@@ -490,31 +853,44 @@ const StudentTimetable = () => {
                     <TableBody>
                       {timeSlots.map((time, timeIndex) => (
                         <TableRow key={timeIndex}>
-                          <TableCell className="font-medium text-sm">{time}</TableCell>
+                          <TableCell className="font-medium text-sm">
+                            {time}
+                          </TableCell>
                           {weekDays.map((day) => {
                             const classItem = timetableData[day]?.[timeIndex];
                             return (
                               <TableCell key={day} className="p-1">
                                 {classItem && (
-                                  <div className={`p-2 rounded-lg border text-xs ${getSubjectColor(classItem.type)}`}>
-                                    {classItem.type !== "break" && classItem.type !== "free" ? (
+                                  <div
+                                    className={`p-2 rounded-lg border text-xs ${getSubjectColor(classItem.type)}`}
+                                  >
+                                    {classItem.type !== "break" &&
+                                    classItem.type !== "free" ? (
                                       <>
-                                        <div className="font-semibold line-clamp-1">{classItem.subject}</div>
+                                        <div className="font-semibold line-clamp-1">
+                                          {classItem.subject}
+                                        </div>
                                         {classItem.faculty && (
                                           <div className="flex items-center mt-1">
                                             <User className="h-3 w-3 mr-1" />
-                                            <span className="line-clamp-1">{classItem.faculty}</span>
+                                            <span className="line-clamp-1">
+                                              {classItem.faculty}
+                                            </span>
                                           </div>
                                         )}
                                         {classItem.room && (
                                           <div className="flex items-center">
                                             <MapPin className="h-3 w-3 mr-1" />
-                                            <span className="line-clamp-1">{classItem.room}</span>
+                                            <span className="line-clamp-1">
+                                              {classItem.room}
+                                            </span>
                                           </div>
                                         )}
                                       </>
                                     ) : (
-                                      <div className="text-center font-medium">{classItem.subject}</div>
+                                      <div className="text-center font-medium">
+                                        {classItem.subject}
+                                      </div>
                                     )}
                                   </div>
                                 )}
@@ -536,21 +912,33 @@ const StudentTimetable = () => {
               <CardHeader>
                 <CardTitle>Today's Schedule</CardTitle>
                 <CardDescription>
-                  {new Date().toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                  {new Date().toLocaleDateString([], {
+                    weekday: "long",
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {getTodayClasses().map((classItem, index) => (
-                    <div key={index} className={`p-4 rounded-lg border ${getSubjectColor(classItem.type)}`}>
+                    <div
+                      key={index}
+                      className={`p-4 rounded-lg border ${getSubjectColor(classItem.type)}`}
+                    >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <div className="flex items-center space-x-3">
-                            <div className="text-sm font-medium">{timeSlots[index]}</div>
+                            <div className="text-sm font-medium">
+                              {timeSlots[index]}
+                            </div>
                             <Badge variant="outline">{classItem.type}</Badge>
                           </div>
                           <div className="mt-2">
-                            <div className="font-semibold text-lg">{classItem.subject}</div>
+                            <div className="font-semibold text-lg">
+                              {classItem.subject}
+                            </div>
                             {classItem.faculty && (
                               <div className="flex items-center mt-1 text-sm">
                                 <User className="h-4 w-4 mr-2" />
@@ -584,17 +972,28 @@ const StudentTimetable = () => {
                 <div className="space-y-4">
                   {getUpcomingClasses().length > 0 ? (
                     getUpcomingClasses().map((classItem, index) => {
-                      const timeIndex = getTodayClasses().findIndex(c => c === classItem);
+                      const timeIndex = getTodayClasses().findIndex(
+                        (c) => c === classItem,
+                      );
                       return (
-                        <div key={index} className={`p-4 rounded-lg border ${getSubjectColor(classItem.type)}`}>
+                        <div
+                          key={index}
+                          className={`p-4 rounded-lg border ${getSubjectColor(classItem.type)}`}
+                        >
                           <div className="flex items-center justify-between">
                             <div>
                               <div className="flex items-center space-x-2 mb-2">
                                 <Clock className="h-4 w-4" />
-                                <span className="font-medium">{timeSlots[timeIndex]}</span>
-                                <Badge variant="outline">{classItem.type}</Badge>
+                                <span className="font-medium">
+                                  {timeSlots[timeIndex]}
+                                </span>
+                                <Badge variant="outline">
+                                  {classItem.type}
+                                </Badge>
                               </div>
-                              <div className="font-semibold text-lg">{classItem.subject}</div>
+                              <div className="font-semibold text-lg">
+                                {classItem.subject}
+                              </div>
                               {classItem.faculty && (
                                 <div className="flex items-center mt-1">
                                   <User className="h-4 w-4 mr-2" />
@@ -615,7 +1014,9 @@ const StudentTimetable = () => {
                   ) : (
                     <div className="text-center py-8">
                       <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-gray-600">No more classes today</h3>
+                      <h3 className="text-lg font-semibold text-gray-600">
+                        No more classes today
+                      </h3>
                       <p className="text-gray-500">Enjoy your free time!</p>
                     </div>
                   )}
@@ -627,7 +1028,9 @@ const StudentTimetable = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Class Types</CardTitle>
-                <CardDescription>Legend for different class types</CardDescription>
+                <CardDescription>
+                  Legend for different class types
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -639,10 +1042,12 @@ const StudentTimetable = () => {
                     { type: "tutorial", label: "Tutorials" },
                     { type: "meeting", label: "Meetings" },
                     { type: "lecture", label: "Guest Lectures" },
-                    { type: "activity", label: "Activities" }
+                    { type: "activity", label: "Activities" },
                   ].map(({ type, label }) => (
                     <div key={type} className="flex items-center space-x-2">
-                      <div className={`w-4 h-4 rounded border ${getSubjectColor(type)}`}></div>
+                      <div
+                        className={`w-4 h-4 rounded border ${getSubjectColor(type)}`}
+                      ></div>
                       <span className="text-sm">{label}</span>
                     </div>
                   ))}

@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +40,7 @@ import {
   GraduationCap,
   Star,
   Clock,
-  CheckCircle
+  CheckCircle,
 } from "lucide-react";
 
 const StudentMaterials = () => {
@@ -60,10 +66,11 @@ const StudentMaterials = () => {
       size: "2.5 MB",
       format: "PDF",
       downloads: 45,
-      description: "Comprehensive notes covering supervised and unsupervised learning algorithms",
+      description:
+        "Comprehensive notes covering supervised and unsupervised learning algorithms",
       topics: ["Linear Regression", "Decision Trees", "K-Means Clustering"],
       difficulty: "Intermediate",
-      semester: "5th Semester"
+      semester: "5th Semester",
     },
     {
       id: 2,
@@ -75,10 +82,11 @@ const StudentMaterials = () => {
       size: "1.2 MB",
       format: "PDF",
       downloads: 38,
-      description: "Implementation of AVL trees and Red-Black trees with complexity analysis",
+      description:
+        "Implementation of AVL trees and Red-Black trees with complexity analysis",
       topics: ["AVL Trees", "Red-Black Trees", "Tree Rotations"],
       difficulty: "Advanced",
-      semester: "5th Semester"
+      semester: "5th Semester",
     },
     {
       id: 3,
@@ -90,10 +98,11 @@ const StudentMaterials = () => {
       size: "5.8 MB",
       format: "PDF",
       downloads: 67,
-      description: "Complete lab manual with 20 programming exercises and solutions",
+      description:
+        "Complete lab manual with 20 programming exercises and solutions",
       topics: ["Basic Syntax", "OOP Concepts", "File Handling", "Libraries"],
       difficulty: "Beginner",
-      semester: "5th Semester"
+      semester: "5th Semester",
     },
     {
       id: 4,
@@ -105,10 +114,11 @@ const StudentMaterials = () => {
       size: "3.1 MB",
       format: "PDF",
       downloads: 52,
-      description: "Detailed notes on database design, normalization, and SQL queries",
+      description:
+        "Detailed notes on database design, normalization, and SQL queries",
       topics: ["ER Diagrams", "Normalization", "SQL Queries", "Transactions"],
       difficulty: "Intermediate",
-      semester: "5th Semester"
+      semester: "5th Semester",
     },
     {
       id: 5,
@@ -120,10 +130,11 @@ const StudentMaterials = () => {
       size: "12.4 MB",
       format: "PPTX",
       downloads: 29,
-      description: "Introduction to image processing and feature detection techniques",
+      description:
+        "Introduction to image processing and feature detection techniques",
       topics: ["Image Processing", "Feature Detection", "OpenCV", "Filters"],
       difficulty: "Advanced",
-      semester: "6th Semester"
+      semester: "6th Semester",
     },
     {
       id: 6,
@@ -135,20 +146,31 @@ const StudentMaterials = () => {
       size: "4.2 MB",
       format: "PDF",
       downloads: 41,
-      description: "Statistical concepts essential for data science and machine learning",
+      description:
+        "Statistical concepts essential for data science and machine learning",
       topics: ["Descriptive Statistics", "Probability", "Hypothesis Testing"],
       difficulty: "Intermediate",
-      semester: "5th Semester"
-    }
+      semester: "5th Semester",
+    },
   ]);
 
-  const subjects = ["all", "Machine Learning", "Data Structures", "Programming", "DBMS", "Computer Vision", "Statistics"];
-  
-  const filteredMaterials = materials.filter(material => {
-    const matchesSearch = material.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         material.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         material.uploadedBy.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSubject = selectedSubject === "all" || material.subject === selectedSubject;
+  const subjects = [
+    "all",
+    "Machine Learning",
+    "Data Structures",
+    "Programming",
+    "DBMS",
+    "Computer Vision",
+    "Statistics",
+  ];
+
+  const filteredMaterials = materials.filter((material) => {
+    const matchesSearch =
+      material.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      material.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      material.uploadedBy.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSubject =
+      selectedSubject === "all" || material.subject === selectedSubject;
     return matchesSearch && matchesSubject;
   });
 
@@ -207,17 +229,26 @@ const StudentMaterials = () => {
   }
 
   return (
-    <DashboardLayout userType="student" userName={currentUser.name || "Student"}>
+    <DashboardLayout
+      userType="student"
+      userName={currentUser.name || "Student"}
+    >
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Study Materials</h1>
-            <p className="text-gray-600">Access course materials, assignments, and reference documents</p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Study Materials
+            </h1>
+            <p className="text-gray-600">
+              Access course materials, assignments, and reference documents
+            </p>
           </div>
           <Card className="p-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{materials.length}</div>
+              <div className="text-2xl font-bold text-blue-600">
+                {materials.length}
+              </div>
               <div className="text-sm text-gray-600">Total Materials</div>
             </div>
           </Card>
@@ -248,7 +279,7 @@ const StudentMaterials = () => {
                   onChange={(e) => setSelectedSubject(e.target.value)}
                   className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  {subjects.map(subject => (
+                  {subjects.map((subject) => (
                     <option key={subject} value={subject}>
                       {subject === "all" ? "All Subjects" : subject}
                     </option>
@@ -293,7 +324,9 @@ const StudentMaterials = () => {
                         <TableCell>
                           <div>
                             <div className="font-medium">{material.title}</div>
-                            <div className="text-sm text-gray-600">{material.semester}</div>
+                            <div className="text-sm text-gray-600">
+                              {material.semester}
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>{material.subject}</TableCell>
@@ -305,31 +338,37 @@ const StudentMaterials = () => {
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <User className="h-4 w-4 text-gray-400" />
-                            <span className="text-sm">{material.uploadedBy}</span>
+                            <span className="text-sm">
+                              {material.uploadedBy}
+                            </span>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <Calendar className="h-4 w-4 text-gray-400" />
                             <span className="text-sm">
-                              {new Date(material.uploadDate).toLocaleDateString()}
+                              {new Date(
+                                material.uploadDate,
+                              ).toLocaleDateString()}
                             </span>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm text-gray-600">{material.size}</span>
+                          <span className="text-sm text-gray-600">
+                            {material.size}
+                          </span>
                         </TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               variant="ghost"
                               onClick={() => handleViewMaterial(material)}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               variant="ghost"
                               onClick={() => handleDownload(material)}
                             >
@@ -349,7 +388,10 @@ const StudentMaterials = () => {
           <TabsContent value="recent" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {materials.slice(0, 6).map((material) => (
-                <Card key={material.id} className="hover:shadow-lg transition-shadow">
+                <Card
+                  key={material.id}
+                  className="hover:shadow-lg transition-shadow"
+                >
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <FileText className="h-8 w-8 text-blue-600" />
@@ -362,8 +404,12 @@ const StudentMaterials = () => {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">By {material.uploadedBy}</span>
-                      <Badge className={getDifficultyColor(material.difficulty)}>
+                      <span className="text-gray-600">
+                        By {material.uploadedBy}
+                      </span>
+                      <Badge
+                        className={getDifficultyColor(material.difficulty)}
+                      >
                         {material.difficulty}
                       </Badge>
                     </div>
@@ -374,22 +420,26 @@ const StudentMaterials = () => {
                       </div>
                       <div className="flex items-center space-x-1">
                         <Calendar className="h-4 w-4" />
-                        <span>{new Date(material.uploadDate).toLocaleDateString()}</span>
+                        <span>
+                          {new Date(material.uploadDate).toLocaleDateString()}
+                        </span>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-700 line-clamp-2">{material.description}</p>
+                    <p className="text-sm text-gray-700 line-clamp-2">
+                      {material.description}
+                    </p>
                     <div className="flex space-x-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
+                      <Button
+                        size="sm"
+                        variant="outline"
                         className="flex-1"
                         onClick={() => handleViewMaterial(material)}
                       >
                         <Eye className="h-4 w-4 mr-2" />
                         View
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         className="flex-1"
                         onClick={() => handleDownload(material)}
                       >
@@ -406,14 +456,19 @@ const StudentMaterials = () => {
 
         {/* Material Detail Dialog */}
         {selectedMaterial && (
-          <Dialog open={showMaterialDialog} onOpenChange={setShowMaterialDialog}>
+          <Dialog
+            open={showMaterialDialog}
+            onOpenChange={setShowMaterialDialog}
+          >
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle className="flex items-center space-x-2">
                   <FileText className="h-5 w-5 text-blue-600" />
                   <span>{selectedMaterial.title}</span>
                 </DialogTitle>
-                <DialogDescription>{selectedMaterial.subject}</DialogDescription>
+                <DialogDescription>
+                  {selectedMaterial.subject}
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-6">
                 {/* Material Info */}
@@ -426,7 +481,11 @@ const StudentMaterials = () => {
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Difficulty</Label>
-                    <Badge className={getDifficultyColor(selectedMaterial.difficulty)}>
+                    <Badge
+                      className={getDifficultyColor(
+                        selectedMaterial.difficulty,
+                      )}
+                    >
                       {selectedMaterial.difficulty}
                     </Badge>
                   </div>
@@ -436,7 +495,11 @@ const StudentMaterials = () => {
                   </div>
                   <div>
                     <Label className="text-sm font-medium">Upload Date</Label>
-                    <p>{new Date(selectedMaterial.uploadDate).toLocaleDateString()}</p>
+                    <p>
+                      {new Date(
+                        selectedMaterial.uploadDate,
+                      ).toLocaleDateString()}
+                    </p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium">File Size</Label>
@@ -451,7 +514,9 @@ const StudentMaterials = () => {
                 {/* Description */}
                 <div>
                   <Label className="text-sm font-medium">Description</Label>
-                  <p className="text-gray-700 mt-1">{selectedMaterial.description}</p>
+                  <p className="text-gray-700 mt-1">
+                    {selectedMaterial.description}
+                  </p>
                 </div>
 
                 {/* Topics Covered */}
@@ -459,13 +524,18 @@ const StudentMaterials = () => {
                   <Label className="text-sm font-medium">Topics Covered</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {selectedMaterial.topics.map((topic, index) => (
-                      <Badge key={index} variant="outline">{topic}</Badge>
+                      <Badge key={index} variant="outline">
+                        {topic}
+                      </Badge>
                     ))}
                   </div>
                 </div>
 
                 <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => setShowMaterialDialog(false)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowMaterialDialog(false)}
+                  >
                     Close
                   </Button>
                   <Button onClick={() => handleDownload(selectedMaterial)}>
