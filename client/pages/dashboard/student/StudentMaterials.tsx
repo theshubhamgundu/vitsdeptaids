@@ -38,10 +38,16 @@ import {
 } from "lucide-react";
 
 const StudentMaterials = () => {
+  const [currentUser, setCurrentUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("all");
   const [selectedMaterial, setSelectedMaterial] = useState(null);
   const [showMaterialDialog, setShowMaterialDialog] = useState(false);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
+    setCurrentUser(user);
+  }, []);
 
   const [materials] = useState([
     {
