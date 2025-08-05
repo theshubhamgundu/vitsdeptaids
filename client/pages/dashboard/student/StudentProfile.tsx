@@ -54,14 +54,16 @@ const StudentProfile = () => {
     setStudentData(currentUser);
 
     // Initialize profile data with actual user data
-    if (currentUser) {
+    if (currentUser && currentUser.id) {
       setProfileData((prev) => ({
         ...prev,
         fullName: currentUser.name || "",
         hallTicket: currentUser.hallTicket || "",
         email: currentUser.email || "",
+        phone: currentUser.phone || "",
         year: currentUser.year || "",
         section: currentUser.section || "",
+        admissionDate: currentUser.createdAt ? new Date(currentUser.createdAt).toISOString().split('T')[0] : "",
       }));
     }
   }, []);
