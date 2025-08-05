@@ -404,11 +404,6 @@ const FacultyLeave = () => {
             <TabsTrigger value="students" className="flex items-center space-x-2">
               <Users className="h-4 w-4" />
               <span>Student Leave Requests</span>
-              {studentStats.pending > 0 && (
-                <Badge variant="destructive" className="ml-1 text-xs">
-                  {studentStats.pending}
-                </Badge>
-              )}
             </TabsTrigger>
           </TabsList>
 
