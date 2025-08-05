@@ -238,26 +238,6 @@ const AdminProfile = () => {
                   </div>
 
 
-                  <div className="space-y-2">
-                    <Label>Blood Group</Label>
-                    {isEditing ? (
-                      <Input
-                        value={currentData.personal.bloodGroup}
-                        onChange={(e) =>
-                          handleInputChange(
-                            "personal",
-                            "bloodGroup",
-                            e.target.value,
-                          )
-                        }
-                      />
-                    ) : (
-                      <div className="flex items-center space-x-2">
-                        <span className="w-4 h-4 bg-red-500 rounded-full"></span>
-                        <span>{currentData.personal.bloodGroup}</span>
-                      </div>
-                    )}
-                  </div>
                 </div>
 
                 <div className="space-y-2">
