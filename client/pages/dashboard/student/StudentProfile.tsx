@@ -293,36 +293,7 @@ const StudentProfile = () => {
                   placeholder="Enter your phone number"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="dob">Date of Birth</Label>
-                <Input
-                  id="dob"
-                  type="date"
-                  value={profileData.dateOfBirth}
-                  disabled={!isEditing}
-                  onChange={(e) =>
-                    setProfileData((prev) => ({
-                      ...prev,
-                      dateOfBirth: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="bloodGroup">Blood Group</Label>
-                <Input
-                  id="bloodGroup"
-                  value={profileData.bloodGroup}
-                  disabled={!isEditing}
-                  onChange={(e) =>
-                    setProfileData((prev) => ({
-                      ...prev,
-                      bloodGroup: e.target.value,
-                    }))
-                  }
-                  placeholder="Enter your blood group"
-                />
-              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="emergencyContact">Emergency Contact</Label>
                 <Input
