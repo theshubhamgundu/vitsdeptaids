@@ -211,13 +211,13 @@ const FacultyLeave = () => {
 
   const handleApproveStudentLeave = (id) => {
     setStudentLeaveRequests(prev => prev.map(request =>
-      request.id === id ? { ...request, status: "Approved", approvedBy: "Dr. Anita Verma", approvedDate: new Date().toISOString().split('T')[0] } : request
+      request.id === id ? { ...request, status: "Approved", approvedBy: user?.name || "Faculty", approvedDate: new Date().toISOString().split('T')[0] } : request
     ));
   };
 
   const handleRejectStudentLeave = (id) => {
     setStudentLeaveRequests(prev => prev.map(request =>
-      request.id === id ? { ...request, status: "Rejected", approvedBy: "Dr. Anita Verma", approvedDate: new Date().toISOString().split('T')[0] } : request
+      request.id === id ? { ...request, status: "Rejected", approvedBy: user?.name || "Faculty", approvedDate: new Date().toISOString().split('T')[0] } : request
     ));
   };
 
