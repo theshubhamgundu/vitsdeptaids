@@ -75,11 +75,22 @@ const StudentProfile = () => {
         ...studentData,
         name: profileData.fullName,
         email: profileData.email,
+        phone: profileData.phone,
         year: profileData.year,
         section: profileData.section,
       };
 
+      // Update currentUser
       localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+
+      // Also update the localUsers array if the user exists there
+      const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
+      const userIndex = localUsers.findIndex((user: any) => user.id === studentData.id);
+      if (userIndex !== -1) {
+        localUsers[userIndex] = { ...localUsers[userIndex], ...updatedUser };
+        localStorage.setItem("localUsers", JSON.stringify(localUsers));
+      }
+
       setStudentData(updatedUser);
     }
 
