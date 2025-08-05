@@ -43,113 +43,14 @@ const StudentAttendance = () => {
   }, []);
 
   const [attendanceData] = useState({
-    overall: 88,
-    thisMonth: 92,
-    subjects: [
-      {
-        code: "AI601",
-        name: "Machine Learning",
-        totalClasses: 45,
-        attendedClasses: 42,
-        percentage: 93.3,
-        status: "Good",
-        faculty: "Dr. Anita Verma",
-        lastAttended: "2025-03-10",
-        consecutiveAbsent: 0,
-      },
-      {
-        code: "AI602",
-        name: "Deep Learning",
-        totalClasses: 40,
-        attendedClasses: 36,
-        percentage: 90.0,
-        status: "Good",
-        faculty: "Dr. Raj Kumar",
-        lastAttended: "2025-03-09",
-        consecutiveAbsent: 1,
-      },
-      {
-        code: "AI603",
-        name: "Data Science",
-        totalClasses: 38,
-        attendedClasses: 32,
-        percentage: 84.2,
-        status: "Average",
-        faculty: "Dr. Priya Sharma",
-        lastAttended: "2025-03-08",
-        consecutiveAbsent: 2,
-      },
-      {
-        code: "AI604",
-        name: "Computer Vision",
-        totalClasses: 35,
-        attendedClasses: 25,
-        percentage: 71.4,
-        status: "Warning",
-        faculty: "Dr. Amit Singh",
-        lastAttended: "2025-03-05",
-        consecutiveAbsent: 3,
-      },
-      {
-        code: "AI605",
-        name: "Natural Language Processing",
-        totalClasses: 32,
-        attendedClasses: 30,
-        percentage: 93.8,
-        status: "Excellent",
-        faculty: "Dr. Sneha Reddy",
-        lastAttended: "2025-03-10",
-        consecutiveAbsent: 0,
-      },
-      {
-        code: "AI606",
-        name: "AI Lab",
-        totalClasses: 28,
-        attendedClasses: 27,
-        percentage: 96.4,
-        status: "Excellent",
-        faculty: "Dr. Anita Verma",
-        lastAttended: "2025-03-10",
-        consecutiveAbsent: 0,
-      },
-    ],
+    overall: 0,
+    thisMonth: 0,
+    subjects: [],
   });
 
-  const [monthlyAttendance] = useState([
-    { month: "August 2024", percentage: 85, classes: 42, attended: 36 },
-    { month: "September 2024", percentage: 88, classes: 45, attended: 40 },
-    { month: "October 2024", percentage: 92, classes: 48, attended: 44 },
-    { month: "November 2024", percentage: 89, classes: 46, attended: 41 },
-    { month: "December 2024", percentage: 86, classes: 38, attended: 33 },
-    { month: "January 2025", percentage: 91, classes: 44, attended: 40 },
-    { month: "February 2025", percentage: 87, classes: 43, attended: 37 },
-    { month: "March 2025", percentage: 92, classes: 35, attended: 32 },
-  ]);
+  const [monthlyAttendance] = useState([]);
 
-  const [dailyAttendance] = useState([
-    {
-      date: "2025-03-01",
-      subjects: ["AI601", "AI603", "AI605"],
-      status: "Present",
-    },
-    {
-      date: "2025-03-02",
-      subjects: ["AI602", "AI604", "AI606"],
-      status: "Present",
-    },
-    { date: "2025-03-03", subjects: ["AI601", "AI603"], status: "Present" },
-    { date: "2025-03-04", subjects: ["AI602", "AI605"], status: "Absent" },
-    { date: "2025-03-05", subjects: ["AI604", "AI606"], status: "Present" },
-    {
-      date: "2025-03-06",
-      subjects: ["AI601", "AI603", "AI605"],
-      status: "Present",
-    },
-    { date: "2025-03-07", subjects: ["AI602", "AI604"], status: "Present" },
-    { date: "2025-03-08", subjects: ["AI606", "AI601"], status: "Present" },
-    { date: "2025-03-09", subjects: ["AI603", "AI605"], status: "Absent" },
-    { date: "2025-03-10", subjects: ["AI602", "AI604"], status: "Present" },
-  ]);
+  const [dailyAttendance] = useState([]);
 
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
