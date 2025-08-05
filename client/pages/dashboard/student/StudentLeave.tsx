@@ -299,22 +299,14 @@ const StudentLeave = () => {
         </div>
 
 
-        <Tabs defaultValue="applications" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="applications">My Applications</TabsTrigger>
-            <TabsTrigger value="calendar">Leave Calendar</TabsTrigger>
-            <TabsTrigger value="policies">Leave Policies</TabsTrigger>
-          </TabsList>
-
-          {/* Applications Tab */}
-          <TabsContent value="applications" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Leave Applications</CardTitle>
-                <CardDescription>
-                  Track all your leave applications and their status
-                </CardDescription>
-              </CardHeader>
+        {/* Leave Applications */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Leave Applications</CardTitle>
+            <CardDescription>
+              Track all your leave applications and their status
+            </CardDescription>
+          </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
@@ -513,153 +505,7 @@ const StudentLeave = () => {
                   </TableBody>
                 </Table>
               </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Calendar Tab */}
-          <TabsContent value="calendar" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Leave Calendar</CardTitle>
-                <CardDescription>
-                  Visual overview of your leave applications
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="font-semibold mb-3">Upcoming Leaves</h3>
-                      <div className="space-y-2">
-                        {leaveApplications
-                          .filter(
-                            (app) =>
-                              new Date(app.startDate) >= new Date() &&
-                              app.status === "Approved",
-                          )
-                          .map((app) => (
-                            <div
-                              key={app.id}
-                              className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg"
-                            >
-                              <CalendarDays className="h-4 w-4 text-green-600" />
-                              <div>
-                                <div className="font-medium">{app.type}</div>
-                                <div className="text-sm text-gray-600">
-                                  {new Date(app.startDate).toLocaleDateString()}{" "}
-                                  - {new Date(app.endDate).toLocaleDateString()}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-3">Recent History</h3>
-                      <div className="space-y-2">
-                        {leaveApplications
-                          .filter((app) => new Date(app.endDate) < new Date())
-                          .slice(0, 3)
-                          .map((app) => (
-                            <div
-                              key={app.id}
-                              className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg"
-                            >
-                              <CheckCircle className="h-4 w-4 text-gray-600" />
-                              <div>
-                                <div className="font-medium">{app.type}</div>
-                                <div className="text-sm text-gray-600">
-                                  {new Date(app.startDate).toLocaleDateString()}{" "}
-                                  - {new Date(app.endDate).toLocaleDateString()}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Policies Tab */}
-          <TabsContent value="policies" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Leave Policies</CardTitle>
-                <CardDescription>
-                  Important guidelines and policies for leave applications
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <h3 className="font-semibold mb-3">Leave Entitlements</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span>Medical Leave:</span>
-                        <span className="font-medium">15 days/year</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Casual Leave:</span>
-                        <span className="font-medium">12 days/year</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Personal Leave:</span>
-                        <span className="font-medium">10 days/year</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Emergency Leave:</span>
-                        <span className="font-medium">5 days/year</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold mb-3">Application Guidelines</h3>
-                  <ul className="space-y-2 text-sm text-gray-700">
-                    <li>
-                      • Apply for leave at least 3 days in advance (except
-                      emergency cases)
-                    </li>
-                    <li>
-                      • Medical leave requires medical certificate for more than
-                      3 days
-                    </li>
-                    <li>
-                      • Personal leave should be applied 7 days in advance
-                    </li>
-                    <li>• Emergency leave can be applied on the same day</li>
-                    <li>• All leave applications require HOD approval</li>
-                    <li>
-                      • Leave without approval will be considered as absence
-                    </li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold mb-3">Contact Information</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center space-x-2">
-                      <User className="h-4 w-4 text-blue-600" />
-                      <span>HOD: Dr. Priya Sharma</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4 text-blue-600" />
-                      <span>Office: AI & DS Department, Room 301</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Clock className="h-4 w-4 text-blue-600" />
-                      <span>Office Hours: Mon-Fri, 9:00 AM - 5:00 PM</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        </Card>
       </div>
     </DashboardLayout>
   );
