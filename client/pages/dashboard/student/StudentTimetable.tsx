@@ -31,15 +31,20 @@ const StudentTimetable = () => {
   const [timetableData, setTimetableData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // Student info - in real app, this would come from authentication context
-  const [studentInfo] = useState({
-    name: "Rahul Sharma",
-    hallTicket: "20AI001",
-    year: "3rd Year",
-    semester: "6th Semester",
-    branch: "AI & DS"
-  });
+  const [studentInfo, setStudentInfo] = useState(null);
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
+    if (user) {
+      setStudentInfo({
+        name: user.name || "Student",
+        hallTicket: user.hallTicket || "N/A",
+        year: user.year || "1st Year",
+        semester: "6th Semester", // Could be derived from year
+        branch: user.branch || "AI & DS"
+      });
+    }
+  }, []);
 
   const timeSlots = [
     "9:00 - 9:50",
