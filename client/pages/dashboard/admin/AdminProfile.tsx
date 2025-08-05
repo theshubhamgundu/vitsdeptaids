@@ -34,10 +34,6 @@ const AdminProfile = () => {
       email: "admin@vignan.ac.in",
       phone: "+91 9876543210",
       employeeId: "VIT-ADMIN-001",
-      dateOfBirth: "",
-      address: "",
-      emergencyContact: "",
-      bloodGroup: "",
       profilePhoto: null,
     },
     professional: {
