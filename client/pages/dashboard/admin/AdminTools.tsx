@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { getAllStudents } from "@/services/studentDataService";
 import {
   Upload,
   Download,
@@ -55,35 +56,9 @@ import {
 
 const AdminTools = () => {
 
-  const [results, setResults] = useState([
-    {
-      id: 1,
-      title: "Mid-term Results - Machine Learning",
-      subject: "Machine Learning",
-      examType: "Mid-term",
-      year: "3rd Year",
-      semester: "6th Semester",
-      uploadedBy: "Dr. Anita Verma",
-      uploadDate: "2025-03-08",
-      studentsCount: 50,
-      status: "Published"
-    }
-  ]);
+  const [results, setResults] = useState([]);
 
-  const [attendanceRecords, setAttendanceRecords] = useState([
-    {
-      id: 1,
-      title: "February 2025 Attendance",
-      month: "February 2025",
-      year: "3rd Year",
-      semester: "6th Semester",
-      uploadedBy: "Admin",
-      uploadDate: "2025-03-01",
-      studentsCount: 50,
-      subjects: ["Machine Learning", "Deep Learning", "Data Science"],
-      status: "Active"
-    }
-  ]);
+  const [attendanceRecords, setAttendanceRecords] = useState([]);
 
 
 
@@ -112,8 +87,54 @@ const AdminTools = () => {
     file: null
   });
 
-  // Mock student data for search
-  const [students] = useState([
+  // Live student data
+  const [students, setStudents] = useState([]);
+  const [studentsLoading, setStudentsLoading] = useState(true);
+
+  // Load students data on component mount
+  useEffect(() => {
+    const loadStudents = async () => {
+      try {
+        setStudentsLoading(true);
+        const studentsData = await getAllStudents();
+        setStudents(studentsData);
+      } catch (error) {
+        console.error('Error loading students:', error);
+      } finally {
+        setStudentsLoading(false);
+      }
+    };
+
+    loadStudents();
+    loadResults();
+    loadAttendanceRecords();
+  }, []);
+
+  // Load results from localStorage or database
+  const loadResults = () => {
+    try {
+      const savedResults = localStorage.getItem('adminResults');
+      if (savedResults) {
+        setResults(JSON.parse(savedResults));
+      }
+    } catch (error) {
+      console.error('Error loading results:', error);
+    }
+  };
+
+  // Load attendance records from localStorage or database
+  const loadAttendanceRecords = () => {
+    try {
+      const savedAttendance = localStorage.getItem('adminAttendance');
+      if (savedAttendance) {
+        setAttendanceRecords(JSON.parse(savedAttendance));
+      }
+    } catch (error) {
+      console.error('Error loading attendance:', error);
+    }
+  };
+
+  const [oldStudents] = useState([
     {
       id: 1,
       name: "Rahul Sharma",
