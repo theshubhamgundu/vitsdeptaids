@@ -773,6 +773,11 @@ const AdminTools = () => {
             </Card>
           </TabsContent>
 
+          {/* Faculty Mapping Tab */}
+          <TabsContent value="mapping" className="space-y-6">
+            <StudentFacultyMapping />
+          </TabsContent>
+
         </Tabs>
       </div>
     </DashboardLayout>
