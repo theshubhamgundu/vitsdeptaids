@@ -80,7 +80,7 @@ const LoginPage = () => {
         if (faculty) {
           toast({
             title: "Login Successful",
-            description: `Welcome back, ${faculty.name}!`,
+            description: `Welcome back, ${faculty.name}! You can now access your account from multiple devices.`,
           });
 
           // Route based on faculty role
@@ -113,7 +113,7 @@ const LoginPage = () => {
         if (student) {
           toast({
             title: "Login Successful",
-            description: `Welcome back, ${student.name}!`,
+            description: `Welcome back, ${student.name}! You can now access your account from multiple devices.`,
           });
 
           // Use auth context to store user data
