@@ -31,6 +31,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { getAllStudents } from "@/services/studentDataService";
+import StudentFacultyMapping from "@/components/StudentFacultyMapping";
 import {
   Upload,
   Download,
