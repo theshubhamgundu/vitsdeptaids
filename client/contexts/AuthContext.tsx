@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '@/services/authService';
+import { sessionService } from '@/services/sessionService';
 
 interface AuthContextType {
   user: User | null;
@@ -7,7 +8,10 @@ interface AuthContextType {
   isLoading: boolean;
   login: (userData: User) => void;
   logout: () => void;
+  logoutAllDevices: () => void;
   updateUser: (userData: Partial<User>) => void;
+  hasMultipleSessions: boolean;
+  currentSessionId: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,46 +24,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check for existing session on app load
-  useEffect(() => {
-    const checkExistingSession = () => {
-      try {
-        const storedUser = localStorage.getItem('currentUser');
-        if (storedUser) {
-          const userData = JSON.parse(storedUser);
-          
-          // Validate the stored user data structure
-          if (userData && userData.id && userData.role && userData.name) {
-            setUser(userData);
-          } else {
-            // Invalid user data, clear it
-            localStorage.removeItem('currentUser');
-          }
-        }
-      } catch (error) {
-        console.error('Error parsing stored user data:', error);
-        localStorage.removeItem('currentUser');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkExistingSession();
-  }, []);
 
   const login = (userData: User) => {
     try {
+      // Create a new session for this device
+      const sessionId = sessionService.createSession(userData);
+
       // Store in localStorage for persistence
       localStorage.setItem('currentUser', JSON.stringify(userData));
       setUser(userData);
+
+      console.log(`Login successful. Session ID: ${sessionId}`);
     } catch (error) {
       console.error('Error storing user data:', error);
     }
   };
 
   const logout = () => {
+    const currentSessionId = sessionService.getCurrentSessionId();
+    if (currentSessionId) {
+      sessionService.removeSession(currentSessionId);
+    }
+
     localStorage.removeItem('currentUser');
     localStorage.removeItem('localUsers'); // Clear any locally stored user registrations if needed
+    setUser(null);
+  };
+
+  const logoutAllDevices = () => {
+    if (user) {
+      sessionService.removeAllUserSessions(user.id);
+    }
+
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('localUsers');
     setUser(null);
   };
 
@@ -77,7 +75,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading,
     login,
     logout,
+    logoutAllDevices,
     updateUser,
+    hasMultipleSessions: user ? sessionService.hasMultipleSessions(user.id) : false,
+    currentSessionId: sessionService.getCurrentSessionId(),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
