@@ -241,26 +241,6 @@ const AdminProfile = () => {
                 </div>
 
 
-                <div className="space-y-2">
-                  <Label>Emergency Contact</Label>
-                  {isEditing ? (
-                    <Input
-                      value={currentData.personal.emergencyContact}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "personal",
-                          "emergencyContact",
-                          e.target.value,
-                        )
-                      }
-                    />
-                  ) : (
-                    <div className="flex items-center space-x-2">
-                      <Phone className="h-4 w-4 text-red-500" />
-                      <span>{currentData.personal.emergencyContact}</span>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
           </CardContent>
