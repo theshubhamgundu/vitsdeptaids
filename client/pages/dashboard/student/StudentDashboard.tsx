@@ -275,11 +275,11 @@ const StudentDashboard = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold">
-                Welcome back, {studentData.name}!
+                Welcome back, {studentData.name || "Student"}!
               </h1>
               <p className="text-blue-100">
-                {studentData.hallTicket} • {studentData.year} • AI & DS •
-                Section {studentData.section}
+                {studentData.hallTicket || "Hall Ticket"} • {studentData.year || "Year"} • AI & DS •
+                Section {studentData.section || "A"}
               </p>
             </div>
           </div>
