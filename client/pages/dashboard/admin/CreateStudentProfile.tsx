@@ -212,26 +212,163 @@ const CreateStudentProfile = () => {
     }
 
     // Generate hall ticket if not provided
-    if (!studentData.personal.hallTicket) {
+    let updatedStudentData = { ...studentData };
+    if (!updatedStudentData.personal.hallTicket) {
       const hallTicket = generateHallTicket();
-      setStudentData(prev => ({
-        ...prev,
-        personal: { ...prev.personal, hallTicket }
-      }));
+      updatedStudentData.personal.hallTicket = hallTicket;
     }
 
     // Generate college email if not provided
-    if (!studentData.contact.collegeEmail) {
+    if (!updatedStudentData.contact.collegeEmail) {
       const collegeEmail = generateCollegeEmail();
-      setStudentData(prev => ({
-        ...prev,
-        contact: { ...prev.contact, collegeEmail }
-      }));
+      updatedStudentData.contact.collegeEmail = collegeEmail;
     }
 
-    // In real app, this would save to API/database
-    console.log("Student Profile Data:", studentData);
-    alert("Student profile created successfully!");
+    // Create student user object for authentication
+    const studentUser = {
+      id: updatedStudentData.personal.hallTicket,
+      name: `${updatedStudentData.personal.firstName} ${updatedStudentData.personal.lastName}`,
+      email: updatedStudentData.contact.personalEmail,
+      role: "student",
+      hallTicket: updatedStudentData.personal.hallTicket,
+      year: `${updatedStudentData.academic.year}${getOrdinalSuffix(updatedStudentData.academic.year)} Year`,
+      section: updatedStudentData.academic.section,
+      branch: updatedStudentData.academic.branch
+    };
+
+    // Store in localStorage for demo purposes (in real app, save to database)
+    try {
+      // Get existing students or create new array
+      const existingStudents = JSON.parse(localStorage.getItem("students") || "[]");
+      existingStudents.push({
+        ...updatedStudentData,
+        id: updatedStudentData.personal.hallTicket,
+        createdAt: new Date().toISOString()
+      });
+      localStorage.setItem("students", JSON.stringify(existingStudents));
+
+      // Also store user for authentication
+      const existingUsers = JSON.parse(localStorage.getItem("users") || "[]");
+      existingUsers.push(studentUser);
+      localStorage.setItem("users", JSON.stringify(existingUsers));
+
+      console.log("Student Profile Data:", updatedStudentData);
+      alert("Student profile created successfully! Student can now login with their hall ticket and email.");
+
+      // Reset form
+      setStudentData({
+        personal: {
+          firstName: "",
+          lastName: "",
+          hallTicket: "",
+          dateOfBirth: "",
+          gender: "",
+          bloodGroup: "",
+          nationality: "Indian",
+          religion: "",
+          caste: "",
+          category: "General",
+          profilePhoto: null
+        },
+        academic: {
+          admissionYear: "",
+          admissionDate: "",
+          branch: "AI & DS",
+          year: "1",
+          semester: "1",
+          section: "A",
+          admissionType: "Management",
+          quota: "Management",
+          previousEducation: {
+            tenthBoard: "",
+            tenthSchool: "",
+            tenthMarks: "",
+            tenthYear: "",
+            twelfthBoard: "",
+            twelfthCollege: "",
+            twelfthMarks: "",
+            twelfthYear: "",
+            twelfthStream: "Science"
+          },
+          entrance: {
+            examName: "",
+            rank: "",
+            score: "",
+            category: ""
+          }
+        },
+        contact: {
+          personalEmail: "",
+          collegeEmail: "",
+          mobileNumber: "",
+          whatsappNumber: "",
+          alternateNumber: "",
+          permanentAddress: "",
+          temporaryAddress: "",
+          city: "",
+          state: "",
+          pincode: "",
+          country: "India"
+        },
+        family: {
+          fatherName: "",
+          fatherOccupation: "",
+          fatherMobile: "",
+          fatherEmail: "",
+          motherName: "",
+          motherOccupation: "",
+          motherMobile: "",
+          motherEmail: "",
+          guardianName: "",
+          guardianRelation: "",
+          guardianMobile: "",
+          guardianEmail: "",
+          familyIncome: "",
+          siblingDetails: ""
+        },
+        financial: {
+          feeType: "Regular",
+          scholarship: "No",
+          scholarshipDetails: "",
+          bankName: "",
+          accountNumber: "",
+          ifscCode: "",
+          accountHolderName: "",
+          hostelRequired: "No",
+          transportRequired: "No"
+        },
+        documents: {
+          aadharNumber: "",
+          panNumber: "",
+          passportNumber: "",
+          tenthCertificate: null,
+          twelfthCertificate: null,
+          transferCertificate: null,
+          birthCertificate: null,
+          casteCertificate: null,
+          incomeCertificate: null,
+          photographs: null
+        }
+      });
+    } catch (error) {
+      console.error("Error saving student profile:", error);
+      alert("Error creating student profile. Please try again.");
+    }
+  };
+
+  const getOrdinalSuffix = (num) => {
+    const j = num % 10;
+    const k = num % 100;
+    if (j == 1 && k != 11) {
+      return "st";
+    }
+    if (j == 2 && k != 12) {
+      return "nd";
+    }
+    if (j == 3 && k != 13) {
+      return "rd";
+    }
+    return "th";
   };
 
   return (
