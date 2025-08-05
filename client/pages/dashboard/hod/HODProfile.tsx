@@ -39,10 +39,6 @@ const HODProfile = () => {
       email: hodData?.email || "hod@vignan.ac.in",
       phone: hodData?.phone || "+91 9876543210",
       employeeId: hodData?.facultyId || "VIT-AIML-001",
-      dateOfBirth: "",
-      address: "",
-      emergencyContact: "",
-      bloodGroup: "",
       profilePhoto: null,
     },
     professional: {
