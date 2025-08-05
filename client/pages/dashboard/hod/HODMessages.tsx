@@ -61,7 +61,6 @@ const HODMessages = () => {
 
   const [messages, setMessages] = useState([]);
 
-  const [pendingApprovals, setPendingApprovals] = useState([]);
 
   const [communications, setCommunications] = useState([]);
 
@@ -145,17 +144,6 @@ const HODMessages = () => {
     });
   };
 
-  const handleApproveRequest = (id) => {
-    setPendingApprovals(prev => prev.map(approval =>
-      approval.id === id ? { ...approval, status: "Approved" } : approval
-    ));
-  };
-
-  const handleRejectRequest = (id) => {
-    setPendingApprovals(prev => prev.map(approval =>
-      approval.id === id ? { ...approval, status: "Rejected" } : approval
-    ));
-  };
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
