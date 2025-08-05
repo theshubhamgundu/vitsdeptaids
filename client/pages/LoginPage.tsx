@@ -92,19 +92,20 @@ const LoginPage = () => {
 
           const route = dashboardRoutes[faculty.role] || "/dashboard/faculty";
 
-          // Store faculty info in localStorage for later use
-          localStorage.setItem('currentUser', JSON.stringify({
+          // Use auth context to store user data
+          login({
             id: faculty.id,
             name: faculty.name,
             role: faculty.role.toLowerCase(),
             facultyId: faculty.facultyId,
             email: faculty.email,
             designation: faculty.designation
-          }));
+          });
 
-          navigate(route);
+          const from = location.state?.from?.pathname || route;
+          navigate(from, { replace: true });
         } else {
-          setError("Invalid Faculty ID or Password");
+          setError("Invalid credentials. Please check your Faculty/Employee ID and password.");
         }
       } else if (type === 'student') {
         // Use student authentication service
@@ -115,7 +116,8 @@ const LoginPage = () => {
             description: `Welcome back, ${student.name}!`,
           });
 
-          localStorage.setItem('currentUser', JSON.stringify({
+          // Use auth context to store user data
+          login({
             id: student.id,
             name: student.name,
             role: "student",
@@ -123,11 +125,12 @@ const LoginPage = () => {
             email: student.email,
             year: student.year,
             section: student.section
-          }));
+          });
 
-          navigate("/dashboard/student");
+          const from = location.state?.from?.pathname || "/dashboard/student";
+          navigate(from, { replace: true });
         } else {
-          setError("Invalid Hall Ticket or Password. Try: 20AI001 / student123");
+          setError("Invalid credentials. Please check your Hall Ticket Number and password.");
         }
       }
     } catch (err) {
