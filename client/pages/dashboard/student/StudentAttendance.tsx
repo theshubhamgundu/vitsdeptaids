@@ -27,8 +27,14 @@ import {
 } from "lucide-react";
 
 const StudentAttendance = () => {
+  const [currentUser, setCurrentUser] = useState(null);
   const [selectedMonth, setSelectedMonth] = useState("March 2025");
   const [selectedSubject, setSelectedSubject] = useState("all");
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
+    setCurrentUser(user);
+  }, []);
 
   const [attendanceData] = useState({
     overall: 88,
