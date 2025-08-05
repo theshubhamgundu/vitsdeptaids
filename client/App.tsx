@@ -47,7 +47,6 @@ import AdminFaculty from "./pages/dashboard/admin/AdminFaculty";
 import AdminContent from "./pages/dashboard/admin/AdminContent";
 import AdminTools from "./pages/dashboard/admin/AdminTools";
 import SimpleTimetableCreator from "./pages/dashboard/admin/SimpleTimetableCreator";
-import CreateFacultyProfile from "./pages/dashboard/admin/CreateFacultyProfile";
 
 import HODDashboard from "./pages/dashboard/hod/HODDashboard";
 import HODProfile from "./pages/dashboard/hod/HODProfile";
