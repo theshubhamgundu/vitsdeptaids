@@ -563,24 +563,12 @@ const AdminFaculty = () => {
                         <div>
                           <div className="font-medium">{member.name}</div>
                           <div className="text-sm text-gray-600">
-                            {member.email}
+                            {member.designation}
                           </div>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{member.employeeId}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{member.designation}</Badge>
-                    </TableCell>
-                    <TableCell>{member.experience} years</TableCell>
-                    <TableCell>
-                      <span
-                        className={`font-medium ${getWorkloadColor(member.workload)}`}
-                      >
-                        {member.workload}%
-                      </span>
-                    </TableCell>
-                    <TableCell>{member.researchPapers}</TableCell>
+                    <TableCell>{member.facultyId || member.employeeId}</TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(member.status)}>
                         {member.status}
