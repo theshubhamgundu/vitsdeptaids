@@ -199,23 +199,8 @@ const StudentDashboard = () => {
     .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
     .slice(0, 5);
 
-  // Mock upcoming events (in real app, this would come from academic calendar)
-  const upcomingEvents = [
-    {
-      id: 1,
-      title: "Mid-term Examinations",
-      date: "March 25, 2025",
-      time: "9:00 AM",
-      priority: "high",
-    },
-    {
-      id: 2,
-      title: "Project Submission Deadline",
-      date: "March 30, 2025",
-      time: "11:59 PM",
-      priority: "medium",
-    },
-  ];
+  // Events will be populated from academic calendar
+  const upcomingEvents = [];
 
   const quickActions = [
     {
@@ -275,11 +260,12 @@ const StudentDashboard = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold">
-                Welcome back, {studentData.name}!
+                Welcome back, {studentData.name || "Student"}!
               </h1>
               <p className="text-blue-100">
-                {studentData.hallTicket} • {studentData.year} • AI & DS •
-                Section {studentData.section}
+                {studentData.hallTicket || "Hall Ticket"} •{" "}
+                {studentData.year || "Year"} • AI & DS • Section{" "}
+                {studentData.section || "A"}
               </p>
             </div>
           </div>

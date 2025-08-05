@@ -229,8 +229,19 @@ const StudentRegistration = () => {
         existingUsers.push(newUser);
         localStorage.setItem("localUsers", JSON.stringify(existingUsers));
 
-        // Store current user session
-        localStorage.setItem("currentUser", JSON.stringify(newUser));
+        // Store current user session with complete data
+        const userSession = {
+          id: newUser.id,
+          name: newUser.name,
+          role: newUser.role,
+          hallTicket: newUser.hallTicket,
+          email: newUser.email,
+          phone: newUser.phone,
+          year: newUser.year,
+          section: newUser.section,
+          createdAt: newUser.createdAt,
+        };
+        localStorage.setItem("currentUser", JSON.stringify(userSession));
       } else {
         // Normal database operations
         // Check if user profile already exists
@@ -281,19 +292,18 @@ const StudentRegistration = () => {
         if (studentError) throw studentError;
 
         // Store user data for auto-login
-        localStorage.setItem(
-          "currentUser",
-          JSON.stringify({
-            id: userProfileId,
-            name: formData.fullName,
-            role: "student",
-            hallTicket: formData.hallTicket,
-            email: formData.email || `${formData.hallTicket}@vignan.ac.in`,
-            phone: formData.phone || "",
-            year: formData.year,
-            section: "A",
-          }),
-        );
+        const userSession = {
+          id: userProfileId,
+          name: formData.fullName,
+          role: "student",
+          hallTicket: formData.hallTicket,
+          email: formData.email || `${formData.hallTicket}@vignan.ac.in`,
+          phone: formData.phone || "",
+          year: formData.year,
+          section: "A",
+          createdAt: new Date().toISOString(),
+        };
+        localStorage.setItem("currentUser", JSON.stringify(userSession));
       }
 
       toast({

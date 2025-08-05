@@ -54,14 +54,18 @@ const StudentProfile = () => {
     setStudentData(currentUser);
 
     // Initialize profile data with actual user data
-    if (currentUser) {
+    if (currentUser && currentUser.id) {
       setProfileData((prev) => ({
         ...prev,
         fullName: currentUser.name || "",
         hallTicket: currentUser.hallTicket || "",
         email: currentUser.email || "",
+        phone: currentUser.phone || "",
         year: currentUser.year || "",
         section: currentUser.section || "",
+        admissionDate: currentUser.createdAt
+          ? new Date(currentUser.createdAt).toISOString().split("T")[0]
+          : "",
       }));
     }
   }, []);
@@ -73,11 +77,24 @@ const StudentProfile = () => {
         ...studentData,
         name: profileData.fullName,
         email: profileData.email,
+        phone: profileData.phone,
         year: profileData.year,
         section: profileData.section,
       };
 
+      // Update currentUser
       localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+
+      // Also update the localUsers array if the user exists there
+      const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
+      const userIndex = localUsers.findIndex(
+        (user: any) => user.id === studentData.id,
+      );
+      if (userIndex !== -1) {
+        localUsers[userIndex] = { ...localUsers[userIndex], ...updatedUser };
+        localStorage.setItem("localUsers", JSON.stringify(localUsers));
+      }
+
       setStudentData(updatedUser);
     }
 

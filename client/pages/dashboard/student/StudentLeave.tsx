@@ -58,64 +58,7 @@ const StudentLeave = () => {
     const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
     setCurrentUser(user);
   }, []);
-  const [leaveApplications, setLeaveApplications] = useState([
-    {
-      id: 1,
-      type: "Medical Leave",
-      startDate: "2024-12-15",
-      endDate: "2024-12-17",
-      days: 3,
-      reason: "Fever and flu symptoms, doctor advised rest",
-      status: "Approved",
-      appliedDate: "2024-12-10",
-      approvedBy: "HOD",
-      approvedDate: "2024-12-11",
-      comments: "Medical certificate verified. Get well soon!",
-      documents: ["medical_certificate.pdf"],
-    },
-    {
-      id: 2,
-      type: "Personal Leave",
-      startDate: "2024-11-20",
-      endDate: "2024-11-22",
-      days: 3,
-      reason: "Family function - cousin's wedding",
-      status: "Approved",
-      appliedDate: "2024-11-15",
-      approvedBy: "HOD",
-      approvedDate: "2024-11-16",
-      comments: "Approved for family occasion",
-      documents: [],
-    },
-    {
-      id: 3,
-      type: "Emergency Leave",
-      startDate: "2024-10-28",
-      endDate: "2024-10-28",
-      days: 1,
-      reason: "Grandmother's hospitalization",
-      status: "Approved",
-      appliedDate: "2024-10-28",
-      approvedBy: "HOD",
-      approvedDate: "2024-10-28",
-      comments: "Emergency leave approved. Hope everything is fine.",
-      documents: [],
-    },
-    {
-      id: 4,
-      type: "Medical Leave",
-      startDate: "2024-12-25",
-      endDate: "2024-12-27",
-      days: 3,
-      reason: "Scheduled surgery",
-      status: "Pending",
-      appliedDate: "2024-12-18",
-      approvedBy: null,
-      approvedDate: null,
-      comments: null,
-      documents: ["surgery_appointment.pdf"],
-    },
-  ]);
+  const [leaveApplications, setLeaveApplications] = useState([]);
 
   const [newApplication, setNewApplication] = useState({
     type: "",
@@ -126,10 +69,10 @@ const StudentLeave = () => {
   });
 
   const [leaveBalance] = useState({
-    medical: { used: 6, total: 15, remaining: 9 },
-    personal: { used: 3, total: 10, remaining: 7 },
-    emergency: { used: 1, total: 5, remaining: 4 },
-    casual: { used: 2, total: 12, remaining: 10 },
+    medical: { used: 0, total: 15, remaining: 15 },
+    personal: { used: 0, total: 10, remaining: 10 },
+    emergency: { used: 0, total: 5, remaining: 5 },
+    casual: { used: 0, total: 12, remaining: 12 },
   });
 
   const leaveTypes = [
