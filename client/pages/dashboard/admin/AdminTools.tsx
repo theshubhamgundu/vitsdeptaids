@@ -301,10 +301,11 @@ const AdminTools = () => {
 
         {/* Main Tabs */}
         <Tabs defaultValue="results" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="results">📊 Results</TabsTrigger>
             <TabsTrigger value="attendance">📉 Attendance</TabsTrigger>
             <TabsTrigger value="students">🔍 Students</TabsTrigger>
+            <TabsTrigger value="mapping">👥 Faculty Mapping</TabsTrigger>
           </TabsList>
 
 
