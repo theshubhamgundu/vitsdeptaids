@@ -48,7 +48,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to={userDashboard} replace />;
   }
 
-  return <>{children}</>;
+  return <ProfileWrapper>{children}</ProfileWrapper>;
 };
 
 // Helper component for role-specific routes
