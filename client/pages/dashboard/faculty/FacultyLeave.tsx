@@ -280,26 +280,6 @@ const FacultyLeave = () => {
     }
   };
 
-  const personalStats = {
-    totalApplications: leaveApplications.length,
-    approved: leaveApplications.filter(app => app.status === "Approved").length,
-    pending: leaveApplications.filter(app => app.status === "Pending").length,
-    totalDays: leaveApplications.filter(app => app.status === "Approved").reduce((acc, app) => acc + app.days, 0)
-  };
-
-  const studentStats = {
-    totalRequests: studentLeaveRequests.length,
-    pending: studentLeaveRequests.filter(req => req.status === "Pending").length,
-    approved: studentLeaveRequests.filter(req => req.status === "Approved").length,
-    rejected: studentLeaveRequests.filter(req => req.status === "Rejected").length
-  };
-
-  const leaveBalance = {
-    medical: { used: 5, total: 12 },
-    personal: { used: 3, total: 10 },
-    conference: { used: 6, total: 15 },
-    emergency: { used: 1, total: 5 }
-  };
 
   return (
     <DashboardLayout userType="faculty" userName={user?.name || "Faculty"}>
