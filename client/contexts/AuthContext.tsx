@@ -54,7 +54,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       } catch (error) {
         console.error('Error parsing stored user data:', error);
-        localStorage.removeUser('currentUser');
+        localStorage.removeItem('currentUser');
         const currentSessionId = sessionService.getCurrentSessionId();
         if (currentSessionId) {
           sessionService.removeSession(currentSessionId);
