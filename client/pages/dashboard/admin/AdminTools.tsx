@@ -183,16 +183,21 @@ const AdminTools = () => {
   const handleUploadResults = () => {
     if (!newResults.title || !newResults.file) return;
 
-    const results = {
+    const newResult = {
       ...newResults,
       id: Date.now(),
       uploadedBy: "Admin",
       uploadDate: new Date().toISOString().split('T')[0],
-      studentsCount: 50,
+      studentsCount: students.length || 0,
       status: "Published"
     };
 
-    setResults(prev => [results, ...prev]);
+    const updatedResults = [newResult, ...results];
+    setResults(updatedResults);
+
+    // Save to localStorage for persistence
+    localStorage.setItem('adminResults', JSON.stringify(updatedResults));
+
     setShowResultsDialog(false);
     setNewResults({ title: "", subject: "", examType: "Mid-term", year: "3rd Year", semester: "6th Semester", file: null });
   };
@@ -200,16 +205,22 @@ const AdminTools = () => {
   const handleUploadAttendance = () => {
     if (!newAttendance.title || !newAttendance.file) return;
 
-    const attendance = {
+    const newAttendanceRecord = {
       ...newAttendance,
       id: Date.now(),
       uploadedBy: "Admin",
       uploadDate: new Date().toISOString().split('T')[0],
-      studentsCount: 50,
-      status: "Active"
+      studentsCount: students.length || 0,
+      status: "Active",
+      subjects: newAttendance.subjects || []
     };
 
-    setAttendanceRecords(prev => [attendance, ...prev]);
+    const updatedAttendance = [newAttendanceRecord, ...attendanceRecords];
+    setAttendanceRecords(updatedAttendance);
+
+    // Save to localStorage for persistence
+    localStorage.setItem('adminAttendance', JSON.stringify(updatedAttendance));
+
     setShowAttendanceDialog(false);
     setNewAttendance({ title: "", month: "", year: "3rd Year", semester: "6th Semester", subjects: [], file: null });
   };
