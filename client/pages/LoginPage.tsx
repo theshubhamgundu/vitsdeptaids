@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
-import { authenticateFaculty, authenticateStudent, getFacultyById } from "@/services/authService";
+import { useAuth } from "@/contexts/AuthContext";
+import { authenticateFaculty, authenticateStudent } from "@/services/authService";
 import {
   User,
   GraduationCap,
@@ -22,7 +23,9 @@ import {
 const LoginPage = () => {
   const { type } = useParams<{ type: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
+  const { login, isAuthenticated } = useAuth();
   const [formData, setFormData] = useState({
     identifier: "",
     password: ""
@@ -30,6 +33,13 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Redirect if already authenticated
+  if (isAuthenticated) {
+    const from = location.state?.from?.pathname || '/';
+    navigate(from, { replace: true });
+    return null;
+  }
 
   const loginTypes = {
     student: {
@@ -215,17 +225,6 @@ const LoginPage = () => {
               Forgot password?
             </button>
 
-            {/* Test Credentials */}
-            {(type === 'faculty' || type === 'admin') && (
-              <div className="border rounded-lg p-3 bg-gray-50 text-left">
-                <p className="text-xs font-medium text-gray-700 mb-2">Sample Login Credentials:</p>
-                <div className="space-y-1 text-xs text-gray-600">
-                  <div><strong>HOD:</strong> AIDS-HVS1 / @VSrinivas231</div>
-                  <div><strong>Faculty:</strong> AIDS-ANK1 / @NMKrishna342</div>
-                  <div><strong>Admin:</strong> AIDS-DKS1 / @KSomesh702</div>
-                </div>
-              </div>
-            )}
 
             {type === 'student' && (
               <div className="border rounded-lg p-3 bg-blue-50 text-center">
