@@ -85,59 +85,8 @@ const StudentCertificates = () => {
     }
   };
 
-  // Demo certificates for display when no real data exists
-  const demoCertificates = [
-    {
-      id: 1,
-      title: "AWS Cloud Practitioner",
-      description: "Amazon Web Services Cloud Practitioner Certification",
-      organization: "Amazon Web Services",
-      issueDate: "2024-02-15",
-      uploadDate: "2024-02-16",
-      status: "approved",
-      fileUrl: "/certificates/aws-cert.pdf",
-      approvedBy: "Faculty",
-      approvedAt: "2024-02-17",
-    },
-    {
-      id: 2,
-      title: "Google Data Analytics Certificate",
-      description: "Professional Data Analytics Certificate from Google",
-      organization: "Google",
-      issueDate: "2024-01-20",
-      uploadDate: "2024-01-21",
-      status: "approved",
-      fileUrl: "/certificates/google-cert.pdf",
-      approvedBy: "Faculty",
-      approvedAt: "2024-01-22",
-    },
-    {
-      id: 3,
-      title: "Machine Learning Specialization",
-      description: "Stanford Machine Learning Course Certificate",
-      organization: "Coursera/Stanford",
-      issueDate: "2024-03-01",
-      uploadDate: "2024-03-02",
-      status: "pending",
-      fileUrl: "/certificates/ml-cert.pdf",
-    },
-    {
-      id: 4,
-      title: "Python Programming",
-      description: "Advanced Python Programming Certificate",
-      organization: "HackerRank",
-      issueDate: "2023-12-10",
-      uploadDate: "2023-12-12",
-      status: "rejected",
-      fileUrl: "/certificates/python-cert.pdf",
-      rejectionReason:
-        "Certificate image quality is too low. Please upload a clearer image.",
-    },
-  ];
-
-  // Use demo data if no real certificates exist
-  const displayCertificates =
-    certificates.length > 0 ? certificates : demoCertificates;
+  // Display only real certificates, no demo data
+  const displayCertificates = certificates;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
