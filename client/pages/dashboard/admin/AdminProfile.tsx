@@ -237,31 +237,6 @@ const AdminProfile = () => {
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Date of Birth</Label>
-                    {isEditing ? (
-                      <Input
-                        type="date"
-                        value={currentData.personal.dateOfBirth}
-                        onChange={(e) =>
-                          handleInputChange(
-                            "personal",
-                            "dateOfBirth",
-                            e.target.value,
-                          )
-                        }
-                      />
-                    ) : (
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4 text-gray-500" />
-                        <span>
-                          {new Date(
-                            currentData.personal.dateOfBirth,
-                          ).toLocaleDateString()}
-                        </span>
-                      </div>
-                    )}
-                  </div>
 
                   <div className="space-y-2">
                     <Label>Blood Group</Label>
