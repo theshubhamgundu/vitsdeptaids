@@ -292,19 +292,18 @@ const StudentRegistration = () => {
         if (studentError) throw studentError;
 
         // Store user data for auto-login
-        localStorage.setItem(
-          "currentUser",
-          JSON.stringify({
-            id: userProfileId,
-            name: formData.fullName,
-            role: "student",
-            hallTicket: formData.hallTicket,
-            email: formData.email || `${formData.hallTicket}@vignan.ac.in`,
-            phone: formData.phone || "",
-            year: formData.year,
-            section: "A",
-          }),
-        );
+        const userSession = {
+          id: userProfileId,
+          name: formData.fullName,
+          role: "student",
+          hallTicket: formData.hallTicket,
+          email: formData.email || `${formData.hallTicket}@vignan.ac.in`,
+          phone: formData.phone || "",
+          year: formData.year,
+          section: "A",
+          createdAt: new Date().toISOString(),
+        };
+        localStorage.setItem("currentUser", JSON.stringify(userSession));
       }
 
       toast({
