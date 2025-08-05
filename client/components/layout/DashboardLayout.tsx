@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { sessionService } from "@/services/sessionService";
 import { Button } from "@/components/ui/button";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -53,7 +54,7 @@ const DashboardLayout = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout, logoutAllDevices } = useAuth();
 
   const navigationConfig = {
     student: {
@@ -358,12 +359,21 @@ const DashboardLayout = ({
                     <span className="text-xs sm:text-sm">Settings</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  {user && sessionService.hasMultipleSessions(user.id) && (
+                    <DropdownMenuItem
+                      onClick={() => logoutAllDevices()}
+                      className="cursor-pointer"
+                    >
+                      <LogOut className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="text-xs sm:text-sm">Log out all devices</span>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem
                     onClick={handleLogout}
                     className="cursor-pointer"
                   >
                     <LogOut className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="text-xs sm:text-sm">Log out</span>
+                    <span className="text-xs sm:text-sm">Log out this device</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
