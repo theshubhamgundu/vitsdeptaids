@@ -168,6 +168,62 @@ const AdminStudents = () => {
   };
 
   const handleAddStudent = async () => {
+    // Validation
+    const errors: any = {};
+
+    if (!newStudent.fullName.trim()) {
+      errors.fullName = "Full name is required";
+    }
+
+    if (!newStudent.hallTicket.trim()) {
+      errors.hallTicket = "Hall ticket is required";
+    } else {
+      // Check if hall ticket already exists
+      const existingStudents = JSON.parse(
+        localStorage.getItem("adminCreatedStudents") || "[]",
+      );
+      const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
+
+      const hallTicketExists = existingStudents.some(
+        (s: any) => s.hallTicket === newStudent.hallTicket
+      ) || localUsers.some(
+        (u: any) => u.hallTicket === newStudent.hallTicket
+      );
+
+      if (hallTicketExists) {
+        errors.hallTicket = "Hall ticket already exists";
+      }
+    }
+
+    if (!newStudent.email.trim()) {
+      errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newStudent.email)) {
+      errors.email = "Please enter a valid email address";
+    }
+
+    if (!newStudent.phone.trim()) {
+      errors.phone = "Phone number is required";
+    } else if (!/^[0-9]{10}$/.test(newStudent.phone.replace(/\D/g, ''))) {
+      errors.phone = "Please enter a valid 10-digit phone number";
+    }
+
+    if (!newStudent.year) {
+      errors.year = "Year is required";
+    }
+
+    if (!newStudent.admissionDate) {
+      errors.admissionDate = "Admission date is required";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please fix the errors and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       // Create new student record
       const newStudentRecord: StudentRecord = {
