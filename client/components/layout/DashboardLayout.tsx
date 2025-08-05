@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -52,6 +53,7 @@ const DashboardLayout = ({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const navigationConfig = {
     student: {
@@ -177,8 +179,8 @@ const DashboardLayout = ({
   const IconComponent = config.icon;
 
   const handleLogout = () => {
-    // In real app, this would clear authentication tokens
-    navigate("/");
+    logout();
+    navigate("/", { replace: true });
   };
 
   const isActivePath = (path: string) => {
