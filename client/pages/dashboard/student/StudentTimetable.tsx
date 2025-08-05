@@ -187,11 +187,13 @@ const StudentTimetable = () => {
   useEffect(() => {
     // Simulate fetching timetable data based on student's year
     const fetchTimetable = async () => {
+      if (!studentInfo) return;
+
       setLoading(true);
       try {
         // In real app, this would be an API call to fetch timetable based on student's year and semester
         await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
-        
+
         const yearTimetable = timetableByYear[studentInfo.year];
         if (yearTimetable) {
           setTimetableData(yearTimetable);
@@ -207,7 +209,7 @@ const StudentTimetable = () => {
     };
 
     fetchTimetable();
-  }, [studentInfo.year]);
+  }, [studentInfo]);
 
   const getSubjectColor = (type) => {
     switch (type) {
