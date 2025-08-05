@@ -46,7 +46,6 @@ import {
 const StudentMaterials = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSubject, setSelectedSubject] = useState("all");
   const [selectedMaterial, setSelectedMaterial] = useState(null);
   const [showMaterialDialog, setShowMaterialDialog] = useState(false);
 
@@ -57,24 +56,13 @@ const StudentMaterials = () => {
 
   const [materials] = useState([]);
 
-  const subjects = [
-    "all",
-    "Machine Learning",
-    "Data Structures",
-    "Programming",
-    "DBMS",
-    "Computer Vision",
-    "Statistics",
-  ];
 
   const filteredMaterials = materials.filter((material) => {
     const matchesSearch =
       material.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       material.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
       material.uploadedBy.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSubject =
-      selectedSubject === "all" || material.subject === selectedSubject;
-    return matchesSearch && matchesSubject;
+    return matchesSearch;
   });
 
   const getTypeColor = (type) => {
@@ -173,21 +161,6 @@ const StudentMaterials = () => {
                     className="pl-10"
                   />
                 </div>
-              </div>
-              <div className="md:w-48">
-                <Label htmlFor="subject">Filter by Subject</Label>
-                <select
-                  id="subject"
-                  value={selectedSubject}
-                  onChange={(e) => setSelectedSubject(e.target.value)}
-                  className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {subjects.map((subject) => (
-                    <option key={subject} value={subject}>
-                      {subject === "all" ? "All Subjects" : subject}
-                    </option>
-                  ))}
-                </select>
               </div>
             </div>
           </CardContent>
