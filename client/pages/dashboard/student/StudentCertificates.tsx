@@ -108,7 +108,7 @@ const StudentCertificates = () => {
       uploadDate: "2024-01-21",
       status: "approved",
       fileUrl: "/certificates/google-cert.pdf",
-      approvedBy: "Dr. Rajesh Kumar",
+      approvedBy: "Faculty",
       approvedAt: "2024-01-22",
     },
     {
