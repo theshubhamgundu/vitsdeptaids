@@ -96,7 +96,7 @@ const StudentCertificates = () => {
       uploadDate: "2024-02-16",
       status: "approved",
       fileUrl: "/certificates/aws-cert.pdf",
-      approvedBy: "Dr. Anita Verma",
+      approvedBy: "Faculty",
       approvedAt: "2024-02-17",
     },
     {
@@ -108,7 +108,7 @@ const StudentCertificates = () => {
       uploadDate: "2024-01-21",
       status: "approved",
       fileUrl: "/certificates/google-cert.pdf",
-      approvedBy: "Dr. Rajesh Kumar",
+      approvedBy: "Faculty",
       approvedAt: "2024-01-22",
     },
     {
