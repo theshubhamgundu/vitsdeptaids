@@ -276,47 +276,6 @@ const FacultyProfile = () => {
                 </div>
 
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Office Room</Label>
-                    {isEditing ? (
-                      <Input
-                        value={editProfile.room}
-                        onChange={(e) =>
-                          setEditProfile((prev) => ({
-                            ...prev,
-                            room: e.target.value,
-                          }))
-                        }
-                      />
-                    ) : (
-                      <div className="flex items-center space-x-2">
-                        <Building className="h-4 w-4 text-gray-500" />
-                        <span>{profile.room}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Office Hours</Label>
-                    {isEditing ? (
-                      <Input
-                        value={editProfile.officeHours}
-                        onChange={(e) =>
-                          setEditProfile((prev) => ({
-                            ...prev,
-                            officeHours: e.target.value,
-                          }))
-                        }
-                      />
-                    ) : (
-                      <div className="flex items-center space-x-2">
-                        <Clock className="h-4 w-4 text-gray-500" />
-                        <span>{profile.officeHours}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>
