@@ -240,23 +240,6 @@ const AdminProfile = () => {
 
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Address</Label>
-                  {isEditing ? (
-                    <Textarea
-                      value={currentData.personal.address}
-                      onChange={(e) =>
-                        handleInputChange("personal", "address", e.target.value)
-                      }
-                      rows={3}
-                    />
-                  ) : (
-                    <div className="flex items-start space-x-2">
-                      <MapPin className="h-4 w-4 text-gray-500 mt-1" />
-                      <span>{currentData.personal.address}</span>
-                    </div>
-                  )}
-                </div>
 
                 <div className="space-y-2">
                   <Label>Emergency Contact</Label>
