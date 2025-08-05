@@ -282,15 +282,15 @@ const StudentTimetable = () => {
     }).slice(0, 3);
   };
 
-  if (loading) {
+  if (loading || !studentInfo) {
     return (
-      <DashboardLayout userType="student" userName={studentInfo.name}>
+      <DashboardLayout userType="student" userName={studentInfo?.name || "Loading..."}>
         <div className="space-y-6">
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <RefreshCw className="h-8 w-8 animate-spin mx-auto text-blue-600 mb-4" />
               <h3 className="text-lg font-semibold text-gray-700">Loading your timetable...</h3>
-              <p className="text-gray-500">Fetching schedule for {studentInfo.year}</p>
+              <p className="text-gray-500">Fetching schedule for {studentInfo?.year || "your year"}</p>
             </div>
           </div>
         </div>
@@ -312,8 +312,8 @@ const StudentTimetable = () => {
                   <p className="text-sm text-gray-400">
                     Please contact the academic office or your HOD for the latest timetable.
                   </p>
-                  <Button 
-                    onClick={() => window.location.reload()} 
+                  <Button
+                    onClick={() => window.location.reload()}
                     className="mt-4"
                     variant="outline"
                   >
