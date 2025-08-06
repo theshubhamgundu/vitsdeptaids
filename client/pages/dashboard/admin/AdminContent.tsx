@@ -419,12 +419,13 @@ const AdminContent = () => {
 
         {/* Content Management Tabs */}
         <Tabs defaultValue="events" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="events">📅 Events</TabsTrigger>
             <TabsTrigger value="gallery">📷 Gallery</TabsTrigger>
             <TabsTrigger value="faculty">👨‍🏫 Faculty</TabsTrigger>
             <TabsTrigger value="placements">💼 Placements</TabsTrigger>
             <TabsTrigger value="achievements">🏆 Achievements</TabsTrigger>
+            <TabsTrigger value="mappings">👥 Mappings</TabsTrigger>
           </TabsList>
 
           {/* Events Tab */}
