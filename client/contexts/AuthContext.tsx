@@ -109,8 +109,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     logoutAllDevices,
     updateUser,
-    hasMultipleSessions: user ? sessionService.hasMultipleSessions(user.id) : false,
-    currentSessionId: sessionService.getCurrentSessionId(),
+    currentSessionToken: databaseSessionService.getCurrentSessionToken(),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
