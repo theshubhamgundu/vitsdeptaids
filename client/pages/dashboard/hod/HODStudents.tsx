@@ -474,12 +474,23 @@ const HODStudents = () => {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                              <GraduationCap className="h-4 w-4 text-gray-500" />
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                              student.source === 'registered'
+                                ? 'bg-green-100'
+                                : 'bg-blue-100'
+                            }`}>
+                              <GraduationCap className={`h-4 w-4 ${
+                                student.source === 'registered'
+                                  ? 'text-green-600'
+                                  : 'text-blue-600'
+                              }`} />
                             </div>
                             <div>
                               <div className="font-medium">{student.name || student.fullName}</div>
                               <div className="text-sm text-gray-600">{student.hallTicket}</div>
+                              <div className="text-xs text-gray-500">
+                                {student.source === 'registered' ? 'Registered' : 'Department DB'}
+                              </div>
                             </div>
                           </div>
                         </TableCell>
