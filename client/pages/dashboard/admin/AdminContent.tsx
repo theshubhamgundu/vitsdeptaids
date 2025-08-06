@@ -1436,7 +1436,8 @@ const AdminContent = () => {
               <CardHeader>
                 <CardTitle>👥 Student-Faculty Mappings</CardTitle>
                 <CardDescription>
-                  Assign coordinators and counsellors to students from all sources
+                  Assign coordinators and counsellors to students from all
+                  sources
                 </CardDescription>
               </CardHeader>
               <CardContent>

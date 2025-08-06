@@ -1,6 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User } from '@/services/authService';
-import { databaseSessionService } from '@/services/databaseSessionService';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { User } from "@/services/authService";
+import { databaseSessionService } from "@/services/databaseSessionService";
 
 interface AuthContextType {
   user: User | null;
@@ -27,11 +33,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const checkExistingSession = async () => {
       try {
-        const currentSessionToken = databaseSessionService.getCurrentSessionToken();
+        const currentSessionToken =
+          databaseSessionService.getCurrentSessionToken();
 
         if (currentSessionToken) {
           // Validate session with database
-          const validation = await databaseSessionService.validateSession(currentSessionToken);
+          const validation =
+            await databaseSessionService.validateSession(currentSessionToken);
 
           if (validation.isValid && validation.user) {
             setUser(validation.user);
@@ -43,9 +51,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         }
       } catch (error) {
-        console.error('Error checking existing session:', error);
+        console.error("Error checking existing session:", error);
         // Clear any corrupted local data
-        const currentSessionToken = databaseSessionService.getCurrentSessionToken();
+        const currentSessionToken =
+          databaseSessionService.getCurrentSessionToken();
         if (currentSessionToken) {
           await databaseSessionService.removeSession(currentSessionToken);
         }
@@ -59,17 +68,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkExistingSession();
   }, []);
 
-
   const login = async (userData: User) => {
     try {
       // Create a new database session
       const sessionToken = await databaseSessionService.createSession(userData);
       setUser(userData);
-      console.log(`✅ Login successful. Session token created: ${sessionToken.slice(0, 20)}...`);
+      console.log(
+        `✅ Login successful. Session token created: ${sessionToken.slice(0, 20)}...`,
+      );
     } catch (error) {
-      console.error('Error creating session:', error);
+      console.error("Error creating session:", error);
       // Fallback to basic localStorage
-      localStorage.setItem('currentUser', JSON.stringify(userData));
+      localStorage.setItem("currentUser", JSON.stringify(userData));
       setUser(userData);
     }
   };
@@ -96,7 +106,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const updateUser = (userData: Partial<User>) => {
     if (user) {
       const updatedUser = { ...user, ...userData };
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      localStorage.setItem("currentUser", JSON.stringify(updatedUser));
       setUser(updatedUser);
     }
   };
@@ -118,7 +128,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

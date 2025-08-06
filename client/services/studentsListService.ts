@@ -12,7 +12,9 @@ export interface StudentsListRecord {
 }
 
 // Get all students from students_list table
-export const getAllStudentsFromList = async (): Promise<StudentsListRecord[]> => {
+export const getAllStudentsFromList = async (): Promise<
+  StudentsListRecord[]
+> => {
   try {
     const studentsListTable = tables.studentsList();
     if (!studentsListTable) {
@@ -37,7 +39,9 @@ export const getAllStudentsFromList = async (): Promise<StudentsListRecord[]> =>
 };
 
 // Get students by year
-export const getStudentsByYear = async (year: string): Promise<StudentsListRecord[]> => {
+export const getStudentsByYear = async (
+  year: string,
+): Promise<StudentsListRecord[]> => {
   try {
     const studentsListTable = tables.studentsList();
     if (!studentsListTable) {
@@ -63,7 +67,9 @@ export const getStudentsByYear = async (year: string): Promise<StudentsListRecor
 };
 
 // Get student by hall ticket number
-export const getStudentByHallTicket = async (hallTicket: string): Promise<StudentsListRecord | null> => {
+export const getStudentByHallTicket = async (
+  hallTicket: string,
+): Promise<StudentsListRecord | null> => {
   try {
     const studentsListTable = tables.studentsList();
     if (!studentsListTable) {
@@ -89,7 +95,9 @@ export const getStudentByHallTicket = async (hallTicket: string): Promise<Studen
 };
 
 // Search students by name
-export const searchStudentsByName = async (searchTerm: string): Promise<StudentsListRecord[]> => {
+export const searchStudentsByName = async (
+  searchTerm: string,
+): Promise<StudentsListRecord[]> => {
   try {
     const studentsListTable = tables.studentsList();
     if (!studentsListTable) {
@@ -118,14 +126,14 @@ export const searchStudentsByName = async (searchTerm: string): Promise<Students
 export const getStudentsListStats = async () => {
   try {
     const students = await getAllStudentsFromList();
-    
+
     const stats = {
       total: students.length,
       byYear: {
-        "1st Year": students.filter(s => s.year === "1st Year").length,
-        "2nd Year": students.filter(s => s.year === "2nd Year").length,
-        "3rd Year": students.filter(s => s.year === "3rd Year").length,
-        "4th Year": students.filter(s => s.year === "4th Year").length,
+        "1st Year": students.filter((s) => s.year === "1st Year").length,
+        "2nd Year": students.filter((s) => s.year === "2nd Year").length,
+        "3rd Year": students.filter((s) => s.year === "3rd Year").length,
+        "4th Year": students.filter((s) => s.year === "4th Year").length,
       },
       yearDistribution: students.reduce((acc: any, student) => {
         acc[student.year] = (acc[student.year] || 0) + 1;
@@ -153,7 +161,7 @@ export const getStudentsListStats = async () => {
 export const validateStudentInList = async (
   hallTicket: string,
   studentName: string,
-  year: string
+  year: string,
 ): Promise<boolean> => {
   try {
     const studentsListTable = tables.studentsList();
@@ -169,7 +177,8 @@ export const validateStudentInList = async (
       .eq("year", year)
       .single();
 
-    if (error && error.code !== "PGRST116") { // PGRST116 = no rows returned
+    if (error && error.code !== "PGRST116") {
+      // PGRST116 = no rows returned
       console.error("Error validating student:", error);
       return false;
     }

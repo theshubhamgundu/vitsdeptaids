@@ -20,15 +20,15 @@ const fileToBase64 = (file: File): Promise<string> => {
 // Compress image if it's too large
 const compressImage = (file: File, maxSizeKB: number = 500): Promise<File> => {
   return new Promise((resolve) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
     const img = new Image();
-    
+
     img.onload = () => {
       // Calculate new dimensions (max 400x400)
       const maxDimension = 400;
       let { width, height } = img;
-      
+
       if (width > height) {
         if (width > maxDimension) {
           height = (height * maxDimension) / width;
@@ -40,18 +40,18 @@ const compressImage = (file: File, maxSizeKB: number = 500): Promise<File> => {
           height = maxDimension;
         }
       }
-      
+
       canvas.width = width;
       canvas.height = height;
-      
+
       // Draw and compress
       ctx?.drawImage(img, 0, 0, width, height);
-      
+
       canvas.toBlob(
         (blob) => {
           if (blob) {
             const compressedFile = new File([blob], file.name, {
-              type: 'image/jpeg',
+              type: "image/jpeg",
               lastModified: Date.now(),
             });
             resolve(compressedFile);
@@ -59,11 +59,11 @@ const compressImage = (file: File, maxSizeKB: number = 500): Promise<File> => {
             resolve(file);
           }
         },
-        'image/jpeg',
-        0.8
+        "image/jpeg",
+        0.8,
       );
     };
-    
+
     img.src = URL.createObjectURL(file);
   });
 };
@@ -71,9 +71,9 @@ const compressImage = (file: File, maxSizeKB: number = 500): Promise<File> => {
 export const profilePhotoService = {
   // Upload profile photo with Supabase storage and localStorage fallback
   uploadProfilePhoto: async (
-    userId: string, 
-    file: File, 
-    userRole: string = 'student'
+    userId: string,
+    file: File,
+    userRole: string = "student",
   ): Promise<ProfilePhotoUploadResult> => {
     try {
       // Validate file
@@ -82,7 +82,7 @@ export const profilePhotoService = {
       }
 
       // Check file type
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith("image/")) {
         return { success: false, error: "Please upload an image file" };
       }
 
@@ -98,21 +98,30 @@ export const profilePhotoService = {
       if (supabase && buckets.profiles()) {
         try {
           console.log("📤 Attempting Supabase storage upload...");
-          
-          const uploadResult = await fileHelpers.uploadProfilePhoto(userId, processedFile);
-          
+
+          const uploadResult = await fileHelpers.uploadProfilePhoto(
+            userId,
+            processedFile,
+          );
+
           if (uploadResult.data && uploadResult.data.publicUrl) {
             // Save URL to user profile in database
-            await profilePhotoService.savePhotoUrlToProfile(userId, uploadResult.data.publicUrl, userRole);
-            
+            await profilePhotoService.savePhotoUrlToProfile(
+              userId,
+              uploadResult.data.publicUrl,
+              userRole,
+            );
+
             console.log("✅ Photo uploaded to Supabase storage successfully");
             return {
               success: true,
               photoUrl: uploadResult.data.publicUrl,
-              isLocalStorage: false
+              isLocalStorage: false,
             };
           } else {
-            console.warn("⚠️ Supabase upload failed, falling back to localStorage");
+            console.warn(
+              "⚠️ Supabase upload failed, falling back to localStorage",
+            );
             throw new Error("Supabase upload failed");
           }
         } catch (supabaseError) {
@@ -126,68 +135,76 @@ export const profilePhotoService = {
       // Fallback to localStorage (base64)
       try {
         const base64 = await fileToBase64(processedFile);
-        
+
         // Store in localStorage with user-specific key
         const photoKey = `profile_photo_${userId}`;
         localStorage.setItem(photoKey, base64);
-        
+
         // Update user profile with local reference
-        await profilePhotoService.savePhotoUrlToProfile(userId, base64, userRole);
-        
+        await profilePhotoService.savePhotoUrlToProfile(
+          userId,
+          base64,
+          userRole,
+        );
+
         console.log("✅ Photo saved to localStorage successfully");
         return {
           success: true,
           photoUrl: base64,
-          isLocalStorage: true
+          isLocalStorage: true,
         };
       } catch (localError) {
         console.error("❌ localStorage fallback failed:", localError);
-        return { 
-          success: false, 
-          error: "Failed to save photo. Please try again." 
+        return {
+          success: false,
+          error: "Failed to save photo. Please try again.",
         };
       }
     } catch (error) {
       console.error("❌ Profile photo upload error:", error);
-      return { 
-        success: false, 
-        error: "Upload failed. Please try again." 
+      return {
+        success: false,
+        error: "Upload failed. Please try again.",
       };
     }
   },
 
   // Save photo URL to user profile
-  savePhotoUrlToProfile: async (userId: string, photoUrl: string, userRole: string): Promise<void> => {
+  savePhotoUrlToProfile: async (
+    userId: string,
+    photoUrl: string,
+    userRole: string,
+  ): Promise<void> => {
     try {
       // Update in Supabase if available
       if (supabase) {
-        if (userRole === 'student') {
-          const studentsTable = supabase.from('students');
+        if (userRole === "student") {
+          const studentsTable = supabase.from("students");
           await studentsTable
             .update({ profile_photo_url: photoUrl })
-            .eq('id', userId);
+            .eq("id", userId);
         } else {
-          const facultyTable = supabase.from('faculty');
+          const facultyTable = supabase.from("faculty");
           await facultyTable
             .update({ profile_photo_url: photoUrl })
-            .eq('id', userId);
+            .eq("id", userId);
         }
       }
 
       // Always update localStorage for quick access
-      const currentUser = localStorage.getItem('currentUser');
+      const currentUser = localStorage.getItem("currentUser");
       if (currentUser) {
         const userData = JSON.parse(currentUser);
         userData.profilePhotoUrl = photoUrl;
-        localStorage.setItem('currentUser', JSON.stringify(userData));
+        localStorage.setItem("currentUser", JSON.stringify(userData));
       }
 
       // Update in localUsers if exists
-      const localUsers = JSON.parse(localStorage.getItem('localUsers') || '[]');
+      const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
       const userIndex = localUsers.findIndex((u: any) => u.id === userId);
       if (userIndex !== -1) {
         localUsers[userIndex].profilePhotoUrl = photoUrl;
-        localStorage.setItem('localUsers', JSON.stringify(localUsers));
+        localStorage.setItem("localUsers", JSON.stringify(localUsers));
       }
     } catch (error) {
       console.error("Error saving photo URL to profile:", error);
@@ -195,7 +212,10 @@ export const profilePhotoService = {
   },
 
   // Get profile photo URL
-  getProfilePhotoUrl: async (userId: string, userRole: string = 'student'): Promise<string | null> => {
+  getProfilePhotoUrl: async (
+    userId: string,
+    userRole: string = "student",
+  ): Promise<string | null> => {
     try {
       // Check localStorage first for quick access
       const photoKey = `profile_photo_${userId}`;
@@ -205,7 +225,7 @@ export const profilePhotoService = {
       }
 
       // Check current user data
-      const currentUser = localStorage.getItem('currentUser');
+      const currentUser = localStorage.getItem("currentUser");
       if (currentUser) {
         const userData = JSON.parse(currentUser);
         if (userData.id === userId && userData.profilePhotoUrl) {
@@ -214,7 +234,7 @@ export const profilePhotoService = {
       }
 
       // Check localUsers
-      const localUsers = JSON.parse(localStorage.getItem('localUsers') || '[]');
+      const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
       const localUser = localUsers.find((u: any) => u.id === userId);
       if (localUser && localUser.profilePhotoUrl) {
         return localUser.profilePhotoUrl;
@@ -224,19 +244,19 @@ export const profilePhotoService = {
       if (supabase) {
         try {
           let photoUrl = null;
-          
-          if (userRole === 'student') {
+
+          if (userRole === "student") {
             const { data } = await supabase
-              .from('students')
-              .select('profile_photo_url')
-              .eq('id', userId)
+              .from("students")
+              .select("profile_photo_url")
+              .eq("id", userId)
               .single();
             photoUrl = data?.profile_photo_url;
           } else {
             const { data } = await supabase
-              .from('faculty')
-              .select('profile_photo_url')
-              .eq('id', userId)
+              .from("faculty")
+              .select("profile_photo_url")
+              .eq("id", userId)
               .single();
             photoUrl = data?.profile_photo_url;
           }
@@ -255,7 +275,10 @@ export const profilePhotoService = {
   },
 
   // Delete profile photo
-  deleteProfilePhoto: async (userId: string, userRole: string = 'student'): Promise<boolean> => {
+  deleteProfilePhoto: async (
+    userId: string,
+    userRole: string = "student",
+  ): Promise<boolean> => {
     try {
       // Remove from Supabase storage if exists
       if (supabase && buckets.profiles()) {
@@ -270,16 +293,16 @@ export const profilePhotoService = {
       // Remove from database
       if (supabase) {
         try {
-          if (userRole === 'student') {
+          if (userRole === "student") {
             await supabase
-              .from('students')
+              .from("students")
               .update({ profile_photo_url: null })
-              .eq('id', userId);
+              .eq("id", userId);
           } else {
             await supabase
-              .from('faculty')
+              .from("faculty")
               .update({ profile_photo_url: null })
-              .eq('id', userId);
+              .eq("id", userId);
           }
         } catch (dbError) {
           console.warn("Database update failed:", dbError);
@@ -291,21 +314,21 @@ export const profilePhotoService = {
       localStorage.removeItem(photoKey);
 
       // Update current user
-      const currentUser = localStorage.getItem('currentUser');
+      const currentUser = localStorage.getItem("currentUser");
       if (currentUser) {
         const userData = JSON.parse(currentUser);
         if (userData.id === userId) {
           delete userData.profilePhotoUrl;
-          localStorage.setItem('currentUser', JSON.stringify(userData));
+          localStorage.setItem("currentUser", JSON.stringify(userData));
         }
       }
 
       // Update localUsers
-      const localUsers = JSON.parse(localStorage.getItem('localUsers') || '[]');
+      const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
       const userIndex = localUsers.findIndex((u: any) => u.id === userId);
       if (userIndex !== -1) {
         delete localUsers[userIndex].profilePhotoUrl;
-        localStorage.setItem('localUsers', JSON.stringify(localUsers));
+        localStorage.setItem("localUsers", JSON.stringify(localUsers));
       }
 
       return true;
@@ -324,33 +347,45 @@ export const profilePhotoService = {
       }
 
       // Check if buckets exist, create if they don't
-      const bucketsToCreate = ['profiles', 'documents', 'materials', 'timetables'];
-      
+      const bucketsToCreate = [
+        "profiles",
+        "documents",
+        "materials",
+        "timetables",
+      ];
+
       for (const bucketName of bucketsToCreate) {
         try {
           const { data: buckets } = await supabase.storage.listBuckets();
-          const bucketExists = buckets?.some(bucket => bucket.name === bucketName);
-          
+          const bucketExists = buckets?.some(
+            (bucket) => bucket.name === bucketName,
+          );
+
           if (!bucketExists) {
             await supabase.storage.createBucket(bucketName, {
               public: true,
-              allowedMimeTypes: bucketName === 'profiles' 
-                ? ['image/jpeg', 'image/png', 'image/webp'] 
-                : undefined,
-              fileSizeLimit: bucketName === 'profiles' 
-                ? 5242880 // 5MB
-                : undefined
+              allowedMimeTypes:
+                bucketName === "profiles"
+                  ? ["image/jpeg", "image/png", "image/webp"]
+                  : undefined,
+              fileSizeLimit:
+                bucketName === "profiles"
+                  ? 5242880 // 5MB
+                  : undefined,
             });
             console.log(`✅ Created storage bucket: ${bucketName}`);
           }
         } catch (bucketError) {
-          console.warn(`Warning: Could not initialize bucket ${bucketName}:`, bucketError);
+          console.warn(
+            `Warning: Could not initialize bucket ${bucketName}:`,
+            bucketError,
+          );
         }
       }
     } catch (error) {
       console.error("Error initializing storage buckets:", error);
     }
-  }
+  },
 };
 
 export default profilePhotoService;

@@ -53,7 +53,9 @@ const StudentProfile = () => {
   useEffect(() => {
     const loadStudentData = async () => {
       // Get current user from localStorage
-      const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+      const currentUser = JSON.parse(
+        localStorage.getItem("currentUser") || "{}",
+      );
       setStudentData(currentUser);
 
       // Initialize profile data with actual user data
@@ -73,7 +75,10 @@ const StudentProfile = () => {
 
         // Load profile photo
         try {
-          const photoUrl = await profilePhotoService.getProfilePhotoUrl(currentUser.id, 'student');
+          const photoUrl = await profilePhotoService.getProfilePhotoUrl(
+            currentUser.id,
+            "student",
+          );
           if (photoUrl) {
             setProfileData((prev) => ({
               ...prev,
@@ -124,7 +129,9 @@ const StudentProfile = () => {
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
 
-  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (!file || !studentData) return;
 
@@ -133,7 +140,7 @@ const StudentProfile = () => {
       const result = await profilePhotoService.uploadProfilePhoto(
         studentData.id,
         file,
-        'student'
+        "student",
       );
 
       if (result.success && result.photoUrl) {

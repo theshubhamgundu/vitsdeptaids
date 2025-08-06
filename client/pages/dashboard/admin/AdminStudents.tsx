@@ -187,11 +187,11 @@ const AdminStudents = () => {
       );
       const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
 
-      const hallTicketExists = existingStudents.some(
-        (s: any) => s.hallTicket === newStudent.hallTicket
-      ) || localUsers.some(
-        (u: any) => u.hallTicket === newStudent.hallTicket
-      );
+      const hallTicketExists =
+        existingStudents.some(
+          (s: any) => s.hallTicket === newStudent.hallTicket,
+        ) ||
+        localUsers.some((u: any) => u.hallTicket === newStudent.hallTicket);
 
       if (hallTicketExists) {
         errors.hallTicket = "Hall ticket already exists";
@@ -206,7 +206,7 @@ const AdminStudents = () => {
 
     if (!newStudent.phone.trim()) {
       errors.phone = "Phone number is required";
-    } else if (!/^[0-9]{10}$/.test(newStudent.phone.replace(/\D/g, ''))) {
+    } else if (!/^[0-9]{10}$/.test(newStudent.phone.replace(/\D/g, ""))) {
       errors.phone = "Please enter a valid 10-digit phone number";
     }
 
@@ -719,11 +719,17 @@ const AdminStudents = () => {
         {/* Tabs for different views */}
         <Tabs defaultValue="registered" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="registered" className="flex items-center space-x-2">
+            <TabsTrigger
+              value="registered"
+              className="flex items-center space-x-2"
+            >
               <Users className="h-4 w-4" />
               <span>Registered Students</span>
             </TabsTrigger>
-            <TabsTrigger value="database" className="flex items-center space-x-2">
+            <TabsTrigger
+              value="database"
+              className="flex items-center space-x-2"
+            >
               <Database className="h-4 w-4" />
               <span>Department Database</span>
             </TabsTrigger>
@@ -732,179 +738,183 @@ const AdminStudents = () => {
           <TabsContent value="registered" className="space-y-6">
             {/* Filters */}
             <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Filter className="h-5 w-5" />
-              <span>Filters & Search</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="search">Search Students</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="search"
-                    placeholder="Search by name, hall ticket, or email"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Filter className="h-5 w-5" />
+                  <span>Filters & Search</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="search">Search Students</Label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        id="search"
+                        placeholder="Search by name, hall ticket, or email"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="year">Filter by Year</Label>
+                    <Select value={yearFilter} onValueChange={setYearFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Years</SelectItem>
+                        <SelectItem value="1">1st Year</SelectItem>
+                        <SelectItem value="2">2nd Year</SelectItem>
+                        <SelectItem value="3">3rd Year</SelectItem>
+                        <SelectItem value="4">4th Year</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="status">Filter by Status</Label>
+                    <Select
+                      value={statusFilter}
+                      onValueChange={setStatusFilter}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="graduated">Graduated</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Results</Label>
+                    <div className="text-sm text-gray-600">
+                      Showing {filteredStudents.length} of {students.length}{" "}
+                      students
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </CardContent>
+            </Card>
 
-              <div className="space-y-2">
-                <Label htmlFor="year">Filter by Year</Label>
-                <Select value={yearFilter} onValueChange={setYearFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Years</SelectItem>
-                    <SelectItem value="1">1st Year</SelectItem>
-                    <SelectItem value="2">2nd Year</SelectItem>
-                    <SelectItem value="3">3rd Year</SelectItem>
-                    <SelectItem value="4">4th Year</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="status">Filter by Status</Label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                    <SelectItem value="graduated">Graduated</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Results</Label>
-                <div className="text-sm text-gray-600">
-                  Showing {filteredStudents.length} of {students.length}{" "}
-                  students
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Students Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Students Directory</CardTitle>
-            <CardDescription>
-              Complete list of all students with management options
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Hall Ticket</TableHead>
-                  <TableHead>Year</TableHead>
-                  <TableHead>CGPA</TableHead>
-                  <TableHead>Attendance</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredStudents.map((student) => (
-                  <TableRow key={student.id}>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src="/api/placeholder/40/40" />
-                          <AvatarFallback>
-                            {student.fullName
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium">{student.fullName}</div>
-                          <div className="text-sm text-gray-600">
-                            {student.email}
+            {/* Students Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Students Directory</CardTitle>
+                <CardDescription>
+                  Complete list of all students with management options
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Student</TableHead>
+                      <TableHead>Hall Ticket</TableHead>
+                      <TableHead>Year</TableHead>
+                      <TableHead>CGPA</TableHead>
+                      <TableHead>Attendance</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredStudents.map((student) => (
+                      <TableRow key={student.id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src="/api/placeholder/40/40" />
+                              <AvatarFallback>
+                                {student.fullName
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="font-medium">
+                                {student.fullName}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                {student.email}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{student.hallTicket}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">Year {student.year}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-medium">{student.cgpa}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span
-                        className={`font-medium ${getAttendanceColor(student.attendance)}`}
-                      >
-                        {student.attendance}%
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(student.status)}>
-                        {student.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setSelectedStudent(student)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            setSelectedStudent(student);
-                            setShowEditDialog(true);
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDeleteStudent(student.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                        </TableCell>
+                        <TableCell>{student.hallTicket}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline">Year {student.year}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-medium">{student.cgpa}</span>
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={`font-medium ${getAttendanceColor(student.attendance)}`}
+                          >
+                            {student.attendance}%
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(student.status)}>
+                            {student.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setSelectedStudent(student)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                setSelectedStudent(student);
+                                setShowEditDialog(true);
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDeleteStudent(student.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
 
-            {filteredStudents.length === 0 && (
-              <div className="text-center py-12">
-                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No students found
-                </h3>
-                <p className="text-gray-600">
-                  Try adjusting your search criteria or filters.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
+                {filteredStudents.length === 0 && (
+                  <div className="text-center py-12">
+                    <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      No students found
+                    </h3>
+                    <p className="text-gray-600">
+                      Try adjusting your search criteria or filters.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="database">

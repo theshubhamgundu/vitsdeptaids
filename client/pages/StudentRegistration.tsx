@@ -136,14 +136,14 @@ const StudentRegistration = () => {
           const isValidInList = await validateStudentInList(
             formData.hallTicket,
             formData.fullName,
-            formData.year
+            formData.year,
           );
 
           if (isValidInList) {
             studentData = {
               ht_no: formData.hallTicket,
               student_name: formData.fullName.toUpperCase(),
-              year: formData.year
+              year: formData.year,
             };
             console.log("✅ Student validated using students_list table");
           } else {
@@ -165,7 +165,9 @@ const StudentRegistration = () => {
             } else {
               studentData = data;
               if (data) {
-                console.log("✅ Student validated using student_data table (fallback)");
+                console.log(
+                  "✅ Student validated using student_data table (fallback)",
+                );
               }
             }
           }

@@ -1,23 +1,44 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Search, Users, TrendingUp, BookOpen, RefreshCw } from "lucide-react";
-import { 
-  getAllStudentsFromList, 
-  getStudentsByYear, 
-  searchStudentsByName, 
+import {
+  getAllStudentsFromList,
+  getStudentsByYear,
+  searchStudentsByName,
   getStudentsListStats,
-  StudentsListRecord 
+  StudentsListRecord,
 } from "@/services/studentsListService";
 
 const StudentsListViewer = () => {
   const [students, setStudents] = useState<StudentsListRecord[]>([]);
-  const [filteredStudents, setFilteredStudents] = useState<StudentsListRecord[]>([]);
+  const [filteredStudents, setFilteredStudents] = useState<
+    StudentsListRecord[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState("all");
@@ -29,7 +50,7 @@ const StudentsListViewer = () => {
       "3rd Year": 0,
       "4th Year": 0,
     },
-    yearDistribution: {}
+    yearDistribution: {},
   });
 
   useEffect(() => {
@@ -68,14 +89,17 @@ const StudentsListViewer = () => {
 
     // Filter by year
     if (selectedYear !== "all") {
-      filtered = filtered.filter(student => student.year === selectedYear);
+      filtered = filtered.filter((student) => student.year === selectedYear);
     }
 
     // Filter by search term
     if (searchTerm) {
-      filtered = filtered.filter(student => 
-        student.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.ht_no.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (student) =>
+          student.student_name
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          student.ht_no.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
@@ -127,7 +151,9 @@ const StudentsListViewer = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Students
+            </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -187,10 +213,7 @@ const StudentsListViewer = () => {
               </div>
             </div>
             <div className="w-full sm:w-48">
-              <Select
-                value={selectedYear}
-                onValueChange={handleYearFilter}
-              >
+              <Select value={selectedYear} onValueChange={handleYearFilter}>
                 <SelectTrigger>
                   <SelectValue placeholder="Filter by year" />
                 </SelectTrigger>
@@ -237,13 +260,9 @@ const StudentsListViewer = () => {
                         {student.student_name}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">
-                          {student.year}
-                        </Badge>
+                        <Badge variant="outline">{student.year}</Badge>
                       </TableCell>
-                      <TableCell>
-                        {student.branch || "AI & DS"}
-                      </TableCell>
+                      <TableCell>{student.branch || "AI & DS"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

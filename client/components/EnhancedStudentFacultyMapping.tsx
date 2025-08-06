@@ -1,14 +1,33 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useToast } from "@/hooks/use-toast";
 import {
   Users,
   UserCheck,
@@ -20,34 +39,42 @@ import {
   TrendingUp,
   AlertTriangle,
   BookOpen,
-  UserCog
-} from 'lucide-react';
+  UserCog,
+} from "lucide-react";
 import {
   enhancedMappingService,
   type Student,
   type Faculty,
-  type MappingWithDetails
-} from '@/services/enhancedMappingService';
+  type MappingWithDetails,
+} from "@/services/enhancedMappingService";
 
 const EnhancedStudentFacultyMapping: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [faculty, setFaculty] = useState<Faculty[]>([]);
   const [mappings, setMappings] = useState<MappingWithDetails[]>([]);
-  const [filteredMappings, setFilteredMappings] = useState<MappingWithDetails[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState<string>('');
-  const [selectedFaculty, setSelectedFaculty] = useState<string>('');
-  const [mappingType, setMappingType] = useState<'coordinator' | 'counsellor'>('coordinator');
+  const [filteredMappings, setFilteredMappings] = useState<
+    MappingWithDetails[]
+  >([]);
+  const [selectedStudent, setSelectedStudent] = useState<string>("");
+  const [selectedFaculty, setSelectedFaculty] = useState<string>("");
+  const [mappingType, setMappingType] = useState<"coordinator" | "counsellor">(
+    "coordinator",
+  );
   const [loading, setLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'coordinator' | 'counsellor'>('all');
-  const [filterSource, setFilterSource] = useState<'all' | 'registered' | 'department_database'>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState<
+    "all" | "coordinator" | "counsellor"
+  >("all");
+  const [filterSource, setFilterSource] = useState<
+    "all" | "registered" | "department_database"
+  >("all");
   const [stats, setStats] = useState({
     totalStudents: 0,
     assignedCoordinators: 0,
     assignedCounsellors: 0,
     unassignedCoordinators: 0,
     unassignedCounsellors: 0,
-    totalFaculty: 0
+    totalFaculty: 0,
   });
   const { toast } = useToast();
 
@@ -62,21 +89,24 @@ const EnhancedStudentFacultyMapping: React.FC = () => {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [studentsData, facultyData, mappingsData, statsData] = await Promise.all([
-        enhancedMappingService.getAllStudentsData(),
-        enhancedMappingService.getAllFacultyData(),
-        enhancedMappingService.getMappingsWithDetails(),
-        enhancedMappingService.getAssignmentStats()
-      ]);
+      const [studentsData, facultyData, mappingsData, statsData] =
+        await Promise.all([
+          enhancedMappingService.getAllStudentsData(),
+          enhancedMappingService.getAllFacultyData(),
+          enhancedMappingService.getMappingsWithDetails(),
+          enhancedMappingService.getAssignmentStats(),
+        ]);
 
       setStudents(studentsData);
       setFaculty(facultyData);
       setMappings(mappingsData);
       setStats(statsData);
 
-      console.log(`✅ Loaded: ${studentsData.length} students, ${facultyData.length} faculty, ${mappingsData.length} mappings`);
+      console.log(
+        `✅ Loaded: ${studentsData.length} students, ${facultyData.length} faculty, ${mappingsData.length} mappings`,
+      );
     } catch (error) {
-      console.error('Error loading mapping data:', error);
+      console.error("Error loading mapping data:", error);
       toast({
         title: "Error",
         description: "Failed to load mapping data",
@@ -92,21 +122,30 @@ const EnhancedStudentFacultyMapping: React.FC = () => {
 
     // Apply search filter
     if (searchTerm) {
-      filtered = filtered.filter(mapping =>
-        mapping.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        mapping.studentHallTicket.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        mapping.facultyName.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (mapping) =>
+          mapping.studentName
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          mapping.studentHallTicket
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          mapping.facultyName.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
     // Apply type filter
-    if (filterType !== 'all') {
-      filtered = filtered.filter(mapping => mapping.mappingType === filterType);
+    if (filterType !== "all") {
+      filtered = filtered.filter(
+        (mapping) => mapping.mappingType === filterType,
+      );
     }
 
     // Apply source filter
-    if (filterSource !== 'all') {
-      filtered = filtered.filter(mapping => mapping.studentSource === filterSource);
+    if (filterSource !== "all") {
+      filtered = filtered.filter(
+        (mapping) => mapping.studentSource === filterSource,
+      );
     }
 
     setFilteredMappings(filtered);
@@ -127,7 +166,7 @@ const EnhancedStudentFacultyMapping: React.FC = () => {
       await enhancedMappingService.assignStudentToFaculty(
         selectedStudent,
         selectedFaculty,
-        mappingType
+        mappingType,
       );
 
       toast({
@@ -136,11 +175,11 @@ const EnhancedStudentFacultyMapping: React.FC = () => {
       });
 
       // Reset selections and reload data
-      setSelectedStudent('');
-      setSelectedFaculty('');
+      setSelectedStudent("");
+      setSelectedFaculty("");
       await loadData();
     } catch (error) {
-      console.error('Error assigning student:', error);
+      console.error("Error assigning student:", error);
       toast({
         title: "Assignment Failed",
         description: "Failed to assign student. Please try again.",
@@ -155,7 +194,7 @@ const EnhancedStudentFacultyMapping: React.FC = () => {
     setLoading(true);
     try {
       const success = await enhancedMappingService.removeMapping(mappingId);
-      
+
       if (success) {
         toast({
           title: "Mapping Removed",
@@ -166,7 +205,7 @@ const EnhancedStudentFacultyMapping: React.FC = () => {
         throw new Error("Failed to remove mapping");
       }
     } catch (error) {
-      console.error('Error removing mapping:', error);
+      console.error("Error removing mapping:", error);
       toast({
         title: "Removal Failed",
         description: "Failed to remove mapping. Please try again.",
@@ -177,21 +216,27 @@ const EnhancedStudentFacultyMapping: React.FC = () => {
     }
   };
 
-  const getUnassignedStudents = (type: 'coordinator' | 'counsellor') => {
+  const getUnassignedStudents = (type: "coordinator" | "counsellor") => {
     const assignedStudentIds = mappings
-      .filter(m => m.mappingType === type)
-      .map(m => m.studentId);
-    return students.filter(student => !assignedStudentIds.includes(student.id));
+      .filter((m) => m.mappingType === type)
+      .map((m) => m.studentId);
+    return students.filter(
+      (student) => !assignedStudentIds.includes(student.id),
+    );
   };
 
   const getStudentName = (studentId: string) => {
-    const student = students.find(s => s.id === studentId);
-    return student ? `${student.name} (${student.hallTicket})` : 'Unknown Student';
+    const student = students.find((s) => s.id === studentId);
+    return student
+      ? `${student.name} (${student.hallTicket})`
+      : "Unknown Student";
   };
 
   const getFacultyName = (facultyId: string) => {
-    const facultyMember = faculty.find(f => f.id === facultyId);
-    return facultyMember ? `${facultyMember.name} - ${facultyMember.designation}` : 'Unknown Faculty';
+    const facultyMember = faculty.find((f) => f.id === facultyId);
+    return facultyMember
+      ? `${facultyMember.name} - ${facultyMember.designation}`
+      : "Unknown Faculty";
   };
 
   if (loading && mappings.length === 0) {
@@ -211,12 +256,16 @@ const EnhancedStudentFacultyMapping: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Students
+            </CardTitle>
             <Users className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalStudents}</div>
-            <p className="text-xs text-muted-foreground">All sources combined</p>
+            <p className="text-xs text-muted-foreground">
+              All sources combined
+            </p>
           </CardContent>
         </Card>
 
@@ -226,7 +275,9 @@ const EnhancedStudentFacultyMapping: React.FC = () => {
             <UserCog className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.assignedCoordinators}</div>
+            <div className="text-2xl font-bold">
+              {stats.assignedCoordinators}
+            </div>
             <p className="text-xs text-muted-foreground">
               {stats.unassignedCoordinators} unassigned
             </p>
@@ -239,7 +290,9 @@ const EnhancedStudentFacultyMapping: React.FC = () => {
             <BookOpen className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.assignedCounsellors}</div>
+            <div className="text-2xl font-bold">
+              {stats.assignedCounsellors}
+            </div>
             <p className="text-xs text-muted-foreground">
               {stats.unassignedCounsellors} unassigned
             </p>
@@ -248,11 +301,14 @@ const EnhancedStudentFacultyMapping: React.FC = () => {
       </div>
 
       {/* Alerts for unassigned students */}
-      {(stats.unassignedCoordinators > 0 || stats.unassignedCounsellors > 0) && (
+      {(stats.unassignedCoordinators > 0 ||
+        stats.unassignedCounsellors > 0) && (
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            <strong>Pending Assignments:</strong> {stats.unassignedCoordinators} students need coordinators, {stats.unassignedCounsellors} students need counsellors.
+            <strong>Pending Assignments:</strong> {stats.unassignedCoordinators}{" "}
+            students need coordinators, {stats.unassignedCounsellors} students
+            need counsellors.
           </AlertDescription>
         </Alert>
       )}
@@ -278,7 +334,9 @@ const EnhancedStudentFacultyMapping: React.FC = () => {
                   <Label>Assignment Type</Label>
                   <Select
                     value={mappingType}
-                    onValueChange={(value: 'coordinator' | 'counsellor') => setMappingType(value)}
+                    onValueChange={(value: "coordinator" | "counsellor") =>
+                      setMappingType(value)
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -292,14 +350,20 @@ const EnhancedStudentFacultyMapping: React.FC = () => {
 
                 <div className="space-y-2">
                   <Label>Select Student</Label>
-                  <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+                  <Select
+                    value={selectedStudent}
+                    onValueChange={setSelectedStudent}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Choose student" />
                     </SelectTrigger>
                     <SelectContent>
                       {getUnassignedStudents(mappingType).map((student) => (
                         <SelectItem key={student.id} value={student.id}>
-                          {student.name} ({student.hallTicket}) - {student.source === 'registered' ? 'Registered' : 'Dept DB'}
+                          {student.name} ({student.hallTicket}) -{" "}
+                          {student.source === "registered"
+                            ? "Registered"
+                            : "Dept DB"}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -308,13 +372,19 @@ const EnhancedStudentFacultyMapping: React.FC = () => {
 
                 <div className="space-y-2">
                   <Label>Select Faculty</Label>
-                  <Select value={selectedFaculty} onValueChange={setSelectedFaculty}>
+                  <Select
+                    value={selectedFaculty}
+                    onValueChange={setSelectedFaculty}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Choose faculty" />
                     </SelectTrigger>
                     <SelectContent>
                       {faculty.map((facultyMember) => (
-                        <SelectItem key={facultyMember.id} value={facultyMember.id}>
+                        <SelectItem
+                          key={facultyMember.id}
+                          value={facultyMember.id}
+                        >
                           {facultyMember.name} - {facultyMember.designation}
                         </SelectItem>
                       ))}
@@ -323,8 +393,8 @@ const EnhancedStudentFacultyMapping: React.FC = () => {
                 </div>
               </div>
 
-              <Button 
-                onClick={handleAssignStudent} 
+              <Button
+                onClick={handleAssignStudent}
                 disabled={loading || !selectedStudent || !selectedFaculty}
                 className="w-full"
               >
@@ -360,7 +430,10 @@ const EnhancedStudentFacultyMapping: React.FC = () => {
                   />
                 </div>
 
-                <Select value={filterType} onValueChange={(value: any) => setFilterType(value)}>
+                <Select
+                  value={filterType}
+                  onValueChange={(value: any) => setFilterType(value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="All Types" />
                   </SelectTrigger>
@@ -371,14 +444,19 @@ const EnhancedStudentFacultyMapping: React.FC = () => {
                   </SelectContent>
                 </Select>
 
-                <Select value={filterSource} onValueChange={(value: any) => setFilterSource(value)}>
+                <Select
+                  value={filterSource}
+                  onValueChange={(value: any) => setFilterSource(value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="All Sources" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Sources</SelectItem>
                     <SelectItem value="registered">Registered Only</SelectItem>
-                    <SelectItem value="department_database">Department DB</SelectItem>
+                    <SelectItem value="department_database">
+                      Department DB
+                    </SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -395,15 +473,20 @@ const EnhancedStudentFacultyMapping: React.FC = () => {
             <CardHeader>
               <CardTitle>Current Assignments</CardTitle>
               <CardDescription>
-                Showing {filteredMappings.length} of {mappings.length} assignments
+                Showing {filteredMappings.length} of {mappings.length}{" "}
+                assignments
               </CardDescription>
             </CardHeader>
             <CardContent>
               {filteredMappings.length === 0 ? (
                 <div className="text-center py-12">
                   <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No assignments found</h3>
-                  <p className="text-gray-600">No student-faculty assignments match your criteria.</p>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    No assignments found
+                  </h3>
+                  <p className="text-gray-600">
+                    No student-faculty assignments match your criteria.
+                  </p>
                 </div>
               ) : (
                 <Table>
@@ -422,32 +505,57 @@ const EnhancedStudentFacultyMapping: React.FC = () => {
                       <TableRow key={mapping.id}>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{mapping.studentName}</div>
-                            <div className="text-sm text-gray-600">{mapping.studentHallTicket}</div>
-                            <div className="text-xs text-gray-500">{mapping.studentYear}</div>
+                            <div className="font-medium">
+                              {mapping.studentName}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {mapping.studentHallTicket}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {mapping.studentYear}
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{mapping.facultyName}</div>
-                            <div className="text-sm text-gray-600">{mapping.facultyDesignation}</div>
+                            <div className="font-medium">
+                              {mapping.facultyName}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {mapping.facultyDesignation}
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={mapping.mappingType === 'coordinator' ? 'default' : 'secondary'}>
+                          <Badge
+                            variant={
+                              mapping.mappingType === "coordinator"
+                                ? "default"
+                                : "secondary"
+                            }
+                          >
                             {mapping.mappingType}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={
-                            mapping.studentSource === 'registered' ? 'border-green-200 text-green-700' : 'border-blue-200 text-blue-700'
-                          }>
-                            {mapping.studentSource === 'registered' ? 'Registered' : 'Dept DB'}
+                          <Badge
+                            variant="outline"
+                            className={
+                              mapping.studentSource === "registered"
+                                ? "border-green-200 text-green-700"
+                                : "border-blue-200 text-blue-700"
+                            }
+                          >
+                            {mapping.studentSource === "registered"
+                              ? "Registered"
+                              : "Dept DB"}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
-                            {new Date(mapping.assignedDate).toLocaleDateString()}
+                            {new Date(
+                              mapping.assignedDate,
+                            ).toLocaleDateString()}
                           </div>
                         </TableCell>
                         <TableCell>
