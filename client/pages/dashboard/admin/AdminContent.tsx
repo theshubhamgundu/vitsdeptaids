@@ -68,6 +68,7 @@ import {
   Mail,
   ExternalLink,
 } from "lucide-react";
+import EnhancedStudentFacultyMapping from "@/components/EnhancedStudentFacultyMapping";
 
 const AdminContent = () => {
   const [events, setEvents] = useState([]);
