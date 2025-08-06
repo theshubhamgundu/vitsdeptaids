@@ -67,6 +67,7 @@ interface Student {
   cgpa?: number;
   attendance?: number;
   status?: string;
+  source?: 'registered' | 'department_database';
 }
 
 const HODStudents = () => {
