@@ -386,6 +386,17 @@ const HODStudents = () => {
                 </SelectContent>
               </Select>
 
+              <Select value={filterSource} onValueChange={setFilterSource}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Sources" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Students</SelectItem>
+                  <SelectItem value="registered">Registered Only</SelectItem>
+                  <SelectItem value="department_database">Department DB</SelectItem>
+                </SelectContent>
+              </Select>
+
               <Button variant="outline">
                 <Download className="h-4 w-4 mr-2" />
                 Export
