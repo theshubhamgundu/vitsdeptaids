@@ -1422,6 +1422,21 @@ const AdminContent = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Mappings Tab */}
+          <TabsContent value="mappings" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>👥 Student-Faculty Mappings</CardTitle>
+                <CardDescription>
+                  Assign coordinators and counsellors to students from all sources
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <EnhancedStudentFacultyMapping />
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>
