@@ -190,24 +190,15 @@ const AdminFaculty = () => {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
-            <Button
-              onClick={() =>
-                (window.location.href = "/dashboard/admin/faculty/create")
-              }
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create Faculty
-            </Button>
             <Button variant="outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
               Export Report
             </Button>
             <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm">
+                <Button>
                   <Plus className="h-4 w-4 mr-2" />
-                  Quick Add
+                  Add Faculty
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-lg">
@@ -549,12 +540,8 @@ const AdminFaculty = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Faculty</TableHead>
-                  <TableHead>Employee ID</TableHead>
-                  <TableHead>Designation</TableHead>
-                  <TableHead>Experience</TableHead>
-                  <TableHead>Workload</TableHead>
-                  <TableHead>Research Papers</TableHead>
+                  <TableHead>Faculty Name</TableHead>
+                  <TableHead>Faculty ID</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -576,24 +563,12 @@ const AdminFaculty = () => {
                         <div>
                           <div className="font-medium">{member.name}</div>
                           <div className="text-sm text-gray-600">
-                            {member.email}
+                            {member.designation}
                           </div>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{member.employeeId}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{member.designation}</Badge>
-                    </TableCell>
-                    <TableCell>{member.experience} years</TableCell>
-                    <TableCell>
-                      <span
-                        className={`font-medium ${getWorkloadColor(member.workload)}`}
-                      >
-                        {member.workload}%
-                      </span>
-                    </TableCell>
-                    <TableCell>{member.researchPapers}</TableCell>
+                    <TableCell>{member.facultyId || member.employeeId}</TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(member.status)}>
                         {member.status}

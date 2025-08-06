@@ -6,6 +6,14 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import {
+  StudentRoute,
+  FacultyRoute,
+  AdminRoute,
+  HODRoute,
+  FacultyHODRoute
+} from "./components/ProtectedRoute";
 
 // Pages
 import HomePage from "./pages/HomePage";
@@ -39,8 +47,6 @@ import AdminFaculty from "./pages/dashboard/admin/AdminFaculty";
 import AdminContent from "./pages/dashboard/admin/AdminContent";
 import AdminTools from "./pages/dashboard/admin/AdminTools";
 import SimpleTimetableCreator from "./pages/dashboard/admin/SimpleTimetableCreator";
-import CreateStudentProfile from "./pages/dashboard/admin/CreateStudentProfile";
-import CreateFacultyProfile from "./pages/dashboard/admin/CreateFacultyProfile";
 
 import HODDashboard from "./pages/dashboard/hod/HODDashboard";
 import HODProfile from "./pages/dashboard/hod/HODProfile";
@@ -61,6 +67,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <AuthProvider>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<HomePage />} />
@@ -69,44 +76,42 @@ const App = () => (
           <Route path="/demo-logins" element={<DemoLogins />} />
 
           {/* Student Dashboard Routes */}
-          <Route path="/dashboard/student" element={<StudentDashboard />} />
-          <Route path="/dashboard/student/profile" element={<StudentProfile />} />
-          <Route path="/dashboard/student/certificates" element={<StudentCertificates />} />
-          <Route path="/dashboard/student/results" element={<StudentResults />} />
-          <Route path="/dashboard/student/attendance" element={<StudentAttendance />} />
-          <Route path="/dashboard/student/materials" element={<StudentMaterials />} />
-          <Route path="/dashboard/student/timetable" element={<StudentTimetable />} />
-          <Route path="/dashboard/student/leave" element={<StudentLeave />} />
-          <Route path="/dashboard/student/fees" element={<StudentFees />} />
+          <Route path="/dashboard/student" element={<StudentRoute><StudentDashboard /></StudentRoute>} />
+          <Route path="/dashboard/student/profile" element={<StudentRoute><StudentProfile /></StudentRoute>} />
+          <Route path="/dashboard/student/certificates" element={<StudentRoute><StudentCertificates /></StudentRoute>} />
+          <Route path="/dashboard/student/results" element={<StudentRoute><StudentResults /></StudentRoute>} />
+          <Route path="/dashboard/student/attendance" element={<StudentRoute><StudentAttendance /></StudentRoute>} />
+          <Route path="/dashboard/student/materials" element={<StudentRoute><StudentMaterials /></StudentRoute>} />
+          <Route path="/dashboard/student/timetable" element={<StudentRoute><StudentTimetable /></StudentRoute>} />
+          <Route path="/dashboard/student/leave" element={<StudentRoute><StudentLeave /></StudentRoute>} />
+          <Route path="/dashboard/student/fees" element={<StudentRoute><StudentFees /></StudentRoute>} />
 
           {/* Faculty Dashboard Routes */}
-          <Route path="/dashboard/faculty" element={<FacultyDashboard />} />
-          <Route path="/dashboard/faculty/profile" element={<FacultyProfile />} />
-          <Route path="/dashboard/faculty/students" element={<FacultyStudents />} />
-          <Route path="/dashboard/faculty/materials" element={<FacultyMaterials />} />
-          <Route path="/dashboard/faculty/results" element={<FacultyResults />} />
-          <Route path="/dashboard/faculty/messages" element={<FacultyMessages />} />
-          <Route path="/dashboard/faculty/leave" element={<FacultyLeave />} />
+          <Route path="/dashboard/faculty" element={<FacultyRoute><FacultyDashboard /></FacultyRoute>} />
+          <Route path="/dashboard/faculty/profile" element={<FacultyRoute><FacultyProfile /></FacultyRoute>} />
+          <Route path="/dashboard/faculty/students" element={<FacultyRoute><FacultyStudents /></FacultyRoute>} />
+          <Route path="/dashboard/faculty/materials" element={<FacultyRoute><FacultyMaterials /></FacultyRoute>} />
+          <Route path="/dashboard/faculty/results" element={<FacultyRoute><FacultyResults /></FacultyRoute>} />
+          <Route path="/dashboard/faculty/messages" element={<FacultyRoute><FacultyMessages /></FacultyRoute>} />
+          <Route path="/dashboard/faculty/leave" element={<FacultyRoute><FacultyLeave /></FacultyRoute>} />
 
           {/* Admin Dashboard Routes */}
-          <Route path="/dashboard/admin" element={<AdminDashboard />} />
-          <Route path="/dashboard/admin/profile" element={<AdminProfile />} />
-          <Route path="/dashboard/admin/students" element={<AdminStudents />} />
-          <Route path="/dashboard/admin/students/create" element={<CreateStudentProfile />} />
-          <Route path="/dashboard/admin/faculty" element={<AdminFaculty />} />
-          <Route path="/dashboard/admin/faculty/create" element={<CreateFacultyProfile />} />
-          <Route path="/dashboard/admin/timetable-creator" element={<SimpleTimetableCreator />} />
-          <Route path="/dashboard/admin/content" element={<AdminContent />} />
-          <Route path="/dashboard/admin/tools" element={<AdminTools />} />
+          <Route path="/dashboard/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+          <Route path="/dashboard/admin/profile" element={<AdminRoute><AdminProfile /></AdminRoute>} />
+          <Route path="/dashboard/admin/students" element={<AdminRoute><AdminStudents /></AdminRoute>} />
+          <Route path="/dashboard/admin/faculty" element={<AdminRoute><AdminFaculty /></AdminRoute>} />
+          <Route path="/dashboard/admin/timetable-creator" element={<AdminRoute><SimpleTimetableCreator /></AdminRoute>} />
+          <Route path="/dashboard/admin/content" element={<AdminRoute><AdminContent /></AdminRoute>} />
+          <Route path="/dashboard/admin/tools" element={<AdminRoute><AdminTools /></AdminRoute>} />
 
           {/* HOD Dashboard Routes */}
-          <Route path="/dashboard/hod" element={<HODDashboard />} />
-          <Route path="/secret/hod" element={<HODDashboard />} />
-          <Route path="/dashboard/hod/profile" element={<HODProfile />} />
-          <Route path="/dashboard/hod/students" element={<HODStudents />} />
-          <Route path="/dashboard/hod/faculty-leaves" element={<HODFacultyLeaves />} />
-          <Route path="/dashboard/hod/messages" element={<HODMessages />} />
-          <Route path="/dashboard/hod/timetables" element={<HODTimetables />} />
+          <Route path="/dashboard/hod" element={<HODRoute><HODDashboard /></HODRoute>} />
+          <Route path="/secret/hod" element={<HODRoute><HODDashboard /></HODRoute>} />
+          <Route path="/dashboard/hod/profile" element={<HODRoute><HODProfile /></HODRoute>} />
+          <Route path="/dashboard/hod/students" element={<HODRoute><HODStudents /></HODRoute>} />
+          <Route path="/dashboard/hod/faculty-leaves" element={<HODRoute><HODFacultyLeaves /></HODRoute>} />
+          <Route path="/dashboard/hod/messages" element={<HODRoute><HODMessages /></HODRoute>} />
+          <Route path="/dashboard/hod/timetables" element={<HODRoute><HODTimetables /></HODRoute>} />
 
           {/* Placeholder routes for future implementation */}
           <Route path="/about" element={<PlaceholderPage title="About Department" />} />
@@ -117,6 +122,7 @@ const App = () => (
           {/* Catch-all route */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

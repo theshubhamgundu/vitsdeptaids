@@ -30,6 +30,8 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { getAllStudents } from "@/services/studentDataService";
+import StudentFacultyMapping from "@/components/StudentFacultyMapping";
 import {
   Upload,
   Download,
@@ -55,35 +57,9 @@ import {
 
 const AdminTools = () => {
 
-  const [results, setResults] = useState([
-    {
-      id: 1,
-      title: "Mid-term Results - Machine Learning",
-      subject: "Machine Learning",
-      examType: "Mid-term",
-      year: "3rd Year",
-      semester: "6th Semester",
-      uploadedBy: "Dr. Anita Verma",
-      uploadDate: "2025-03-08",
-      studentsCount: 50,
-      status: "Published"
-    }
-  ]);
+  const [results, setResults] = useState([]);
 
-  const [attendanceRecords, setAttendanceRecords] = useState([
-    {
-      id: 1,
-      title: "February 2025 Attendance",
-      month: "February 2025",
-      year: "3rd Year",
-      semester: "6th Semester",
-      uploadedBy: "Admin",
-      uploadDate: "2025-03-01",
-      studentsCount: 50,
-      subjects: ["Machine Learning", "Deep Learning", "Data Science"],
-      status: "Active"
-    }
-  ]);
+  const [attendanceRecords, setAttendanceRecords] = useState([]);
 
 
 
@@ -112,8 +88,54 @@ const AdminTools = () => {
     file: null
   });
 
-  // Mock student data for search
-  const [students] = useState([
+  // Live student data
+  const [students, setStudents] = useState([]);
+  const [studentsLoading, setStudentsLoading] = useState(true);
+
+  // Load students data on component mount
+  useEffect(() => {
+    const loadStudents = async () => {
+      try {
+        setStudentsLoading(true);
+        const studentsData = await getAllStudents();
+        setStudents(studentsData);
+      } catch (error) {
+        console.error('Error loading students:', error);
+      } finally {
+        setStudentsLoading(false);
+      }
+    };
+
+    loadStudents();
+    loadResults();
+    loadAttendanceRecords();
+  }, []);
+
+  // Load results from localStorage or database
+  const loadResults = () => {
+    try {
+      const savedResults = localStorage.getItem('adminResults');
+      if (savedResults) {
+        setResults(JSON.parse(savedResults));
+      }
+    } catch (error) {
+      console.error('Error loading results:', error);
+    }
+  };
+
+  // Load attendance records from localStorage or database
+  const loadAttendanceRecords = () => {
+    try {
+      const savedAttendance = localStorage.getItem('adminAttendance');
+      if (savedAttendance) {
+        setAttendanceRecords(JSON.parse(savedAttendance));
+      }
+    } catch (error) {
+      console.error('Error loading attendance:', error);
+    }
+  };
+
+  const [oldStudents] = useState([
     {
       id: 1,
       name: "Rahul Sharma",
@@ -162,16 +184,21 @@ const AdminTools = () => {
   const handleUploadResults = () => {
     if (!newResults.title || !newResults.file) return;
 
-    const results = {
+    const newResult = {
       ...newResults,
       id: Date.now(),
       uploadedBy: "Admin",
       uploadDate: new Date().toISOString().split('T')[0],
-      studentsCount: 50,
+      studentsCount: students.length || 0,
       status: "Published"
     };
 
-    setResults(prev => [results, ...prev]);
+    const updatedResults = [newResult, ...results];
+    setResults(updatedResults);
+
+    // Save to localStorage for persistence
+    localStorage.setItem('adminResults', JSON.stringify(updatedResults));
+
     setShowResultsDialog(false);
     setNewResults({ title: "", subject: "", examType: "Mid-term", year: "3rd Year", semester: "6th Semester", file: null });
   };
@@ -179,16 +206,22 @@ const AdminTools = () => {
   const handleUploadAttendance = () => {
     if (!newAttendance.title || !newAttendance.file) return;
 
-    const attendance = {
+    const newAttendanceRecord = {
       ...newAttendance,
       id: Date.now(),
       uploadedBy: "Admin",
       uploadDate: new Date().toISOString().split('T')[0],
-      studentsCount: 50,
-      status: "Active"
+      studentsCount: students.length || 0,
+      status: "Active",
+      subjects: newAttendance.subjects || []
     };
 
-    setAttendanceRecords(prev => [attendance, ...prev]);
+    const updatedAttendance = [newAttendanceRecord, ...attendanceRecords];
+    setAttendanceRecords(updatedAttendance);
+
+    // Save to localStorage for persistence
+    localStorage.setItem('adminAttendance', JSON.stringify(updatedAttendance));
+
     setShowAttendanceDialog(false);
     setNewAttendance({ title: "", month: "", year: "3rd Year", semester: "6th Semester", subjects: [], file: null });
   };
@@ -268,10 +301,11 @@ const AdminTools = () => {
 
         {/* Main Tabs */}
         <Tabs defaultValue="results" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="results">📊 Results</TabsTrigger>
             <TabsTrigger value="attendance">📉 Attendance</TabsTrigger>
             <TabsTrigger value="students">🔍 Students</TabsTrigger>
+            <TabsTrigger value="mapping">👥 Faculty Mapping</TabsTrigger>
           </TabsList>
 
 
@@ -665,59 +699,83 @@ const AdminTools = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredStudents.map((student) => (
-                      <TableRow key={student.id}>
-                        <TableCell>
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                              <User className="h-4 w-4 text-gray-500" />
-                            </div>
-                            <div>
-                              <div className="font-medium">{student.name}</div>
-                              <div className="text-sm text-gray-600">{student.branch}</div>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-mono">{student.hallTicket}</TableCell>
-                        <TableCell>
-                          <div>
-                            <div>{student.year}</div>
-                            <div className="text-sm text-gray-600">{student.semester}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            <div>{student.email}</div>
-                            <div className="text-gray-600">{student.phone}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={student.cgpa >= 8.5 ? "default" : student.cgpa >= 7.5 ? "secondary" : "outline"}>
-                            {student.cgpa}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <div className="text-sm">{student.attendance}%</div>
-                            <div className={`w-2 h-2 rounded-full ${student.attendance >= 75 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button size="sm" variant="ghost">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="ghost">
-                              <Edit className="h-4 w-4" />
-                            </Button>
+                    {studentsLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          <div className="flex items-center justify-center space-x-2">
+                            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                            <span>Loading students...</span>
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ) : filteredStudents.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          <div className="text-gray-500">
+                            {students.length === 0 ? 'No students found in database' : 'No students match the search criteria'}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredStudents.map((student) => (
+                        <TableRow key={student.id}>
+                          <TableCell>
+                            <div className="flex items-center space-x-3">
+                              <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                                <User className="h-4 w-4 text-gray-500" />
+                              </div>
+                              <div>
+                                <div className="font-medium">{student.fullName || student.name}</div>
+                                <div className="text-sm text-gray-600">{student.branch || 'AI & DS'}</div>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-mono">{student.hallTicket}</TableCell>
+                          <TableCell>
+                            <div>
+                              <div>{student.year}</div>
+                              <div className="text-sm text-gray-600">{student.semester ? `${student.semester} Semester` : 'N/A'}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm">
+                              <div>{student.email}</div>
+                              <div className="text-gray-600">{student.phone}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={(student.cgpa || 0) >= 8.5 ? "default" : (student.cgpa || 0) >= 7.5 ? "secondary" : "outline"}>
+                              {student.cgpa || 'N/A'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <div className="text-sm">{student.attendance || 0}%</div>
+                              <div className={`w-2 h-2 rounded-full ${(student.attendance || 0) >= 75 ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button size="sm" variant="ghost">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button size="sm" variant="ghost">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Faculty Mapping Tab */}
+          <TabsContent value="mapping" className="space-y-6">
+            <StudentFacultyMapping />
           </TabsContent>
 
         </Tabs>

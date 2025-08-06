@@ -154,10 +154,12 @@ const HomePage = () => {
   ];
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentEventIndex((prev) => (prev + 1) % events.length);
-    }, 5000);
-    return () => clearInterval(timer);
+    if (events.length > 0) {
+      const timer = setInterval(() => {
+        setCurrentEventIndex((prev) => (prev + 1) % events.length);
+      }, 5000);
+      return () => clearInterval(timer);
+    }
   }, [events.length]);
 
   return (

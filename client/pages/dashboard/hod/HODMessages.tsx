@@ -30,7 +30,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import {
   MessageSquare,
@@ -61,7 +60,6 @@ const HODMessages = () => {
 
   const [messages, setMessages] = useState([]);
 
-  const [pendingApprovals, setPendingApprovals] = useState([]);
 
   const [communications, setCommunications] = useState([]);
 
@@ -145,17 +143,6 @@ const HODMessages = () => {
     });
   };
 
-  const handleApproveRequest = (id) => {
-    setPendingApprovals(prev => prev.map(approval =>
-      approval.id === id ? { ...approval, status: "Approved" } : approval
-    ));
-  };
-
-  const handleRejectRequest = (id) => {
-    setPendingApprovals(prev => prev.map(approval =>
-      approval.id === id ? { ...approval, status: "Rejected" } : approval
-    ));
-  };
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
@@ -299,70 +286,15 @@ const HODMessages = () => {
           </Dialog>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Messages</CardTitle>
-              <MessageSquare className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{messages.length}</div>
-              <p className="text-xs text-muted-foreground">Sent this month</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
-              <Clock className="h-4 w-4 text-orange-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{pendingApprovals.filter(p => p.status === "Pending Review").length}</div>
-              <p className="text-xs text-muted-foreground">Awaiting review</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">New Communications</CardTitle>
-              <AlertCircle className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{communications.filter(c => c.status === "Unread").length}</div>
-              <p className="text-xs text-muted-foreground">Unread messages</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Response Rate</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">87%</div>
-              <p className="text-xs text-muted-foreground">Average acknowledgment</p>
-            </CardContent>
-          </Card>
-        </div>
 
-        {/* Main Content */}
-        <Tabs defaultValue="messages" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="messages">📧 Sent Messages</TabsTrigger>
-            <TabsTrigger value="approvals">✅ Pending Approvals</TabsTrigger>
-            <TabsTrigger value="communications">📨 Communications</TabsTrigger>
-          </TabsList>
-
-          {/* Sent Messages Tab */}
-          <TabsContent value="messages" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Department Messages</CardTitle>
-                    <CardDescription>Messages sent to faculty, students, and staff</CardDescription>
-                  </div>
+        {/* Department Messages */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Department Messages</CardTitle>
+                <CardDescription>Messages sent to faculty, students, and staff</CardDescription>
+              </div>
                   <div className="flex items-center space-x-4">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -453,137 +385,7 @@ const HODMessages = () => {
                   </TableBody>
                 </Table>
               </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Pending Approvals Tab */}
-          <TabsContent value="approvals" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Pending Approvals</CardTitle>
-                <CardDescription>Requests awaiting your review and approval</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {pendingApprovals.map((approval) => (
-                    <div key={approval.id} className="border rounded-lg p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <h3 className="font-semibold">{approval.title}</h3>
-                            <Badge className={getPriorityColor(approval.priority)}>
-                              {approval.priority}
-                            </Badge>
-                            <Badge variant="outline">{approval.category}</Badge>
-                          </div>
-                          <p className="text-sm text-gray-600 mb-2">
-                            Submitted by: <span className="font-medium">{approval.submittedBy}</span> on {new Date(approval.submittedDate).toLocaleDateString()}
-                          </p>
-                          <p className="text-sm">{approval.content}</p>
-                        </div>
-                        <div className="flex items-center space-x-2 ml-4">
-                          <Button 
-                            size="sm" 
-                            variant="ghost"
-                            onClick={() => {
-                              setSelectedApproval(approval);
-                              setShowApprovalDialog(true);
-                            }}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          {approval.status === "Pending Review" && (
-                            <>
-                              <Button 
-                                size="sm" 
-                                onClick={() => handleApproveRequest(approval.id)}
-                                className="bg-green-600 hover:bg-green-700"
-                              >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Approve
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="destructive"
-                                onClick={() => handleRejectRequest(approval.id)}
-                              >
-                                Reject
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Communications Tab */}
-          <TabsContent value="communications" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Incoming Communications</CardTitle>
-                <CardDescription>Messages received from faculty, students, and staff</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>From</TableHead>
-                      <TableHead>Subject</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Priority</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {communications.map((comm) => (
-                      <TableRow key={comm.id}>
-                        <TableCell className="font-medium">{comm.from}</TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{comm.subject}</div>
-                            <div className="text-sm text-gray-600 max-w-48 truncate">
-                              {comm.content}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{comm.type}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getPriorityColor(comm.priority)}>
-                            {comm.priority}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{new Date(comm.date).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(comm.status)}>
-                            {comm.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button size="sm" variant="ghost">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="ghost">
-                              <Send className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        </Card>
       </div>
     </DashboardLayout>
   );

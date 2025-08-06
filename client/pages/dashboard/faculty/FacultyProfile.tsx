@@ -69,7 +69,6 @@ const FacultyProfile = () => {
     employeeId: facultyData?.facultyId || "FACULTY001",
     email: facultyData?.email || "faculty@vignan.ac.in",
     phone: facultyData?.phone || "+91 9876543210",
-    address: "",
     joiningDate: "",
     experience: `${facultyData?.experience || 0} years`,
     education: facultyData?.qualification || "Ph.D. in Computer Science",
@@ -82,8 +81,6 @@ const FacultyProfile = () => {
     conferences: 0,
     awards: [],
     certifications: [],
-    officeHours: "",
-    room: "",
     linkedIn: "",
     googleScholar: "",
     orcid: "",
@@ -278,68 +275,7 @@ const FacultyProfile = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Address</Label>
-                  {isEditing ? (
-                    <Textarea
-                      value={editProfile.address}
-                      onChange={(e) =>
-                        setEditProfile((prev) => ({
-                          ...prev,
-                          address: e.target.value,
-                        }))
-                      }
-                      rows={3}
-                    />
-                  ) : (
-                    <div className="flex items-start space-x-2">
-                      <MapPin className="h-4 w-4 text-gray-500 mt-1" />
-                      <span>{profile.address}</span>
-                    </div>
-                  )}
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Office Room</Label>
-                    {isEditing ? (
-                      <Input
-                        value={editProfile.room}
-                        onChange={(e) =>
-                          setEditProfile((prev) => ({
-                            ...prev,
-                            room: e.target.value,
-                          }))
-                        }
-                      />
-                    ) : (
-                      <div className="flex items-center space-x-2">
-                        <Building className="h-4 w-4 text-gray-500" />
-                        <span>{profile.room}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Office Hours</Label>
-                    {isEditing ? (
-                      <Input
-                        value={editProfile.officeHours}
-                        onChange={(e) =>
-                          setEditProfile((prev) => ({
-                            ...prev,
-                            officeHours: e.target.value,
-                          }))
-                        }
-                      />
-                    ) : (
-                      <div className="flex items-center space-x-2">
-                        <Clock className="h-4 w-4 text-gray-500" />
-                        <span>{profile.officeHours}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>
