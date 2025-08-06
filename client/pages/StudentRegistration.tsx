@@ -23,6 +23,7 @@ import { supabase, tables } from "@/lib/supabase";
 import { testDatabaseConnection } from "@/utils/databaseTest";
 import { verifySupabaseCredentials } from "@/utils/supabaseVerify";
 import { validateStudentLocally } from "@/utils/localStudentData";
+import { validateStudentInList } from "@/services/studentsListService";
 import { GraduationCap, ArrowLeft, User, CheckCircle } from "lucide-react";
 
 const StudentRegistration = () => {
@@ -125,28 +126,48 @@ const StudentRegistration = () => {
         }
       }
 
-      // Check if student exists in student_data table
+      // Check if student exists in students_list table
       let studentData = null;
       let useLocalFallback = skipDatabase;
 
       if (!skipDatabase) {
         try {
-          const { data, error: searchError } = await supabase
-            .from("student_data")
-            .select("*")
-            .eq("ht_no", formData.hallTicket)
-            .eq("student_name", formData.fullName.toUpperCase())
-            .eq("year", formData.year)
-            .single();
+          // First try the new students_list table
+          const isValidInList = await validateStudentInList(
+            formData.hallTicket,
+            formData.fullName,
+            formData.year
+          );
 
-          if (searchError && searchError.code !== "PGRST116") {
-            console.warn(
-              "Database query failed, using local fallback:",
-              searchError.message,
-            );
-            useLocalFallback = true;
+          if (isValidInList) {
+            studentData = {
+              ht_no: formData.hallTicket,
+              student_name: formData.fullName.toUpperCase(),
+              year: formData.year
+            };
+            console.log("✅ Student validated using students_list table");
           } else {
-            studentData = data;
+            // Fallback to student_data table for backward compatibility
+            const { data, error: searchError } = await supabase
+              .from("student_data")
+              .select("*")
+              .eq("ht_no", formData.hallTicket)
+              .eq("student_name", formData.fullName.toUpperCase())
+              .eq("year", formData.year)
+              .single();
+
+            if (searchError && searchError.code !== "PGRST116") {
+              console.warn(
+                "Database query failed, using local fallback:",
+                searchError.message,
+              );
+              useLocalFallback = true;
+            } else {
+              studentData = data;
+              if (data) {
+                console.log("✅ Student validated using student_data table (fallback)");
+              }
+            }
           }
         } catch (dbError) {
           console.warn(
