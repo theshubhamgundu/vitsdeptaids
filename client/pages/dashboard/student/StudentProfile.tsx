@@ -104,17 +104,49 @@ const StudentProfile = () => {
     alert("Profile updated successfully!");
   };
 
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const { toast } = useToast();
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
+    if (!file || !studentData) return;
+
+    setIsUploading(true);
+    try {
+      const result = await profilePhotoService.uploadProfilePhoto(
+        studentData.id,
+        file,
+        'student'
+      );
+
+      if (result.success && result.photoUrl) {
         setProfileData((prev) => ({
           ...prev,
-          profilePhoto: e.target?.result as string,
+          profilePhoto: result.photoUrl,
         }));
-      };
-      reader.readAsDataURL(file);
+
+        toast({
+          title: "Profile Photo Updated",
+          description: result.isLocalStorage
+            ? "Photo saved locally (database not available)"
+            : "Photo uploaded successfully",
+        });
+      } else {
+        toast({
+          title: "Upload Failed",
+          description: result.error || "Failed to upload photo",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Photo upload error:", error);
+      toast({
+        title: "Upload Error",
+        description: "An error occurred while uploading the photo",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
     }
   };
 
