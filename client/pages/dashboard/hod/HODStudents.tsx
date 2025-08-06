@@ -99,8 +99,45 @@ const HODStudents = () => {
   const loadStudents = async () => {
     setLoading(true);
     try {
-      const studentsData = await getAllStudents();
-      setStudents(studentsData);
+      // Get registered students
+      const registeredStudents = await getAllStudents();
+
+      // Get all students from department database
+      const departmentStudents = await getAllStudentsFromList();
+
+      // Combine data - convert department students to compatible format
+      const formattedDepartmentStudents = departmentStudents.map(student => ({
+        id: student.id || student.ht_no,
+        name: student.student_name,
+        fullName: student.student_name,
+        hallTicket: student.ht_no,
+        year: student.year,
+        semester: '', // Not available in students_list
+        branch: student.branch || 'AI & DS',
+        email: `${student.ht_no}@vignan.ac.in`, // Generate email
+        phone: '', // Not available in students_list
+        cgpa: 0, // Default since not available
+        attendance: 0, // Default since not available
+        status: 'Active',
+        source: 'department_database' // Mark source
+      }));
+
+      // Merge registered and department students, avoiding duplicates
+      const existingHallTickets = registeredStudents.map(s => s.hallTicket);
+      const newDepartmentStudents = formattedDepartmentStudents.filter(
+        s => !existingHallTickets.includes(s.hallTicket)
+      );
+
+      // Mark registered students with source
+      const markedRegisteredStudents = registeredStudents.map(s => ({
+        ...s,
+        source: 'registered'
+      }));
+
+      const allStudents = [...markedRegisteredStudents, ...newDepartmentStudents];
+      setStudents(allStudents);
+
+      console.log(`✅ Loaded ${allStudents.length} total students (${registeredStudents.length} registered, ${newDepartmentStudents.length} from department database)`);
     } catch (error) {
       console.error('Error loading students:', error);
       toast({
