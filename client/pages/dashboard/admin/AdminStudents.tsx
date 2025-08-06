@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -43,6 +44,7 @@ import {
   subscribeToStudentData,
   StudentRecord,
 } from "@/services/studentDataService";
+import StudentsListViewer from "@/components/StudentsListViewer";
 import {
   Users,
   Search,
@@ -61,6 +63,7 @@ import {
   Mail,
   Phone,
   FileText,
+  Database,
 } from "lucide-react";
 
 const AdminStudents = () => {
@@ -713,8 +716,22 @@ const AdminStudents = () => {
           </Card>
         </div>
 
-        {/* Filters */}
-        <Card>
+        {/* Tabs for different views */}
+        <Tabs defaultValue="registered" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="registered" className="flex items-center space-x-2">
+              <Users className="h-4 w-4" />
+              <span>Registered Students</span>
+            </TabsTrigger>
+            <TabsTrigger value="database" className="flex items-center space-x-2">
+              <Database className="h-4 w-4" />
+              <span>Department Database</span>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="registered" className="space-y-6">
+            {/* Filters */}
+            <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Filter className="h-5 w-5" />
@@ -887,6 +904,13 @@ const AdminStudents = () => {
             )}
           </CardContent>
         </Card>
+
+          </TabsContent>
+
+          <TabsContent value="database">
+            <StudentsListViewer />
+          </TabsContent>
+        </Tabs>
 
         {/* Edit Student Dialog */}
         {selectedStudent && (
