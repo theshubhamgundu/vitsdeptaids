@@ -6,12 +6,11 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (userData: User) => void;
-  logout: () => void;
-  logoutAllDevices: () => void;
+  login: (userData: User) => Promise<void>;
+  logout: () => Promise<void>;
+  logoutAllDevices: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
-  hasMultipleSessions: boolean;
-  currentSessionId: string | null;
+  currentSessionToken: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
