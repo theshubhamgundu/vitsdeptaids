@@ -168,7 +168,6 @@ const AdminContent = () => {
   });
 
   // Search and filter states
-  const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("events");
 
   // Handle functions
@@ -432,7 +431,7 @@ const AdminContent = () => {
             <TabsTrigger value="gallery">📷 Gallery</TabsTrigger>
             <TabsTrigger value="faculty">👨‍🏫 Faculty</TabsTrigger>
             <TabsTrigger value="placements">💼 Placements</TabsTrigger>
-            <TabsTrigger value="achievements">🏆 Achievements</TabsTrigger>
+            <TabsTrigger value="achievements">���� Achievements</TabsTrigger>
             <TabsTrigger value="mappings">👥 Mappings</TabsTrigger>
           </TabsList>
 
