@@ -51,25 +51,42 @@ const StudentProfile = () => {
   });
 
   useEffect(() => {
-    // Get current user from localStorage
-    const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
-    setStudentData(currentUser);
+    const loadStudentData = async () => {
+      // Get current user from localStorage
+      const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+      setStudentData(currentUser);
 
-    // Initialize profile data with actual user data
-    if (currentUser && currentUser.id) {
-      setProfileData((prev) => ({
-        ...prev,
-        fullName: currentUser.name || "",
-        hallTicket: currentUser.hallTicket || "",
-        email: currentUser.email || "",
-        phone: currentUser.phone || "",
-        year: currentUser.year || "",
-        section: currentUser.section || "",
-        admissionDate: currentUser.createdAt
-          ? new Date(currentUser.createdAt).toISOString().split("T")[0]
-          : "",
-      }));
-    }
+      // Initialize profile data with actual user data
+      if (currentUser && currentUser.id) {
+        setProfileData((prev) => ({
+          ...prev,
+          fullName: currentUser.name || "",
+          hallTicket: currentUser.hallTicket || "",
+          email: currentUser.email || "",
+          phone: currentUser.phone || "",
+          year: currentUser.year || "",
+          section: currentUser.section || "",
+          admissionDate: currentUser.createdAt
+            ? new Date(currentUser.createdAt).toISOString().split("T")[0]
+            : "",
+        }));
+
+        // Load profile photo
+        try {
+          const photoUrl = await profilePhotoService.getProfilePhotoUrl(currentUser.id, 'student');
+          if (photoUrl) {
+            setProfileData((prev) => ({
+              ...prev,
+              profilePhoto: photoUrl,
+            }));
+          }
+        } catch (error) {
+          console.warn("Could not load profile photo:", error);
+        }
+      }
+    };
+
+    loadStudentData();
   }, []);
 
   const handleSave = () => {
