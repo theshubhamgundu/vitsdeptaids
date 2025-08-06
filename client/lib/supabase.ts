@@ -51,6 +51,7 @@ export const storage = supabase?.storage || null;
 export const tables = {
   userProfiles: () => supabase?.from("user_profiles") || null,
   students: () => supabase?.from("students") || null,
+  studentsList: () => supabase?.from("students_list") || null,
   faculty: () => supabase?.from("faculty") || null,
   courses: () => supabase?.from("courses") || null,
   enrollments: () => supabase?.from("enrollments") || null,
