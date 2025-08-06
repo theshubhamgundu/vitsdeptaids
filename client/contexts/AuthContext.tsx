@@ -61,40 +61,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
 
-  const login = (userData: User) => {
+  const login = async (userData: User) => {
     try {
-      // Create a new session for this device
-      const sessionId = sessionService.createSession(userData);
-
-      // Store in localStorage for persistence
+      // Create a new database session
+      const sessionToken = await databaseSessionService.createSession(userData);
+      setUser(userData);
+      console.log(`✅ Login successful. Session token created: ${sessionToken.slice(0, 20)}...`);
+    } catch (error) {
+      console.error('Error creating session:', error);
+      // Fallback to basic localStorage
       localStorage.setItem('currentUser', JSON.stringify(userData));
       setUser(userData);
-
-      console.log(`Login successful. Session ID: ${sessionId}`);
-    } catch (error) {
-      console.error('Error storing user data:', error);
     }
   };
 
-  const logout = () => {
-    const currentSessionId = sessionService.getCurrentSessionId();
-    if (currentSessionId) {
-      sessionService.removeSession(currentSessionId);
+  const logout = async () => {
+    const currentSessionToken = databaseSessionService.getCurrentSessionToken();
+    if (currentSessionToken) {
+      await databaseSessionService.removeSession(currentSessionToken);
     }
 
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('localUsers'); // Clear any locally stored user registrations if needed
     setUser(null);
+    console.log("🔄 Logged out successfully");
   };
 
-  const logoutAllDevices = () => {
+  const logoutAllDevices = async () => {
     if (user) {
-      sessionService.removeAllUserSessions(user.id);
+      await databaseSessionService.removeAllUserSessions(user.id);
     }
 
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('localUsers');
     setUser(null);
+    console.log("🔄 Logged out from all devices");
   };
 
   const updateUser = (userData: Partial<User>) => {
