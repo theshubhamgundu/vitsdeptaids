@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { getAllStudents } from "@/services/studentDataService";
+import { getAllStudentsFromList, getStudentsListStats } from "@/services/studentsListService";
 import { useToast } from "@/hooks/use-toast";
 import {
   Search,
