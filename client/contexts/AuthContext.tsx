@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '@/services/authService';
-import { sessionService } from '@/services/sessionService';
+import { databaseSessionService } from '@/services/databaseSessionService';
 
 interface AuthContextType {
   user: User | null;
