@@ -96,7 +96,7 @@ const HODStudents = () => {
 
   useEffect(() => {
     filterStudents();
-  }, [students, searchTerm, filterYear, filterStatus]);
+  }, [students, searchTerm, filterYear, filterStatus, filterSource]);
 
   const loadStudents = async () => {
     setLoading(true);
