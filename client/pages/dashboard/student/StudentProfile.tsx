@@ -12,7 +12,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { profilePhotoService } from "@/services/profilePhotoService";
 import { Camera, Edit, Save, X, User } from "lucide-react";
 
 interface StudentData {
@@ -49,25 +51,47 @@ const StudentProfile = () => {
   });
 
   useEffect(() => {
-    // Get current user from localStorage
-    const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
-    setStudentData(currentUser);
+    const loadStudentData = async () => {
+      // Get current user from localStorage
+      const currentUser = JSON.parse(
+        localStorage.getItem("currentUser") || "{}",
+      );
+      setStudentData(currentUser);
 
-    // Initialize profile data with actual user data
-    if (currentUser && currentUser.id) {
-      setProfileData((prev) => ({
-        ...prev,
-        fullName: currentUser.name || "",
-        hallTicket: currentUser.hallTicket || "",
-        email: currentUser.email || "",
-        phone: currentUser.phone || "",
-        year: currentUser.year || "",
-        section: currentUser.section || "",
-        admissionDate: currentUser.createdAt
-          ? new Date(currentUser.createdAt).toISOString().split("T")[0]
-          : "",
-      }));
-    }
+      // Initialize profile data with actual user data
+      if (currentUser && currentUser.id) {
+        setProfileData((prev) => ({
+          ...prev,
+          fullName: currentUser.name || "",
+          hallTicket: currentUser.hallTicket || "",
+          email: currentUser.email || "",
+          phone: currentUser.phone || "",
+          year: currentUser.year || "",
+          section: currentUser.section || "",
+          admissionDate: currentUser.createdAt
+            ? new Date(currentUser.createdAt).toISOString().split("T")[0]
+            : "",
+        }));
+
+        // Load profile photo
+        try {
+          const photoUrl = await profilePhotoService.getProfilePhotoUrl(
+            currentUser.id,
+            "student",
+          );
+          if (photoUrl) {
+            setProfileData((prev) => ({
+              ...prev,
+              profilePhoto: photoUrl,
+            }));
+          }
+        } catch (error) {
+          console.warn("Could not load profile photo:", error);
+        }
+      }
+    };
+
+    loadStudentData();
   }, []);
 
   const handleSave = () => {
@@ -102,17 +126,51 @@ const StudentProfile = () => {
     alert("Profile updated successfully!");
   };
 
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const { toast } = useToast();
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handlePhotoUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
+    if (!file || !studentData) return;
+
+    setIsUploading(true);
+    try {
+      const result = await profilePhotoService.uploadProfilePhoto(
+        studentData.id,
+        file,
+        "student",
+      );
+
+      if (result.success && result.photoUrl) {
         setProfileData((prev) => ({
           ...prev,
-          profilePhoto: e.target?.result as string,
+          profilePhoto: result.photoUrl,
         }));
-      };
-      reader.readAsDataURL(file);
+
+        toast({
+          title: "Profile Photo Updated",
+          description: result.isLocalStorage
+            ? "Photo saved locally (database not available)"
+            : "Photo uploaded successfully",
+        });
+      } else {
+        toast({
+          title: "Upload Failed",
+          description: result.error || "Failed to upload photo",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Photo upload error:", error);
+      toast({
+        title: "Upload Error",
+        description: "An error occurred while uploading the photo",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
     }
   };
 

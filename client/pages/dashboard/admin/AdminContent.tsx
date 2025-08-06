@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -67,29 +68,38 @@ import {
   Mail,
   ExternalLink,
 } from "lucide-react";
+import EnhancedStudentFacultyMapping from "@/components/EnhancedStudentFacultyMapping";
+import { profilePhotoService } from "@/services/profilePhotoService";
 
 const AdminContent = () => {
   const [events, setEvents] = useState([]);
-
   const [gallery, setGallery] = useState([]);
-
   const [facultyData, setFacultyData] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Load existing data from localStorage on component mount
   useEffect(() => {
-    try {
-      const savedEvents = localStorage.getItem("adminEvents");
-      const savedGallery = localStorage.getItem("adminGallery");
-      const savedPlacements = localStorage.getItem("adminPlacements");
-      const savedAchievements = localStorage.getItem("adminAchievements");
+    const initializeAdmin = async () => {
+      try {
+        // Initialize storage buckets for profile photos
+        await profilePhotoService.initializeStorageBuckets();
 
-      if (savedEvents) setEvents(JSON.parse(savedEvents));
-      if (savedGallery) setGallery(JSON.parse(savedGallery));
-      if (savedPlacements) setPlacements(JSON.parse(savedPlacements));
-      if (savedAchievements) setAchievements(JSON.parse(savedAchievements));
-    } catch (error) {
-      console.error("Error loading admin data from localStorage:", error);
-    }
+        // Load existing data
+        const savedEvents = localStorage.getItem("adminEvents");
+        const savedGallery = localStorage.getItem("adminGallery");
+        const savedPlacements = localStorage.getItem("adminPlacements");
+        const savedAchievements = localStorage.getItem("adminAchievements");
+
+        if (savedEvents) setEvents(JSON.parse(savedEvents));
+        if (savedGallery) setGallery(JSON.parse(savedGallery));
+        if (savedPlacements) setPlacements(JSON.parse(savedPlacements));
+        if (savedAchievements) setAchievements(JSON.parse(savedAchievements));
+      } catch (error) {
+        console.error("Error loading admin data from localStorage:", error);
+      }
+    };
+
+    initializeAdmin();
   }, []);
 
   const [placements, setPlacements] = useState([]);
@@ -158,7 +168,6 @@ const AdminContent = () => {
   });
 
   // Search and filter states
-  const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("events");
 
   // Handle functions
@@ -417,12 +426,13 @@ const AdminContent = () => {
 
         {/* Content Management Tabs */}
         <Tabs defaultValue="events" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="events">📅 Events</TabsTrigger>
             <TabsTrigger value="gallery">📷 Gallery</TabsTrigger>
             <TabsTrigger value="faculty">👨‍🏫 Faculty</TabsTrigger>
             <TabsTrigger value="placements">💼 Placements</TabsTrigger>
-            <TabsTrigger value="achievements">🏆 Achievements</TabsTrigger>
+            <TabsTrigger value="achievements">���� Achievements</TabsTrigger>
+            <TabsTrigger value="mappings">👥 Mappings</TabsTrigger>
           </TabsList>
 
           {/* Events Tab */}
@@ -1416,6 +1426,22 @@ const AdminContent = () => {
                       </Card>
                     ))}
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Mappings Tab */}
+          <TabsContent value="mappings" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>👥 Student-Faculty Mappings</CardTitle>
+                <CardDescription>
+                  Assign coordinators and counsellors to students from all
+                  sources
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <EnhancedStudentFacultyMapping />
               </CardContent>
             </Card>
           </TabsContent>

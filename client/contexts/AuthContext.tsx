@@ -1,17 +1,22 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User } from '@/services/authService';
-import { sessionService } from '@/services/sessionService';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { User } from "@/services/authService";
+import { databaseSessionService } from "@/services/databaseSessionService";
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (userData: User) => void;
-  logout: () => void;
-  logoutAllDevices: () => void;
+  login: (userData: User) => Promise<void>;
+  logout: () => Promise<void>;
+  logoutAllDevices: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
-  hasMultipleSessions: boolean;
-  currentSessionId: string | null;
+  currentSessionToken: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,90 +31,82 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Check for existing session on app load
   useEffect(() => {
-    const checkExistingSession = () => {
+    const checkExistingSession = async () => {
       try {
-        const storedUser = localStorage.getItem('currentUser');
-        const currentSessionId = sessionService.getCurrentSessionId();
+        const currentSessionToken =
+          databaseSessionService.getCurrentSessionToken();
 
-        if (storedUser && currentSessionId) {
-          const userData = JSON.parse(storedUser);
+        if (currentSessionToken) {
+          // Validate session with database
+          const validation =
+            await databaseSessionService.validateSession(currentSessionToken);
 
-          // Validate the stored user data structure and session
-          if (userData && userData.id && userData.role && userData.name) {
-            // Check if session is still valid
-            if (sessionService.validateSession(currentSessionId)) {
-              setUser(userData);
-            } else {
-              // Session expired, clear local data
-              localStorage.removeItem('currentUser');
-              sessionService.removeSession(currentSessionId);
-            }
+          if (validation.isValid && validation.user) {
+            setUser(validation.user);
+            console.log("✅ Session restored successfully");
           } else {
-            // Invalid user data, clear it
-            localStorage.removeItem('currentUser');
-            if (currentSessionId) {
-              sessionService.removeSession(currentSessionId);
-            }
+            // Session invalid, clear local data
+            await databaseSessionService.removeSession(currentSessionToken);
+            console.log("🔄 Session expired, cleared local data");
           }
         }
       } catch (error) {
-        console.error('Error parsing stored user data:', error);
-        localStorage.removeItem('currentUser');
-        const currentSessionId = sessionService.getCurrentSessionId();
-        if (currentSessionId) {
-          sessionService.removeSession(currentSessionId);
+        console.error("Error checking existing session:", error);
+        // Clear any corrupted local data
+        const currentSessionToken =
+          databaseSessionService.getCurrentSessionToken();
+        if (currentSessionToken) {
+          await databaseSessionService.removeSession(currentSessionToken);
         }
       } finally {
         setIsLoading(false);
       }
     };
 
-    // Clean up old sessions on app load
-    sessionService.cleanupOldSessions();
+    // Clean up expired sessions on app load
+    databaseSessionService.cleanupExpiredSessions();
     checkExistingSession();
   }, []);
 
-
-  const login = (userData: User) => {
+  const login = async (userData: User) => {
     try {
-      // Create a new session for this device
-      const sessionId = sessionService.createSession(userData);
-
-      // Store in localStorage for persistence
-      localStorage.setItem('currentUser', JSON.stringify(userData));
+      // Create a new database session
+      const sessionToken = await databaseSessionService.createSession(userData);
       setUser(userData);
-
-      console.log(`Login successful. Session ID: ${sessionId}`);
+      console.log(
+        `✅ Login successful. Session token created: ${sessionToken.slice(0, 20)}...`,
+      );
     } catch (error) {
-      console.error('Error storing user data:', error);
+      console.error("Error creating session:", error);
+      // Fallback to basic localStorage
+      localStorage.setItem("currentUser", JSON.stringify(userData));
+      setUser(userData);
     }
   };
 
-  const logout = () => {
-    const currentSessionId = sessionService.getCurrentSessionId();
-    if (currentSessionId) {
-      sessionService.removeSession(currentSessionId);
+  const logout = async () => {
+    const currentSessionToken = databaseSessionService.getCurrentSessionToken();
+    if (currentSessionToken) {
+      await databaseSessionService.removeSession(currentSessionToken);
     }
 
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('localUsers'); // Clear any locally stored user registrations if needed
     setUser(null);
+    console.log("🔄 Logged out successfully");
   };
 
-  const logoutAllDevices = () => {
+  const logoutAllDevices = async () => {
     if (user) {
-      sessionService.removeAllUserSessions(user.id);
+      await databaseSessionService.removeAllUserSessions(user.id);
     }
 
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('localUsers');
     setUser(null);
+    console.log("🔄 Logged out from all devices");
   };
 
   const updateUser = (userData: Partial<User>) => {
     if (user) {
       const updatedUser = { ...user, ...userData };
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      localStorage.setItem("currentUser", JSON.stringify(updatedUser));
       setUser(updatedUser);
     }
   };
@@ -122,8 +119,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     logoutAllDevices,
     updateUser,
-    hasMultipleSessions: user ? sessionService.hasMultipleSessions(user.id) : false,
-    currentSessionId: sessionService.getCurrentSessionId(),
+    currentSessionToken: databaseSessionService.getCurrentSessionToken(),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -132,7 +128,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
