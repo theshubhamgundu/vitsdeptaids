@@ -26,46 +26,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Check for existing session on app load
   useEffect(() => {
-    const checkExistingSession = () => {
+    const checkExistingSession = async () => {
       try {
-        const storedUser = localStorage.getItem('currentUser');
-        const currentSessionId = sessionService.getCurrentSessionId();
+        const currentSessionToken = databaseSessionService.getCurrentSessionToken();
 
-        if (storedUser && currentSessionId) {
-          const userData = JSON.parse(storedUser);
+        if (currentSessionToken) {
+          // Validate session with database
+          const validation = await databaseSessionService.validateSession(currentSessionToken);
 
-          // Validate the stored user data structure and session
-          if (userData && userData.id && userData.role && userData.name) {
-            // Check if session is still valid
-            if (sessionService.validateSession(currentSessionId)) {
-              setUser(userData);
-            } else {
-              // Session expired, clear local data
-              localStorage.removeItem('currentUser');
-              sessionService.removeSession(currentSessionId);
-            }
+          if (validation.isValid && validation.user) {
+            setUser(validation.user);
+            console.log("✅ Session restored successfully");
           } else {
-            // Invalid user data, clear it
-            localStorage.removeItem('currentUser');
-            if (currentSessionId) {
-              sessionService.removeSession(currentSessionId);
-            }
+            // Session invalid, clear local data
+            await databaseSessionService.removeSession(currentSessionToken);
+            console.log("🔄 Session expired, cleared local data");
           }
         }
       } catch (error) {
-        console.error('Error parsing stored user data:', error);
-        localStorage.removeItem('currentUser');
-        const currentSessionId = sessionService.getCurrentSessionId();
-        if (currentSessionId) {
-          sessionService.removeSession(currentSessionId);
+        console.error('Error checking existing session:', error);
+        // Clear any corrupted local data
+        const currentSessionToken = databaseSessionService.getCurrentSessionToken();
+        if (currentSessionToken) {
+          await databaseSessionService.removeSession(currentSessionToken);
         }
       } finally {
         setIsLoading(false);
       }
     };
 
-    // Clean up old sessions on app load
-    sessionService.cleanupOldSessions();
+    // Clean up expired sessions on app load
+    databaseSessionService.cleanupExpiredSessions();
     checkExistingSession();
   }, []);
 
