@@ -174,7 +174,7 @@ const HODStudents = () => {
       filtered = filtered.filter(student => {
         const cgpa = student.cgpa || 0;
         const attendance = student.attendance || 0;
-        
+
         switch (filterStatus) {
           case 'excellent':
             return cgpa >= 8.5 && attendance >= 85;
@@ -186,6 +186,11 @@ const HODStudents = () => {
             return true;
         }
       });
+    }
+
+    // Apply source filter
+    if (filterSource !== "all") {
+      filtered = filtered.filter(student => student.source === filterSource);
     }
 
     setFilteredStudents(filtered);
