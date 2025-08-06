@@ -79,19 +79,27 @@ const AdminContent = () => {
 
   // Load existing data from localStorage on component mount
   useEffect(() => {
-    try {
-      const savedEvents = localStorage.getItem("adminEvents");
-      const savedGallery = localStorage.getItem("adminGallery");
-      const savedPlacements = localStorage.getItem("adminPlacements");
-      const savedAchievements = localStorage.getItem("adminAchievements");
+    const initializeAdmin = async () => {
+      try {
+        // Initialize storage buckets for profile photos
+        await profilePhotoService.initializeStorageBuckets();
 
-      if (savedEvents) setEvents(JSON.parse(savedEvents));
-      if (savedGallery) setGallery(JSON.parse(savedGallery));
-      if (savedPlacements) setPlacements(JSON.parse(savedPlacements));
-      if (savedAchievements) setAchievements(JSON.parse(savedAchievements));
-    } catch (error) {
-      console.error("Error loading admin data from localStorage:", error);
-    }
+        // Load existing data
+        const savedEvents = localStorage.getItem("adminEvents");
+        const savedGallery = localStorage.getItem("adminGallery");
+        const savedPlacements = localStorage.getItem("adminPlacements");
+        const savedAchievements = localStorage.getItem("adminAchievements");
+
+        if (savedEvents) setEvents(JSON.parse(savedEvents));
+        if (savedGallery) setGallery(JSON.parse(savedGallery));
+        if (savedPlacements) setPlacements(JSON.parse(savedPlacements));
+        if (savedAchievements) setAchievements(JSON.parse(savedAchievements));
+      } catch (error) {
+        console.error("Error loading admin data from localStorage:", error);
+      }
+    };
+
+    initializeAdmin();
   }, []);
 
   const [placements, setPlacements] = useState([]);
