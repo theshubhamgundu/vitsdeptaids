@@ -69,13 +69,13 @@ import {
   ExternalLink,
 } from "lucide-react";
 import EnhancedStudentFacultyMapping from "@/components/EnhancedStudentFacultyMapping";
+import { profilePhotoService } from "@/services/profilePhotoService";
 
 const AdminContent = () => {
   const [events, setEvents] = useState([]);
-
   const [gallery, setGallery] = useState([]);
-
   const [facultyData, setFacultyData] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Load existing data from localStorage on component mount
   useEffect(() => {
