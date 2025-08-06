@@ -110,21 +110,6 @@ export const authenticateStudent = async (
     );
 
     if (localStudent) {
-      // Store in currentUser for session persistence
-      const studentSession = {
-        id: localStudent.id,
-        name: localStudent.name,
-        hallTicket: localStudent.hallTicket,
-        email: localStudent.email,
-        year: localStudent.year,
-        section: localStudent.section || "A",
-        phone: localStudent.phone || "",
-        role: "student",
-        createdAt: localStudent.createdAt,
-      };
-
-      localStorage.setItem("currentUser", JSON.stringify(studentSession));
-
       return {
         id: localStudent.id,
         name: localStudent.name,
