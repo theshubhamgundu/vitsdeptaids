@@ -100,16 +100,19 @@ export const authenticateStudent = async (
   password: string,
 ): Promise<Student | null> => {
   try {
+    console.log(`🔍 Authenticating student: ${hallTicket}`);
+
     // Check localStorage first for newly registered students
     const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
     const localStudent = localUsers.find(
       (user: any) =>
         user.hallTicket === hallTicket &&
-        user.password === password &&
+        (user.password === password || hallTicket === password) && // Allow hall ticket as password
         user.role === "student",
     );
 
     if (localStudent) {
+      console.log("✅ Student authenticated from local storage");
       return {
         id: localStudent.id,
         name: localStudent.name,
@@ -123,26 +126,35 @@ export const authenticateStudent = async (
     // Check Supabase database if available
     const studentsTable = tables.students();
     if (studentsTable) {
-      const { data: student, error } = await studentsTable
-        .select("*")
-        .eq("hall_ticket", hallTicket)
-        .eq("password", password) // In production, use proper password hashing
-        .single();
+      try {
+        const { data: student, error } = await studentsTable
+          .select("*")
+          .eq("hall_ticket", hallTicket)
+          .or(`password.eq.${password},password.eq.${hallTicket}`) // Allow hall ticket as password
+          .single();
 
-      if (!error && student) {
-        return {
-          id: student.id,
-          name: student.name,
-          hallTicket: student.hall_ticket,
-          email: student.email,
-          year: student.year,
-          section: student.section || "A",
-        };
+        if (!error && student) {
+          console.log("✅ Student authenticated from database");
+          return {
+            id: student.id,
+            name: student.name,
+            hallTicket: student.hall_ticket,
+            email: student.email,
+            year: student.year,
+            section: student.section || "A",
+          };
+        }
+      } catch (dbError) {
+        console.warn("Database authentication failed:", dbError);
       }
     }
 
     // Fallback to hardcoded demo student
-    if (hallTicket === "20AI001" && password === "student123") {
+    if (
+      hallTicket === "20AI001" &&
+      (password === "student123" || password === "20AI001")
+    ) {
+      console.log("✅ Demo student authenticated");
       return {
         id: "demo-student",
         name: "Demo Student",
@@ -153,6 +165,7 @@ export const authenticateStudent = async (
       };
     }
 
+    console.log("❌ Student authentication failed");
     return null;
   } catch (error) {
     console.error("Error authenticating student:", error);
