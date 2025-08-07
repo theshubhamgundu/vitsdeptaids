@@ -19,16 +19,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase, tables } from "@/lib/supabase";
-import { testDatabaseConnection } from "@/utils/databaseTest";
-import { verifySupabaseCredentials } from "@/utils/supabaseVerify";
 import { validateStudentLocally } from "@/utils/localStudentData";
 import { validateStudentInList } from "@/services/studentsListService";
-import { GraduationCap, ArrowLeft, User, CheckCircle } from "lucide-react";
+import { GraduationCap, ArrowLeft, CheckCircle } from "lucide-react";
 
 const StudentRegistration = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -36,10 +36,6 @@ const StudentRegistration = () => {
     hallTicket: "",
     fullName: "",
     year: "",
-    password: "",
-    confirmPassword: "",
-    email: "",
-    phone: "",
   });
 
   const handleInputChange = (field: string, value: any) => {
@@ -48,13 +44,7 @@ const StudentRegistration = () => {
   };
 
   const validateForm = () => {
-    if (
-      !formData.hallTicket ||
-      !formData.fullName ||
-      !formData.year ||
-      !formData.password ||
-      !formData.confirmPassword
-    ) {
+    if (!formData.hallTicket || !formData.fullName || !formData.year) {
       setError("Please fill in all required fields");
       return false;
     }
@@ -66,89 +56,39 @@ const StudentRegistration = () => {
       return false;
     }
 
-    // Validate password
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long");
-      return false;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return false;
-    }
-
-    // Validate email if provided
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setError("Please enter a valid email address");
-      return false;
-    }
-
     return true;
   };
 
-  const handleRegister = async () => {
+  const handleCreateAccount = async () => {
     if (!validateForm()) return;
 
     setLoading(true);
     setError("");
 
     try {
-      // Check if Supabase is available
-      if (!supabase) {
-        throw new Error("Database not available. Please try again later.");
-      }
+      console.log("🔍 Validating student data...");
 
-      // Test database connection first (skip if Supabase not configured properly)
-      let skipDatabase = false;
+      // First check local data
+      const isValidLocal = validateStudentLocally(
+        formData.hallTicket,
+        formData.fullName,
+        formData.year,
+      );
 
-      if (!supabase) {
-        console.log("⚠️ Supabase not configured - using local fallback only");
-        skipDatabase = true;
-      } else {
+      let isValidDatabase = false;
+
+      // Try database validation if available
+      if (supabase) {
         try {
-          const connectionTest = await testDatabaseConnection();
-          if (!connectionTest) {
-            console.log("⚠️ Database test failed - using local fallback only");
-            skipDatabase = true;
-          }
-        } catch (testError) {
-          if (testError.message && testError.message.includes("Headers")) {
-            console.log(
-              "🔑 Headers error detected - using local fallback only",
-            );
-            skipDatabase = true;
-          } else {
-            console.log(
-              "⚠️ Database connection issue - using local fallback only",
-            );
-            skipDatabase = true;
-          }
-        }
-      }
-
-      // Check if student exists in students_list table
-      let studentData = null;
-      let useLocalFallback = skipDatabase;
-
-      if (!skipDatabase) {
-        try {
-          // First try the new students_list table
-          const isValidInList = await validateStudentInList(
+          isValidDatabase = await validateStudentInList(
             formData.hallTicket,
             formData.fullName,
             formData.year,
           );
 
-          if (isValidInList) {
-            studentData = {
-              ht_no: formData.hallTicket,
-              student_name: formData.fullName.toUpperCase(),
-              year: formData.year,
-            };
-            console.log("✅ Student validated using students_list table");
-          } else {
-            // Fallback to student_data table for backward compatibility
-            const { data, error: searchError } = await supabase
+          // Fallback to student_data table if students_list doesn't work
+          if (!isValidDatabase) {
+            const { data } = await supabase
               .from("student_data")
               .select("*")
               .eq("ht_no", formData.hallTicket)
@@ -156,183 +96,125 @@ const StudentRegistration = () => {
               .eq("year", formData.year)
               .single();
 
-            if (searchError && searchError.code !== "PGRST116") {
-              console.warn(
-                "Database query failed, using local fallback:",
-                searchError.message,
-              );
-              useLocalFallback = true;
-            } else {
-              studentData = data;
-              if (data) {
-                console.log(
-                  "✅ Student validated using student_data table (fallback)",
-                );
-              }
-            }
+            isValidDatabase = !!data;
           }
         } catch (dbError) {
-          console.warn(
-            "Database connection failed, using local fallback:",
-            dbError,
-          );
-
-          // Force local fallback on Headers errors
-          if (dbError.message && dbError.message.includes("Headers")) {
-            console.log("🔑 Headers error - forcing local fallback mode");
-          }
-
-          useLocalFallback = true;
+          console.warn("Database validation failed, using local only:", dbError);
         }
       }
 
-      // Use local fallback if database fails
-      if (useLocalFallback) {
-        const isValidStudent = validateStudentLocally(
-          formData.hallTicket,
-          formData.fullName,
-          formData.year,
-        );
-        if (!isValidStudent) {
-          setError(
-            "Student data not found in local records. Please verify your Hall Ticket Number, Name, and Year match our records exactly.",
-          );
-          setLoading(false);
-          return;
-        }
-        console.log("✅ Student validated using local fallback data");
-      } else if (!studentData) {
+      // Check if student is valid in either local or database
+      if (!isValidLocal && !isValidDatabase) {
         setError(
-          "Student data not found. Please verify your Hall Ticket Number, Name, and Year match our records exactly.",
+          "Student data not found. Please verify your Hall Ticket Number, Name, and Year match our records exactly."
         );
         setLoading(false);
         return;
       }
 
-      // If using local fallback or database is unavailable, skip database operations and create local user
-      if (useLocalFallback || skipDatabase) {
-        console.log(
-          "⚠️ Using local fallback - creating temporary user session",
-        );
+      console.log("✅ Student validated successfully");
 
-        // Check if user already exists in localStorage
-        const existingUsers = JSON.parse(
-          localStorage.getItem("localUsers") || "[]",
-        );
-        const existingUser = existingUsers.find(
-          (u) => u.hallTicket === formData.hallTicket,
-        );
+      // Check if account already exists
+      const existingUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
+      const existingUser = existingUsers.find(
+        (u) => u.hallTicket === formData.hallTicket
+      );
 
-        if (existingUser) {
-          setError(
-            "Account already exists for this hall ticket. Please login instead.",
-          );
-          setLoading(false);
-          return;
-        }
-
-        // Create local user record
-        const userProfileId = crypto.randomUUID();
-        const newUser = {
-          id: userProfileId,
-          name: formData.fullName,
+      if (existingUser) {
+        // Account exists, login directly
+        console.log("📋 Account exists, logging in...");
+        
+        login({
+          id: existingUser.id,
+          name: existingUser.name,
           role: "student",
-          hallTicket: formData.hallTicket,
-          email: formData.email || `${formData.hallTicket}@vignan.ac.in`,
-          phone: formData.phone || "",
-          year: formData.year,
-          section: "A",
-          password: formData.password, // Store password for authentication
-          createdAt: new Date().toISOString(),
-          cgpa: 0.0,
-          attendance: 0,
-          status: "Active",
-        };
+          hallTicket: existingUser.hallTicket,
+          email: existingUser.email,
+          year: existingUser.year,
+          section: existingUser.section || "A",
+        });
 
-        existingUsers.push(newUser);
-        localStorage.setItem("localUsers", JSON.stringify(existingUsers));
+        toast({
+          title: "Welcome back!",
+          description: "Logging you into your existing account.",
+        });
 
-        // Store current user session with complete data
-        const userSession = {
-          id: newUser.id,
-          name: newUser.name,
-          role: newUser.role,
-          hallTicket: newUser.hallTicket,
-          email: newUser.email,
-          phone: newUser.phone,
-          year: newUser.year,
-          section: newUser.section,
-          createdAt: newUser.createdAt,
-        };
-        localStorage.setItem("currentUser", JSON.stringify(userSession));
-      } else {
-        // Normal database operations
-        // Check if user profile already exists
-        const { data: existingUser } = await tables
-          .userProfiles()
-          ?.select("*")
-          .eq("hall_ticket", formData.hallTicket)
-          .single();
-
-        if (existingUser) {
-          setError(
-            "Account already exists for this hall ticket. Please login instead.",
-          );
-          setLoading(false);
-          return;
-        }
-
-        // Create user profile
-        const userProfileId = crypto.randomUUID();
-        const { error: userError } = await tables.userProfiles()?.insert([
-          {
-            id: userProfileId,
-            email: `${formData.hallTicket}@vignan.ac.in`,
-            role: "student",
-            hall_ticket: formData.hallTicket,
-            name: formData.fullName,
-            year: formData.year,
-            is_active: true,
-          },
-        ]);
-
-        if (userError) throw userError;
-
-        // Create student record
-        const { error: studentError } = await tables.students()?.insert([
-          {
-            id: crypto.randomUUID(),
-            user_id: userProfileId,
-            hall_ticket: formData.hallTicket,
-            name: formData.fullName,
-            email: `${formData.hallTicket}@vignan.ac.in`,
-            year: formData.year,
-            section: "A", // Default section since there's only one
-            is_active: true,
-          },
-        ]);
-
-        if (studentError) throw studentError;
-
-        // Store user data for auto-login
-        const userSession = {
-          id: userProfileId,
-          name: formData.fullName,
-          role: "student",
-          hallTicket: formData.hallTicket,
-          email: formData.email || `${formData.hallTicket}@vignan.ac.in`,
-          phone: formData.phone || "",
-          year: formData.year,
-          section: "A",
-          createdAt: new Date().toISOString(),
-        };
-        localStorage.setItem("currentUser", JSON.stringify(userSession));
+        navigate("/dashboard/student");
+        return;
       }
 
+      // Create new account
+      console.log("✨ Creating new student account...");
+      
+      const userProfileId = crypto.randomUUID();
+      const newUser = {
+        id: userProfileId,
+        name: formData.fullName,
+        role: "student",
+        hallTicket: formData.hallTicket,
+        email: `${formData.hallTicket}@vignan.ac.in`,
+        phone: "",
+        year: formData.year,
+        section: "A",
+        password: formData.hallTicket, // Default password is hall ticket
+        createdAt: new Date().toISOString(),
+        profileCompleted: false, // Flag to force profile completion
+      };
+
+      // Store in localStorage
+      existingUsers.push(newUser);
+      localStorage.setItem("localUsers", JSON.stringify(existingUsers));
+
+      // Try to store in database if available
+      if (supabase && tables.userProfiles()) {
+        try {
+          await tables.userProfiles().insert([
+            {
+              id: userProfileId,
+              email: newUser.email,
+              role: "student",
+              hall_ticket: formData.hallTicket,
+              name: formData.fullName,
+              year: formData.year,
+              is_active: true,
+              profile_completed: false,
+            },
+          ]);
+
+          await tables.students().insert([
+            {
+              id: crypto.randomUUID(),
+              user_id: userProfileId,
+              hall_ticket: formData.hallTicket,
+              name: formData.fullName,
+              email: newUser.email,
+              year: formData.year,
+              section: "A",
+              is_active: true,
+              password: formData.hallTicket,
+            },
+          ]);
+
+          console.log("✅ Account stored in database");
+        } catch (dbError) {
+          console.warn("Database storage failed, local account created:", dbError);
+        }
+      }
+
+      // Auto-login the new user
+      login({
+        id: newUser.id,
+        name: newUser.name,
+        role: "student",
+        hallTicket: newUser.hallTicket,
+        email: newUser.email,
+        year: newUser.year,
+        section: newUser.section,
+      });
+
       toast({
-        title: "Registration Successful!",
-        description:
-          "Your account has been created. Complete your profile in the dashboard.",
+        title: "Account Created!",
+        description: "Complete your profile to access all features.",
       });
 
       // Redirect to student dashboard
@@ -363,19 +245,16 @@ const StudentRegistration = () => {
             </div>
           </div>
           <h1 className="text-3xl font-bold text-gray-900">
-            Student Registration
+            Create Student Account
           </h1>
-          <p className="text-gray-600">Create your student account</p>
+          <p className="text-gray-600">Enter your basic details to get started</p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <User className="h-5 w-5 mr-2" />
-              Student Information
-            </CardTitle>
+            <CardTitle>Student Information</CardTitle>
             <CardDescription>
-              Enter your details to create an account
+              We'll verify your details against our records
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -387,27 +266,24 @@ const StudentRegistration = () => {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="hallTicket">Hall Ticket Number</Label>
+                <Label htmlFor="hallTicket">Hall Ticket Number *</Label>
                 <Input
                   id="hallTicket"
                   value={formData.hallTicket}
                   onChange={(e) =>
-                    handleInputChange(
-                      "hallTicket",
-                      e.target.value.toUpperCase(),
-                    )
+                    handleInputChange("hallTicket", e.target.value.toUpperCase())
                   }
                   placeholder="23891A7205"
                   className="font-mono"
+                  required
                 />
                 <p className="text-xs text-gray-500">
-                  Enter your hall ticket number exactly as provided by the
-                  college
+                  Enter your hall ticket number exactly as provided
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="fullName">Full Name *</Label>
                 <Input
                   id="fullName"
                   value={formData.fullName}
@@ -416,6 +292,7 @@ const StudentRegistration = () => {
                   }
                   placeholder="ENTER YOUR FULL NAME"
                   className="uppercase"
+                  required
                 />
                 <p className="text-xs text-gray-500">
                   Enter your name exactly as it appears in college records
@@ -423,7 +300,7 @@ const StudentRegistration = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="year">Academic Year</Label>
+                <Label htmlFor="year">Academic Year *</Label>
                 <Select
                   value={formData.year}
                   onValueChange={(value) => handleInputChange("year", value)}
@@ -439,77 +316,27 @@ const StudentRegistration = () => {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address (Optional)</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  placeholder="your.email@example.com"
-                />
-                <p className="text-xs text-gray-500">
-                  If not provided, we'll use{" "}
-                  {formData.hallTicket && `${formData.hallTicket}@vignan.ac.in`}
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number (Optional)</Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange("phone", e.target.value)}
-                  placeholder="+91 9876543210"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">
-                  Create Password <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) =>
-                    handleInputChange("password", e.target.value)
-                  }
-                  placeholder="Enter a secure password"
-                  required
-                />
-                <p className="text-xs text-gray-500">
-                  Password must be at least 6 characters long
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">
-                  Confirm Password <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={(e) =>
-                    handleInputChange("confirmPassword", e.target.value)
-                  }
-                  placeholder="Re-enter your password"
-                  required
-                />
-              </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-medium text-blue-900 mb-2">What happens next?</h4>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• We'll verify your details against our records</li>
+                <li>• If found, you'll be taken to your dashboard</li>
+                <li>• Complete your profile to access all features</li>
+                <li>• Your initial password will be your hall ticket number</li>
+              </ul>
             </div>
 
             <Button
-              onClick={handleRegister}
+              onClick={handleCreateAccount}
               disabled={loading}
               className="w-full bg-blue-600 hover:bg-blue-700"
             >
               {loading ? (
                 <div className="flex items-center space-x-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Creating Account...</span>
+                  <span>Verifying...</span>
                 </div>
               ) : (
                 <div className="flex items-center space-x-2">
