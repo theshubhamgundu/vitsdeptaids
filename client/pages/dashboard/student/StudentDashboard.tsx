@@ -51,11 +51,28 @@ const StudentDashboard = () => {
   const [attendance, setAttendance] = useState([]);
   const [leaveApplications, setLeaveApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showProfileCompletion, setShowProfileCompletion] = useState(false);
 
   useEffect(() => {
     // Get current user from localStorage
     const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
     setStudentData(currentUser);
+
+    // Check if profile completion is required
+    if (currentUser.id) {
+      const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
+      const userProfile = localUsers.find((u: any) => u.id === currentUser.id);
+
+      // Check if profile is completed
+      const isProfileComplete = userProfile?.profileCompleted ||
+        (userProfile?.phone && userProfile?.address && userProfile?.fatherName &&
+         userProfile?.motherName && userProfile?.dateOfBirth && userProfile?.emergencyContact);
+
+      if (!isProfileComplete) {
+        setShowProfileCompletion(true);
+        return;
+      }
+    }
 
     if (currentUser.id) {
       loadStudentData(currentUser.id);
