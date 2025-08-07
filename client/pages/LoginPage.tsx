@@ -230,16 +230,25 @@ const LoginPage = () => {
 
 
             {type === 'student' && (
-              <div className="border rounded-lg p-3 bg-blue-50 text-center">
-                <p className="text-sm font-medium text-gray-700 mb-3">Don't have an account?</p>
-                <Link to="/register/student">
-                  <Button variant="outline" className="w-full">
-                    Create Student Account
-                  </Button>
-                </Link>
-                <p className="text-xs text-gray-600 mt-2">
-                  Register with your hall ticket and academic details
-                </p>
+              <div className="space-y-3">
+                <div className="border rounded-lg p-3 bg-blue-50 text-center">
+                  <p className="text-sm font-medium text-gray-700 mb-3">Don't have an account?</p>
+                  <Link to="/register/student">
+                    <Button variant="outline" className="w-full">
+                      Create Student Account
+                    </Button>
+                  </Link>
+                  <p className="text-xs text-gray-600 mt-2">
+                    Register with your hall ticket and academic details
+                  </p>
+                </div>
+
+                <div className="border rounded-lg p-3 bg-yellow-50 border-yellow-200">
+                  <p className="text-xs font-medium text-yellow-800 mb-1">New students:</p>
+                  <p className="text-xs text-yellow-700">
+                    Your initial password is your hall ticket number. You can change it after completing your profile.
+                  </p>
+                </div>
               </div>
             )}
 
