@@ -150,7 +150,10 @@ export const authenticateStudent = async (
     }
 
     // Fallback to hardcoded demo student
-    if (hallTicket === "20AI001" && (password === "student123" || password === "20AI001")) {
+    if (
+      hallTicket === "20AI001" &&
+      (password === "student123" || password === "20AI001")
+    ) {
       console.log("✅ Demo student authenticated");
       return {
         id: "demo-student",

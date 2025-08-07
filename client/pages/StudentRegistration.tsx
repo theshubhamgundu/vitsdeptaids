@@ -99,14 +99,17 @@ const StudentRegistration = () => {
             isValidDatabase = !!data;
           }
         } catch (dbError) {
-          console.warn("Database validation failed, using local only:", dbError);
+          console.warn(
+            "Database validation failed, using local only:",
+            dbError,
+          );
         }
       }
 
       // Check if student is valid in either local or database
       if (!isValidLocal && !isValidDatabase) {
         setError(
-          "Student data not found. Please verify your Hall Ticket Number, Name, and Year match our records exactly."
+          "Student data not found. Please verify your Hall Ticket Number, Name, and Year match our records exactly.",
         );
         setLoading(false);
         return;
@@ -115,15 +118,17 @@ const StudentRegistration = () => {
       console.log("✅ Student validated successfully");
 
       // Check if account already exists
-      const existingUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
+      const existingUsers = JSON.parse(
+        localStorage.getItem("localUsers") || "[]",
+      );
       const existingUser = existingUsers.find(
-        (u) => u.hallTicket === formData.hallTicket
+        (u) => u.hallTicket === formData.hallTicket,
       );
 
       if (existingUser) {
         // Account exists, login directly
         console.log("📋 Account exists, logging in...");
-        
+
         login({
           id: existingUser.id,
           name: existingUser.name,
@@ -145,7 +150,7 @@ const StudentRegistration = () => {
 
       // Create new account
       console.log("✨ Creating new student account...");
-      
+
       const userProfileId = crypto.randomUUID();
       const newUser = {
         id: userProfileId,
@@ -197,7 +202,10 @@ const StudentRegistration = () => {
 
           console.log("✅ Account stored in database");
         } catch (dbError) {
-          console.warn("Database storage failed, local account created:", dbError);
+          console.warn(
+            "Database storage failed, local account created:",
+            dbError,
+          );
         }
       }
 
@@ -247,7 +255,9 @@ const StudentRegistration = () => {
           <h1 className="text-3xl font-bold text-gray-900">
             Create Student Account
           </h1>
-          <p className="text-gray-600">Enter your basic details to get started</p>
+          <p className="text-gray-600">
+            Enter your basic details to get started
+          </p>
         </div>
 
         <Card>
@@ -271,7 +281,10 @@ const StudentRegistration = () => {
                   id="hallTicket"
                   value={formData.hallTicket}
                   onChange={(e) =>
-                    handleInputChange("hallTicket", e.target.value.toUpperCase())
+                    handleInputChange(
+                      "hallTicket",
+                      e.target.value.toUpperCase(),
+                    )
                   }
                   placeholder="23891A7205"
                   className="font-mono"
@@ -319,7 +332,9 @@ const StudentRegistration = () => {
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-medium text-blue-900 mb-2">What happens next?</h4>
+              <h4 className="font-medium text-blue-900 mb-2">
+                What happens next?
+              </h4>
               <ul className="text-sm text-blue-700 space-y-1">
                 <li>• We'll verify your details against our records</li>
                 <li>• If found, you'll be taken to your dashboard</li>

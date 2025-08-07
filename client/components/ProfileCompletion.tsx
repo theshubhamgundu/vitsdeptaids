@@ -21,7 +21,16 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Progress } from "@/components/ui/progress";
-import { AlertCircle, CheckCircle, User, Phone, Mail, MapPin, Users, Calendar } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle,
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  Users,
+  Calendar,
+} from "lucide-react";
 
 interface ProfileData {
   phone: string;
@@ -47,7 +56,7 @@ const ProfileCompletion = ({ onComplete }: { onComplete: () => void }) => {
     emergencyContact: "",
     alternateEmail: "",
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -66,17 +75,21 @@ const ProfileCompletion = ({ onComplete }: { onComplete: () => void }) => {
   ];
 
   const calculateProgress = () => {
-    const filledRequired = requiredFields.filter(field => profileData[field.key as keyof ProfileData].trim() !== "").length;
-    const filledOptional = optionalFields.filter(field => profileData[field.key as keyof ProfileData].trim() !== "").length;
-    
+    const filledRequired = requiredFields.filter(
+      (field) => profileData[field.key as keyof ProfileData].trim() !== "",
+    ).length;
+    const filledOptional = optionalFields.filter(
+      (field) => profileData[field.key as keyof ProfileData].trim() !== "",
+    ).length;
+
     const total = requiredFields.length + optionalFields.length;
     const filled = filledRequired + filledOptional;
-    
+
     return {
       percentage: Math.round((filled / total) * 100),
       required: filledRequired,
       total: requiredFields.length,
-      isComplete: filledRequired === requiredFields.length
+      isComplete: filledRequired === requiredFields.length,
     };
   };
 
@@ -84,7 +97,7 @@ const ProfileCompletion = ({ onComplete }: { onComplete: () => void }) => {
     const newErrors: Record<string, string> = {};
 
     // Validate required fields
-    requiredFields.forEach(field => {
+    requiredFields.forEach((field) => {
       if (!profileData[field.key as keyof ProfileData].trim()) {
         newErrors[field.key] = `${field.label} is required`;
       }
@@ -92,16 +105,26 @@ const ProfileCompletion = ({ onComplete }: { onComplete: () => void }) => {
 
     // Validate phone numbers
     const phoneRegex = /^[6-9]\d{9}$/;
-    if (profileData.phone && !phoneRegex.test(profileData.phone.replace(/\D/g, ''))) {
+    if (
+      profileData.phone &&
+      !phoneRegex.test(profileData.phone.replace(/\D/g, ""))
+    ) {
       newErrors.phone = "Please enter a valid 10-digit phone number";
     }
-    if (profileData.emergencyContact && !phoneRegex.test(profileData.emergencyContact.replace(/\D/g, ''))) {
-      newErrors.emergencyContact = "Please enter a valid 10-digit emergency contact";
+    if (
+      profileData.emergencyContact &&
+      !phoneRegex.test(profileData.emergencyContact.replace(/\D/g, ""))
+    ) {
+      newErrors.emergencyContact =
+        "Please enter a valid 10-digit emergency contact";
     }
 
     // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (profileData.alternateEmail && !emailRegex.test(profileData.alternateEmail)) {
+    if (
+      profileData.alternateEmail &&
+      !emailRegex.test(profileData.alternateEmail)
+    ) {
       newErrors.alternateEmail = "Please enter a valid email address";
     }
 
@@ -134,7 +157,7 @@ const ProfileCompletion = ({ onComplete }: { onComplete: () => void }) => {
       // Update user profile in localStorage
       const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
       const userIndex = localUsers.findIndex((u: any) => u.id === user?.id);
-      
+
       if (userIndex !== -1) {
         localUsers[userIndex] = {
           ...localUsers[userIndex],
@@ -145,7 +168,9 @@ const ProfileCompletion = ({ onComplete }: { onComplete: () => void }) => {
       }
 
       // Update current user
-      const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+      const currentUser = JSON.parse(
+        localStorage.getItem("currentUser") || "{}",
+      );
       const updatedUser = {
         ...currentUser,
         ...profileData,
@@ -187,7 +212,7 @@ const ProfileCompletion = ({ onComplete }: { onComplete: () => void }) => {
             <CardDescription>
               Please provide the following information to access all features
             </CardDescription>
-            
+
             {/* Progress Bar */}
             <div className="mt-4 space-y-2">
               <div className="flex justify-between text-sm">
@@ -196,7 +221,8 @@ const ProfileCompletion = ({ onComplete }: { onComplete: () => void }) => {
               </div>
               <Progress value={progress.percentage} className="w-full" />
               <div className="text-xs text-gray-600">
-                {progress.required} of {progress.total} required fields completed
+                {progress.required} of {progress.total} required fields
+                completed
               </div>
             </div>
           </CardHeader>
@@ -205,7 +231,8 @@ const ProfileCompletion = ({ onComplete }: { onComplete: () => void }) => {
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Please complete all required fields marked with * to continue. Your information is securely stored.
+                Please complete all required fields marked with * to continue.
+                Your information is securely stored.
               </AlertDescription>
             </Alert>
 
@@ -215,66 +242,107 @@ const ProfileCompletion = ({ onComplete }: { onComplete: () => void }) => {
                 <Phone className="h-5 w-5 mr-2" />
                 Contact Information
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="phone">
                     Phone Number *
-                    {profileData.phone && !errors.phone && <CheckCircle className="h-4 w-4 text-green-500 inline ml-2" />}
+                    {profileData.phone && !errors.phone && (
+                      <CheckCircle className="h-4 w-4 text-green-500 inline ml-2" />
+                    )}
                   </Label>
                   <Input
                     id="phone"
                     value={profileData.phone}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                    onChange={(e) =>
+                      setProfileData((prev) => ({
+                        ...prev,
+                        phone: e.target.value,
+                      }))
+                    }
                     placeholder="9876543210"
                     className={errors.phone ? "border-red-500" : ""}
                   />
-                  {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
+                  {errors.phone && (
+                    <p className="text-sm text-red-500">{errors.phone}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="emergencyContact">
                     Emergency Contact *
-                    {profileData.emergencyContact && !errors.emergencyContact && <CheckCircle className="h-4 w-4 text-green-500 inline ml-2" />}
+                    {profileData.emergencyContact &&
+                      !errors.emergencyContact && (
+                        <CheckCircle className="h-4 w-4 text-green-500 inline ml-2" />
+                      )}
                   </Label>
                   <Input
                     id="emergencyContact"
                     value={profileData.emergencyContact}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, emergencyContact: e.target.value }))}
+                    onChange={(e) =>
+                      setProfileData((prev) => ({
+                        ...prev,
+                        emergencyContact: e.target.value,
+                      }))
+                    }
                     placeholder="9876543210"
                     className={errors.emergencyContact ? "border-red-500" : ""}
                   />
-                  {errors.emergencyContact && <p className="text-sm text-red-500">{errors.emergencyContact}</p>}
+                  {errors.emergencyContact && (
+                    <p className="text-sm text-red-500">
+                      {errors.emergencyContact}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="address">
                   Address *
-                  {profileData.address && !errors.address && <CheckCircle className="h-4 w-4 text-green-500 inline ml-2" />}
+                  {profileData.address && !errors.address && (
+                    <CheckCircle className="h-4 w-4 text-green-500 inline ml-2" />
+                  )}
                 </Label>
                 <Textarea
                   id="address"
                   value={profileData.address}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, address: e.target.value }))}
+                  onChange={(e) =>
+                    setProfileData((prev) => ({
+                      ...prev,
+                      address: e.target.value,
+                    }))
+                  }
                   placeholder="Enter your complete address"
                   rows={3}
                   className={errors.address ? "border-red-500" : ""}
                 />
-                {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
+                {errors.address && (
+                  <p className="text-sm text-red-500">{errors.address}</p>
+                )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="alternateEmail">Alternate Email (Optional)</Label>
+                <Label htmlFor="alternateEmail">
+                  Alternate Email (Optional)
+                </Label>
                 <Input
                   id="alternateEmail"
                   type="email"
                   value={profileData.alternateEmail}
-                  onChange={(e) => setProfileData(prev => ({ ...prev, alternateEmail: e.target.value }))}
+                  onChange={(e) =>
+                    setProfileData((prev) => ({
+                      ...prev,
+                      alternateEmail: e.target.value,
+                    }))
+                  }
                   placeholder="your.email@example.com"
                   className={errors.alternateEmail ? "border-red-500" : ""}
                 />
-                {errors.alternateEmail && <p className="text-sm text-red-500">{errors.alternateEmail}</p>}
+                {errors.alternateEmail && (
+                  <p className="text-sm text-red-500">
+                    {errors.alternateEmail}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -284,36 +352,54 @@ const ProfileCompletion = ({ onComplete }: { onComplete: () => void }) => {
                 <Users className="h-5 w-5 mr-2" />
                 Family Information
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="fatherName">
                     Father's Name *
-                    {profileData.fatherName && !errors.fatherName && <CheckCircle className="h-4 w-4 text-green-500 inline ml-2" />}
+                    {profileData.fatherName && !errors.fatherName && (
+                      <CheckCircle className="h-4 w-4 text-green-500 inline ml-2" />
+                    )}
                   </Label>
                   <Input
                     id="fatherName"
                     value={profileData.fatherName}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, fatherName: e.target.value }))}
+                    onChange={(e) =>
+                      setProfileData((prev) => ({
+                        ...prev,
+                        fatherName: e.target.value,
+                      }))
+                    }
                     placeholder="Enter father's name"
                     className={errors.fatherName ? "border-red-500" : ""}
                   />
-                  {errors.fatherName && <p className="text-sm text-red-500">{errors.fatherName}</p>}
+                  {errors.fatherName && (
+                    <p className="text-sm text-red-500">{errors.fatherName}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="motherName">
                     Mother's Name *
-                    {profileData.motherName && !errors.motherName && <CheckCircle className="h-4 w-4 text-green-500 inline ml-2" />}
+                    {profileData.motherName && !errors.motherName && (
+                      <CheckCircle className="h-4 w-4 text-green-500 inline ml-2" />
+                    )}
                   </Label>
                   <Input
                     id="motherName"
                     value={profileData.motherName}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, motherName: e.target.value }))}
+                    onChange={(e) =>
+                      setProfileData((prev) => ({
+                        ...prev,
+                        motherName: e.target.value,
+                      }))
+                    }
                     placeholder="Enter mother's name"
                     className={errors.motherName ? "border-red-500" : ""}
                   />
-                  {errors.motherName && <p className="text-sm text-red-500">{errors.motherName}</p>}
+                  {errors.motherName && (
+                    <p className="text-sm text-red-500">{errors.motherName}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -324,28 +410,39 @@ const ProfileCompletion = ({ onComplete }: { onComplete: () => void }) => {
                 <Calendar className="h-5 w-5 mr-2" />
                 Personal Information
               </h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="dateOfBirth">
                     Date of Birth *
-                    {profileData.dateOfBirth && !errors.dateOfBirth && <CheckCircle className="h-4 w-4 text-green-500 inline ml-2" />}
+                    {profileData.dateOfBirth && !errors.dateOfBirth && (
+                      <CheckCircle className="h-4 w-4 text-green-500 inline ml-2" />
+                    )}
                   </Label>
                   <Input
                     id="dateOfBirth"
                     type="date"
                     value={profileData.dateOfBirth}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+                    onChange={(e) =>
+                      setProfileData((prev) => ({
+                        ...prev,
+                        dateOfBirth: e.target.value,
+                      }))
+                    }
                     className={errors.dateOfBirth ? "border-red-500" : ""}
                   />
-                  {errors.dateOfBirth && <p className="text-sm text-red-500">{errors.dateOfBirth}</p>}
+                  {errors.dateOfBirth && (
+                    <p className="text-sm text-red-500">{errors.dateOfBirth}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="bloodGroup">Blood Group (Optional)</Label>
                   <Select
                     value={profileData.bloodGroup}
-                    onValueChange={(value) => setProfileData(prev => ({ ...prev, bloodGroup: value }))}
+                    onValueChange={(value) =>
+                      setProfileData((prev) => ({ ...prev, bloodGroup: value }))
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select blood group" />
@@ -384,7 +481,7 @@ const ProfileCompletion = ({ onComplete }: { onComplete: () => void }) => {
                   </div>
                 )}
               </Button>
-              
+
               {!progress.isComplete && (
                 <p className="text-sm text-gray-600 text-center mt-2">
                   Please complete all required fields to continue

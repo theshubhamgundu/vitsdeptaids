@@ -64,9 +64,14 @@ const StudentDashboard = () => {
       const userProfile = localUsers.find((u: any) => u.id === currentUser.id);
 
       // Check if profile is completed
-      const isProfileComplete = userProfile?.profileCompleted ||
-        (userProfile?.phone && userProfile?.address && userProfile?.fatherName &&
-         userProfile?.motherName && userProfile?.dateOfBirth && userProfile?.emergencyContact);
+      const isProfileComplete =
+        userProfile?.profileCompleted ||
+        (userProfile?.phone &&
+          userProfile?.address &&
+          userProfile?.fatherName &&
+          userProfile?.motherName &&
+          userProfile?.dateOfBirth &&
+          userProfile?.emergencyContact);
 
       if (!isProfileComplete) {
         setShowProfileCompletion(true);
