@@ -251,6 +251,18 @@ const StudentDashboard = () => {
     },
   ];
 
+  const handleProfileCompletion = () => {
+    setShowProfileCompletion(false);
+    // Reload student data to check profile completion
+    const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+    setStudentData(currentUser);
+  };
+
+  // Show profile completion form if needed
+  if (showProfileCompletion) {
+    return <ProfileCompletion onComplete={handleProfileCompletion} />;
+  }
+
   if (!studentData || loading) {
     return (
       <DashboardLayout
