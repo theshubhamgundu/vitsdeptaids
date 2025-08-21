@@ -71,7 +71,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (currentSessionToken) {
           await databaseSessionService.removeSession(currentSessionToken);
         }
-        
+
         // Check for basic localStorage user data as fallback
         try {
           const fallbackUser = localStorage.getItem("currentUser");
@@ -90,10 +90,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     // Clean up expired sessions on app load (don't wait for this)
-    databaseSessionService.cleanupExpiredSessions().catch(error => {
+    databaseSessionService.cleanupExpiredSessions().catch((error) => {
       console.warn("Session cleanup failed:", error);
     });
-    
+
     checkExistingSession();
   }, []);
 
@@ -105,12 +105,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Try to create a database session (but don't fail if it doesn't work)
       try {
-        const sessionToken = await databaseSessionService.createSession(userData);
+        const sessionToken =
+          await databaseSessionService.createSession(userData);
         console.log(
           `✅ Login successful. Session token created: ${sessionToken.slice(0, 20)}...`,
         );
       } catch (sessionError) {
-        console.warn("Database session creation failed, using localStorage fallback:", sessionError);
+        console.warn(
+          "Database session creation failed, using localStorage fallback:",
+          sessionError,
+        );
         // Session creation failed, but user is still logged in via localStorage
       }
     } catch (error) {
@@ -124,7 +128,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      const currentSessionToken = databaseSessionService.getCurrentSessionToken();
+      const currentSessionToken =
+        databaseSessionService.getCurrentSessionToken();
       if (currentSessionToken) {
         await databaseSessionService.removeSession(currentSessionToken);
       }
