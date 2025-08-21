@@ -34,10 +34,6 @@ const AdminProfile = () => {
       email: "admin@vignan.ac.in",
       phone: "+91 9876543210",
       employeeId: "VIT-ADMIN-001",
-      dateOfBirth: "",
-      address: "",
-      emergencyContact: "",
-      bloodGroup: "",
       profilePhoto: null,
     },
     professional: {
@@ -241,92 +237,10 @@ const AdminProfile = () => {
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Date of Birth</Label>
-                    {isEditing ? (
-                      <Input
-                        type="date"
-                        value={currentData.personal.dateOfBirth}
-                        onChange={(e) =>
-                          handleInputChange(
-                            "personal",
-                            "dateOfBirth",
-                            e.target.value,
-                          )
-                        }
-                      />
-                    ) : (
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4 text-gray-500" />
-                        <span>
-                          {new Date(
-                            currentData.personal.dateOfBirth,
-                          ).toLocaleDateString()}
-                        </span>
-                      </div>
-                    )}
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label>Blood Group</Label>
-                    {isEditing ? (
-                      <Input
-                        value={currentData.personal.bloodGroup}
-                        onChange={(e) =>
-                          handleInputChange(
-                            "personal",
-                            "bloodGroup",
-                            e.target.value,
-                          )
-                        }
-                      />
-                    ) : (
-                      <div className="flex items-center space-x-2">
-                        <span className="w-4 h-4 bg-red-500 rounded-full"></span>
-                        <span>{currentData.personal.bloodGroup}</span>
-                      </div>
-                    )}
-                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Address</Label>
-                  {isEditing ? (
-                    <Textarea
-                      value={currentData.personal.address}
-                      onChange={(e) =>
-                        handleInputChange("personal", "address", e.target.value)
-                      }
-                      rows={3}
-                    />
-                  ) : (
-                    <div className="flex items-start space-x-2">
-                      <MapPin className="h-4 w-4 text-gray-500 mt-1" />
-                      <span>{currentData.personal.address}</span>
-                    </div>
-                  )}
-                </div>
 
-                <div className="space-y-2">
-                  <Label>Emergency Contact</Label>
-                  {isEditing ? (
-                    <Input
-                      value={currentData.personal.emergencyContact}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "personal",
-                          "emergencyContact",
-                          e.target.value,
-                        )
-                      }
-                    />
-                  ) : (
-                    <div className="flex items-center space-x-2">
-                      <Phone className="h-4 w-4 text-red-500" />
-                      <span>{currentData.personal.emergencyContact}</span>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
           </CardContent>

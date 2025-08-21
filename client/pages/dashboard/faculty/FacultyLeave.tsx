@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,7 @@ import {
 } from "lucide-react";
 
 const FacultyLeave = () => {
+  const { user } = useAuth();
   // Personal leave applications
   const [leaveApplications, setLeaveApplications] = useState([
     {
@@ -209,13 +211,13 @@ const FacultyLeave = () => {
 
   const handleApproveStudentLeave = (id) => {
     setStudentLeaveRequests(prev => prev.map(request =>
-      request.id === id ? { ...request, status: "Approved", approvedBy: "Dr. Anita Verma", approvedDate: new Date().toISOString().split('T')[0] } : request
+      request.id === id ? { ...request, status: "Approved", approvedBy: user?.name || "Faculty", approvedDate: new Date().toISOString().split('T')[0] } : request
     ));
   };
 
   const handleRejectStudentLeave = (id) => {
     setStudentLeaveRequests(prev => prev.map(request =>
-      request.id === id ? { ...request, status: "Rejected", approvedBy: "Dr. Anita Verma", approvedDate: new Date().toISOString().split('T')[0] } : request
+      request.id === id ? { ...request, status: "Rejected", approvedBy: user?.name || "Faculty", approvedDate: new Date().toISOString().split('T')[0] } : request
     ));
   };
 
@@ -278,29 +280,9 @@ const FacultyLeave = () => {
     }
   };
 
-  const personalStats = {
-    totalApplications: leaveApplications.length,
-    approved: leaveApplications.filter(app => app.status === "Approved").length,
-    pending: leaveApplications.filter(app => app.status === "Pending").length,
-    totalDays: leaveApplications.filter(app => app.status === "Approved").reduce((acc, app) => acc + app.days, 0)
-  };
-
-  const studentStats = {
-    totalRequests: studentLeaveRequests.length,
-    pending: studentLeaveRequests.filter(req => req.status === "Pending").length,
-    approved: studentLeaveRequests.filter(req => req.status === "Approved").length,
-    rejected: studentLeaveRequests.filter(req => req.status === "Rejected").length
-  };
-
-  const leaveBalance = {
-    medical: { used: 5, total: 12 },
-    personal: { used: 3, total: 10 },
-    conference: { used: 6, total: 15 },
-    emergency: { used: 1, total: 5 }
-  };
 
   return (
-    <DashboardLayout userType="faculty" userName="Dr. Anita Verma">
+    <DashboardLayout userType="faculty" userName={user?.name || "Faculty"}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -422,137 +404,12 @@ const FacultyLeave = () => {
             <TabsTrigger value="students" className="flex items-center space-x-2">
               <Users className="h-4 w-4" />
               <span>Student Leave Requests</span>
-              {studentStats.pending > 0 && (
-                <Badge variant="destructive" className="ml-1 text-xs">
-                  {studentStats.pending}
-                </Badge>
-              )}
             </TabsTrigger>
           </TabsList>
 
           {/* Personal Leave Applications Tab */}
           <TabsContent value="personal" className="space-y-6">
-            {/* Statistics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
-                  <FileText className="h-4 w-4 text-blue-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{personalStats.totalApplications}</div>
-                  <p className="text-xs text-muted-foreground">All time</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Approved</CardTitle>
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{personalStats.approved}</div>
-                  <p className="text-xs text-muted-foreground">Applications approved</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Pending</CardTitle>
-                  <Clock className="h-4 w-4 text-yellow-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{personalStats.pending}</div>
-                  <p className="text-xs text-muted-foreground">Awaiting approval</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Days Taken</CardTitle>
-                  <Calendar className="h-4 w-4 text-purple-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{personalStats.totalDays}</div>
-                  <p className="text-xs text-muted-foreground">This academic year</p>
-                </CardContent>
-              </Card>
-            </div>
 
-            {/* Leave Balance */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Leave Balance</CardTitle>
-                <CardDescription>Your remaining leave balance by category</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="p-4 border rounded-lg">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Medical Leave</span>
-                      <span className="text-sm text-gray-600">{leaveBalance.medical.used}/{leaveBalance.medical.total}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-red-500 h-2 rounded-full"
-                        style={{ width: `${(leaveBalance.medical.used / leaveBalance.medical.total) * 100}%` }}
-                      />
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {leaveBalance.medical.total - leaveBalance.medical.used} days remaining
-                    </div>
-                  </div>
-
-                  <div className="p-4 border rounded-lg">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Personal Leave</span>
-                      <span className="text-sm text-gray-600">{leaveBalance.personal.used}/{leaveBalance.personal.total}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-500 h-2 rounded-full"
-                        style={{ width: `${(leaveBalance.personal.used / leaveBalance.personal.total) * 100}%` }}
-                      />
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {leaveBalance.personal.total - leaveBalance.personal.used} days remaining
-                    </div>
-                  </div>
-
-                  <div className="p-4 border rounded-lg">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Conference Leave</span>
-                      <span className="text-sm text-gray-600">{leaveBalance.conference.used}/{leaveBalance.conference.total}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-green-500 h-2 rounded-full"
-                        style={{ width: `${(leaveBalance.conference.used / leaveBalance.conference.total) * 100}%` }}
-                      />
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {leaveBalance.conference.total - leaveBalance.conference.used} days remaining
-                    </div>
-                  </div>
-
-                  <div className="p-4 border rounded-lg">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium">Emergency Leave</span>
-                      <span className="text-sm text-gray-600">{leaveBalance.emergency.used}/{leaveBalance.emergency.total}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-orange-500 h-2 rounded-full"
-                        style={{ width: `${(leaveBalance.emergency.used / leaveBalance.emergency.total) * 100}%` }}
-                      />
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {leaveBalance.emergency.total - leaveBalance.emergency.used} days remaining
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
             {/* Search and Filters */}
             <Card>
@@ -698,52 +555,6 @@ const FacultyLeave = () => {
 
           {/* Student Leave Requests Tab */}
           <TabsContent value="students" className="space-y-6">
-            {/* Student Statistics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
-                  <Users className="h-4 w-4 text-blue-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{studentStats.totalRequests}</div>
-                  <p className="text-xs text-muted-foreground">Student applications</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Pending</CardTitle>
-                  <Clock className="h-4 w-4 text-orange-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{studentStats.pending}</div>
-                  <p className="text-xs text-muted-foreground">Need approval</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Approved</CardTitle>
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{studentStats.approved}</div>
-                  <p className="text-xs text-muted-foreground">This month</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Rejected</CardTitle>
-                  <XCircle className="h-4 w-4 text-red-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{studentStats.rejected}</div>
-                  <p className="text-xs text-muted-foreground">This month</p>
-                </CardContent>
-              </Card>
-            </div>
 
             {/* Search and Filters for Students */}
             <Card>

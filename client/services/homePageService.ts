@@ -32,6 +32,18 @@ export interface GalleryItem {
   featured: boolean;
 }
 
+export interface Event {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  type: string;
+  venue: string;
+  organizer: string;
+  status: string;
+  featured: boolean;
+}
+
 // Get placement data from localStorage (where admin stores it)
 export const getPlacementData = (): PlacementRecord[] => {
   try {
@@ -61,6 +73,17 @@ export const getGalleryData = (): GalleryItem[] => {
     return gallery ? JSON.parse(gallery) : [];
   } catch (error) {
     console.error("Error loading gallery data:", error);
+    return [];
+  }
+};
+
+// Get events data from localStorage
+export const getEventsData = (): Event[] => {
+  try {
+    const events = localStorage.getItem("adminEvents");
+    return events ? JSON.parse(events) : [];
+  } catch (error) {
+    console.error("Error loading events data:", error);
     return [];
   }
 };
@@ -123,5 +146,26 @@ export const getFeaturedGallery = (limit: number = 6): GalleryItem[] => {
     .sort(
       (a, b) =>
         new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime(),
+    );
+};
+
+// Get featured events for display
+export const getFeaturedEvents = (limit: number = 3): Event[] => {
+  const events = getEventsData();
+  return events
+    .filter((e) => e.featured)
+    .slice(0, limit)
+    .sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(), // Upcoming events first
+    );
+};
+
+// Get all active events for display
+export const getActiveEvents = (): Event[] => {
+  const events = getEventsData();
+  return events
+    .filter((e) => e.status === "Active")
+    .sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     );
 };

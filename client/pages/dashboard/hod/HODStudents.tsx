@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,8 +34,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { getAllStudents } from "@/services/studentDataService";
+import {
+  getAllStudentsFromList,
+  getStudentsListStats,
+} from "@/services/studentsListService";
+import { useToast } from "@/hooks/use-toast";
 import {
   Search,
   Filter,
@@ -38,188 +49,176 @@ import {
   Bell,
   BarChart3,
   TrendingUp,
-  TrendingDown,
   Calendar,
   Award,
   AlertTriangle,
   CheckCircle,
-  Clock,
   Phone,
   Mail,
   MapPin,
   GraduationCap,
-  BookOpen,
-  FileText,
-  Download,
-  Upload,
-  Send,
   Eye,
   Edit,
-  Trash2,
-  Plus,
-  Target,
-  PieChart,
-  Activity
+  Send,
+  Download,
 } from "lucide-react";
 
-const HODStudents = () => {
-  const [students, setStudents] = useState([
-    {
-      id: 1,
-      name: "Rahul Sharma",
-      hallTicket: "20AI001",
-      year: "3rd Year",
-      semester: "6th Semester",
-      branch: "AI & DS",
-      email: "rahul@example.com",
-      phone: "+91 9876543210",
-      address: "Hyderabad, Telangana",
-      cgpa: 8.45,
-      attendance: 88,
-      status: "Active",
-      lastActive: "2025-03-10",
-      parentContact: "+91 9876543200",
-      subjects: ["Machine Learning", "Deep Learning", "Data Science"],
-      performance: "Excellent",
-      achievements: ["Best Project Award", "Academic Excellence"],
-      warnings: 0,
-      mentor: "Dr. Anita Verma"
-    },
-    {
-      id: 2,
-      name: "Priya Reddy",
-      hallTicket: "20AI002",
-      year: "3rd Year",
-      semester: "6th Semester",
-      branch: "AI & DS",
-      email: "priya@example.com",
-      phone: "+91 9876543211",
-      address: "Bangalore, Karnataka",
-      cgpa: 9.12,
-      attendance: 92,
-      status: "Active",
-      lastActive: "2025-03-10",
-      parentContact: "+91 9876543201",
-      subjects: ["Machine Learning", "Deep Learning", "Data Science"],
-      performance: "Outstanding",
-      achievements: ["Research Paper Published", "IEEE Competition Winner"],
-      warnings: 0,
-      mentor: "Dr. Raj Kumar"
-    },
-    {
-      id: 3,
-      name: "Amit Kumar",
-      hallTicket: "20AI003",
-      year: "3rd Year",
-      semester: "6th Semester",
-      branch: "AI & DS",
-      email: "amit@example.com",
-      phone: "+91 9876543212",
-      address: "Chennai, Tamil Nadu",
-      cgpa: 8.78,
-      attendance: 85,
-      status: "Active",
-      lastActive: "2025-03-09",
-      parentContact: "+91 9876543202",
-      subjects: ["Machine Learning", "Deep Learning", "Data Science"],
-      performance: "Very Good",
-      achievements: ["Hackathon Winner"],
-      warnings: 1,
-      mentor: "Dr. Anita Verma"
-    },
-    {
-      id: 4,
-      name: "Sneha Patel",
-      hallTicket: "20AI004",
-      year: "3rd Year",
-      semester: "6th Semester",
-      branch: "AI & DS",
-      email: "sneha@example.com",
-      phone: "+91 9876543213",
-      address: "Mumbai, Maharashtra",
-      cgpa: 7.65,
-      attendance: 78,
-      status: "At Risk",
-      lastActive: "2025-03-08",
-      parentContact: "+91 9876543203",
-      subjects: ["Machine Learning", "Deep Learning", "Data Science"],
-      performance: "Needs Improvement",
-      achievements: [],
-      warnings: 2,
-      mentor: "Dr. Raj Kumar"
-    }
-  ]);
+interface Student {
+  id: string;
+  name: string;
+  fullName: string;
+  hallTicket: string;
+  year: string;
+  semester: string;
+  branch: string;
+  email: string;
+  phone?: string;
+  cgpa?: number;
+  attendance?: number;
+  status?: string;
+  source?: "registered" | "department_database";
+}
 
-  const [selectedStudents, setSelectedStudents] = useState([]);
+const HODStudents = () => {
+  const { toast } = useToast();
+  const [students, setStudents] = useState<Student[]>([]);
+  const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterYear, setFilterYear] = useState("all");
-  const [filterBranch, setFilterBranch] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [filterCGPA, setFilterCGPA] = useState("all");
-  const [filterAttendance, setFilterAttendance] = useState("all");
-  const [sortBy, setSortBy] = useState("name");
-  const [sortOrder, setSortOrder] = useState("asc");
-
-  // Dialog states
+  const [filterSource, setFilterSource] = useState("all");
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [showStudentDialog, setShowStudentDialog] = useState(false);
   const [showBulkMessageDialog, setShowBulkMessageDialog] = useState(false);
-  const [showAnalyticsDialog, setShowAnalyticsDialog] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null);
 
-  // Form states
   const [bulkMessage, setBulkMessage] = useState({
     title: "",
     message: "",
     type: "General",
-    sendToParents: false
   });
 
-  const years = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
-  const branches = ["AI & DS", "CSE", "ECE", "EEE", "MECH", "CIVIL"];
-  const messageTypes = ["General", "Academic", "Alert", "Congratulations", "Warning"];
+  useEffect(() => {
+    loadStudents();
+  }, []);
 
-  // Filter and sort students
-  const filteredAndSortedStudents = students
-    .filter(student => {
-      const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           student.hallTicket.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           student.email.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesYear = filterYear === "all" || student.year === filterYear;
-      const matchesBranch = filterBranch === "all" || student.branch === filterBranch;
-      const matchesStatus = filterStatus === "all" || student.status === filterStatus;
-      const matchesCGPA = filterCGPA === "all" || 
-        (filterCGPA === "excellent" && student.cgpa >= 9.0) ||
-        (filterCGPA === "good" && student.cgpa >= 8.0 && student.cgpa < 9.0) ||
-        (filterCGPA === "average" && student.cgpa >= 7.0 && student.cgpa < 8.0) ||
-        (filterCGPA === "below_average" && student.cgpa < 7.0);
-      const matchesAttendance = filterAttendance === "all" ||
-        (filterAttendance === "excellent" && student.attendance >= 90) ||
-        (filterAttendance === "good" && student.attendance >= 80 && student.attendance < 90) ||
-        (filterAttendance === "average" && student.attendance >= 75 && student.attendance < 80) ||
-        (filterAttendance === "poor" && student.attendance < 75);
+  useEffect(() => {
+    filterStudents();
+  }, [students, searchTerm, filterYear, filterStatus, filterSource]);
 
-      return matchesSearch && matchesYear && matchesBranch && matchesStatus && matchesCGPA && matchesAttendance;
-    })
-    .sort((a, b) => {
-      let aValue = a[sortBy];
-      let bValue = b[sortBy];
-      
-      if (typeof aValue === 'string') {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
-      }
-      
-      if (sortOrder === 'asc') {
-        return aValue > bValue ? 1 : -1;
-      } else {
-        return aValue < bValue ? 1 : -1;
-      }
-    });
+  const loadStudents = async () => {
+    setLoading(true);
+    try {
+      // Get registered students
+      const registeredStudents = await getAllStudents();
 
-  const handleSelectStudent = (studentId) => {
-    setSelectedStudents(prev => {
+      // Get all students from department database
+      const departmentStudents = await getAllStudentsFromList();
+
+      // Combine data - convert department students to compatible format
+      const formattedDepartmentStudents = departmentStudents.map((student) => ({
+        id: student.id || student.ht_no,
+        name: student.student_name,
+        fullName: student.student_name,
+        hallTicket: student.ht_no,
+        year: student.year,
+        semester: "", // Not available in students_list
+        branch: student.branch || "AI & DS",
+        email: `${student.ht_no}@vignan.ac.in`, // Generate email
+        phone: "", // Not available in students_list
+        cgpa: 0, // Default since not available
+        attendance: 0, // Default since not available
+        status: "Active",
+        source: "department_database", // Mark source
+      }));
+
+      // Merge registered and department students, avoiding duplicates
+      const existingHallTickets = registeredStudents.map((s) => s.hallTicket);
+      const newDepartmentStudents = formattedDepartmentStudents.filter(
+        (s) => !existingHallTickets.includes(s.hallTicket),
+      );
+
+      // Mark registered students with source
+      const markedRegisteredStudents = registeredStudents.map((s) => ({
+        ...s,
+        source: "registered",
+      }));
+
+      const allStudents = [
+        ...markedRegisteredStudents,
+        ...newDepartmentStudents,
+      ];
+      setStudents(allStudents);
+
+      console.log(
+        `✅ Loaded ${allStudents.length} total students (${registeredStudents.length} registered, ${newDepartmentStudents.length} from department database)`,
+      );
+    } catch (error) {
+      console.error("Error loading students:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load student data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterStudents = () => {
+    let filtered = students;
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (student) =>
+          (student.name || student.fullName || "")
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          student.hallTicket.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (student.email || "")
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()),
+      );
+    }
+
+    // Apply year filter
+    if (filterYear !== "all") {
+      filtered = filtered.filter((student) => student.year === filterYear);
+    }
+
+    // Apply status filter
+    if (filterStatus !== "all") {
+      filtered = filtered.filter((student) => {
+        const cgpa = student.cgpa || 0;
+        const attendance = student.attendance || 0;
+
+        switch (filterStatus) {
+          case "excellent":
+            return cgpa >= 8.5 && attendance >= 85;
+          case "good":
+            return cgpa >= 7.5 && attendance >= 75;
+          case "needs_attention":
+            return cgpa < 7.5 || attendance < 75;
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Apply source filter
+    if (filterSource !== "all") {
+      filtered = filtered.filter((student) => student.source === filterSource);
+    }
+
+    setFilteredStudents(filtered);
+  };
+
+  const handleSelectStudent = (studentId: string) => {
+    setSelectedStudents((prev) => {
       if (prev.includes(studentId)) {
-        return prev.filter(id => id !== studentId);
+        return prev.filter((id) => id !== studentId);
       } else {
         return [...prev, studentId];
       }
@@ -227,65 +226,102 @@ const HODStudents = () => {
   };
 
   const handleSelectAll = () => {
-    if (selectedStudents.length === filteredAndSortedStudents.length) {
+    if (selectedStudents.length === filteredStudents.length) {
       setSelectedStudents([]);
     } else {
-      setSelectedStudents(filteredAndSortedStudents.map(student => student.id));
+      setSelectedStudents(filteredStudents.map((student) => student.id));
     }
   };
 
   const handleSendBulkMessage = () => {
-    if (!bulkMessage.title || !bulkMessage.message || selectedStudents.length === 0) return;
-    
-    // Simulate sending message
-    console.log("Sending message to", selectedStudents.length, "students");
-    console.log("Message:", bulkMessage);
-    
+    if (
+      !bulkMessage.title ||
+      !bulkMessage.message ||
+      selectedStudents.length === 0
+    ) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all fields and select students",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Save message to localStorage
+    const messages = JSON.parse(localStorage.getItem("hodMessages") || "[]");
+    const newMessage = {
+      id: Date.now().toString(),
+      ...bulkMessage,
+      recipients: selectedStudents,
+      sentDate: new Date().toISOString(),
+      sentBy: "HOD",
+    };
+
+    messages.unshift(newMessage);
+    localStorage.setItem("hodMessages", JSON.stringify(messages));
+
+    toast({
+      title: "Message Sent",
+      description: `Message sent to ${selectedStudents.length} students`,
+    });
+
     setShowBulkMessageDialog(false);
-    setBulkMessage({ title: "", message: "", type: "General", sendToParents: false });
+    setBulkMessage({ title: "", message: "", type: "General" });
     setSelectedStudents([]);
   };
 
-  const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'at risk':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'inactive':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  const getPerformanceStatus = (student: Student) => {
+    const cgpa = student.cgpa || 0;
+    const attendance = student.attendance || 0;
+
+    if (cgpa >= 8.5 && attendance >= 85)
+      return { label: "Excellent", color: "bg-green-100 text-green-800" };
+    if (cgpa >= 7.5 && attendance >= 75)
+      return { label: "Good", color: "bg-blue-100 text-blue-800" };
+    return { label: "Needs Attention", color: "bg-red-100 text-red-800" };
   };
 
-  const getPerformanceColor = (performance) => {
-    switch (performance.toLowerCase()) {
-      case 'outstanding':
-        return 'bg-purple-100 text-purple-800';
-      case 'excellent':
-        return 'bg-green-100 text-green-800';
-      case 'very good':
-        return 'bg-blue-100 text-blue-800';
-      case 'good':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'needs improvement':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  const years = Array.from(new Set(students.map((s) => s.year))).filter(
+    Boolean,
+  );
 
   // Calculate analytics
   const analytics = {
     totalStudents: students.length,
-    activeStudents: students.filter(s => s.status === "Active").length,
-    atRiskStudents: students.filter(s => s.status === "At Risk").length,
-    averageCGPA: (students.reduce((acc, s) => acc + s.cgpa, 0) / students.length).toFixed(2),
-    averageAttendance: (students.reduce((acc, s) => acc + s.attendance, 0) / students.length).toFixed(1),
-    excellentPerformers: students.filter(s => s.cgpa >= 9.0).length,
-    needsAttention: students.filter(s => s.attendance < 75 || s.warnings > 1).length
+    excellentPerformers: students.filter(
+      (s) => (s.cgpa || 0) >= 8.5 && (s.attendance || 0) >= 85,
+    ).length,
+    needsAttention: students.filter(
+      (s) => (s.cgpa || 0) < 7.5 || (s.attendance || 0) < 75,
+    ).length,
+    averageCGPA:
+      students.length > 0
+        ? (
+            students.reduce((sum, s) => sum + (s.cgpa || 0), 0) /
+            students.length
+          ).toFixed(2)
+        : "0.00",
+    averageAttendance:
+      students.length > 0
+        ? (
+            students.reduce((sum, s) => sum + (s.attendance || 0), 0) /
+            students.length
+          ).toFixed(1)
+        : "0.0",
   };
+
+  if (loading) {
+    return (
+      <DashboardLayout userType="hod" userName="Dr. Raj Kumar">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+            <p className="mt-4 text-gray-600">Loading students...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout userType="hod" userName="Dr. Raj Kumar">
@@ -293,17 +329,12 @@ const HODStudents = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">All Students Overview</h1>
-            <p className="text-gray-600">Complete student database with advanced filtering and analytics</p>
+            <h1 className="text-2xl font-bold text-gray-900">All Students</h1>
+            <p className="text-gray-600">
+              Department student database and management
+            </p>
           </div>
           <div className="flex space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowAnalyticsDialog(true)}
-            >
-              <PieChart className="h-4 w-4 mr-2" />
-              Analytics
-            </Button>
             <Button
               disabled={selectedStudents.length === 0}
               onClick={() => setShowBulkMessageDialog(true)}
@@ -315,57 +346,73 @@ const HODStudents = () => {
           </div>
         </div>
 
-        {/* Quick Analytics Cards */}
+        {/* Analytics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Students
+              </CardTitle>
               <Users className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{analytics.totalStudents}</div>
-              <p className="text-xs text-muted-foreground">{analytics.activeStudents} active</p>
+              <div className="text-2xl font-bold">
+                {analytics.totalStudents}
+              </div>
+              <p className="text-xs text-muted-foreground">All registered</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Average CGPA</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Average CGPA
+              </CardTitle>
               <TrendingUp className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{analytics.averageCGPA}</div>
-              <p className="text-xs text-muted-foreground">{analytics.excellentPerformers} excellent performers</p>
+              <p className="text-xs text-muted-foreground">
+                {analytics.excellentPerformers} excellent
+              </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Attendance</CardTitle>
               <Calendar className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{analytics.averageAttendance}%</div>
-              <p className="text-xs text-muted-foreground">Department average</p>
+              <div className="text-2xl font-bold">
+                {analytics.averageAttendance}%
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Department average
+              </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Needs Attention</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Needs Attention
+              </CardTitle>
               <AlertTriangle className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{analytics.needsAttention}</div>
-              <p className="text-xs text-muted-foreground">{analytics.atRiskStudents} at risk</p>
+              <div className="text-2xl font-bold">
+                {analytics.needsAttention}
+              </div>
+              <p className="text-xs text-muted-foreground">Requires support</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Advanced Filters */}
+        {/* Filters */}
         <Card>
           <CardContent className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
@@ -375,78 +422,52 @@ const HODStudents = () => {
                   className="pl-10"
                 />
               </div>
-              
+
               <Select value={filterYear} onValueChange={setFilterYear}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Year" />
+                  <SelectValue placeholder="All Years" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Years</SelectItem>
-                  {years.map(year => (
-                    <SelectItem key={year} value={year}>{year}</SelectItem>
+                  {years.map((year) => (
+                    <SelectItem key={year} value={year}>
+                      {year}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
 
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder="All Performance" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="At Risk">At Risk</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
+                  <SelectItem value="all">All Performance</SelectItem>
+                  <SelectItem value="excellent">Excellent</SelectItem>
+                  <SelectItem value="good">Good</SelectItem>
+                  <SelectItem value="needs_attention">
+                    Needs Attention
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
-              <Select value={filterCGPA} onValueChange={setFilterCGPA}>
+              <Select value={filterSource} onValueChange={setFilterSource}>
                 <SelectTrigger>
-                  <SelectValue placeholder="CGPA" />
+                  <SelectValue placeholder="All Sources" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All CGPA</SelectItem>
-                  <SelectItem value="excellent">Excellent (9.0+)</SelectItem>
-                  <SelectItem value="good">Good (8.0-8.9)</SelectItem>
-                  <SelectItem value="average">Average (7.0-7.9)</SelectItem>
-                  <SelectItem value="below_average">Below Average (&lt;7.0)</SelectItem>
+                  <SelectItem value="all">All Students</SelectItem>
+                  <SelectItem value="registered">Registered Only</SelectItem>
+                  <SelectItem value="department_database">
+                    Department DB
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
-              <Select value={filterAttendance} onValueChange={setFilterAttendance}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Attendance" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Attendance</SelectItem>
-                  <SelectItem value="excellent">Excellent (90%+)</SelectItem>
-                  <SelectItem value="good">Good (80-89%)</SelectItem>
-                  <SelectItem value="average">Average (75-79%)</SelectItem>
-                  <SelectItem value="poor">Poor (&lt;75%)</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="name">Name</SelectItem>
-                  <SelectItem value="cgpa">CGPA</SelectItem>
-                  <SelectItem value="attendance">Attendance</SelectItem>
-                  <SelectItem value="hallTicket">Hall Ticket</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={sortOrder} onValueChange={setSortOrder}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Order" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="asc">Ascending</SelectItem>
-                  <SelectItem value="desc">Descending</SelectItem>
-                </SelectContent>
-              </Select>
+              <Button variant="outline">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -457,8 +478,12 @@ const HODStudents = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <Badge variant="secondary">{selectedStudents.length} selected</Badge>
-                  <span className="text-sm text-gray-600">Bulk actions available</span>
+                  <Badge variant="secondary">
+                    {selectedStudents.length} selected
+                  </Badge>
+                  <span className="text-sm text-gray-600">
+                    Bulk actions available
+                  </span>
                 </div>
                 <div className="flex space-x-2">
                   <Button
@@ -468,20 +493,6 @@ const HODStudents = () => {
                   >
                     <MessageCircle className="h-4 w-4 mr-1" />
                     Send Message
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                  >
-                    <Bell className="h-4 w-4 mr-1" />
-                    Send Notification
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                  >
-                    <Download className="h-4 w-4 mr-1" />
-                    Export Data
                   </Button>
                   <Button
                     size="sm"
@@ -503,284 +514,230 @@ const HODStudents = () => {
               <div>
                 <CardTitle>Students Database</CardTitle>
                 <CardDescription>
-                  Showing {filteredAndSortedStudents.length} of {students.length} students
+                  Showing {filteredStudents.length} of {students.length}{" "}
+                  students
                 </CardDescription>
-              </div>
-              <div className="flex space-x-2">
-                <Button variant="outline" size="sm">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Import
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Export
-                </Button>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <input
-                      type="checkbox"
-                      checked={selectedStudents.length === filteredAndSortedStudents.length && filteredAndSortedStudents.length > 0}
-                      onChange={handleSelectAll}
-                    />
-                  </TableHead>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Academic</TableHead>
-                  <TableHead>Performance</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Mentor</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredAndSortedStudents.map((student) => (
-                  <TableRow 
-                    key={student.id}
-                    className={selectedStudents.includes(student.id) ? "bg-purple-50" : ""}
-                  >
-                    <TableCell>
+            {filteredStudents.length === 0 ? (
+              <div className="text-center py-12">
+                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No students found
+                </h3>
+                <p className="text-gray-600">
+                  Try adjusting your search criteria.
+                </p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">
                       <input
                         type="checkbox"
-                        checked={selectedStudents.includes(student.id)}
-                        onChange={() => handleSelectStudent(student.id)}
+                        checked={
+                          selectedStudents.length === filteredStudents.length &&
+                          filteredStudents.length > 0
+                        }
+                        onChange={handleSelectAll}
                       />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                          <GraduationCap className="h-4 w-4 text-gray-500" />
-                        </div>
-                        <div>
-                          <div className="font-medium">{student.name}</div>
-                          <div className="text-sm text-gray-600">{student.hallTicket}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="text-sm">{student.year} - {student.semester}</div>
-                        <div className="text-xs text-gray-600">{student.branch}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-2">
-                          <Badge variant={student.cgpa >= 8.5 ? "default" : student.cgpa >= 7.5 ? "secondary" : "outline"}>
-                            CGPA: {student.cgpa}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="text-sm">Attendance: {student.attendance}%</div>
-                          <div className={`w-2 h-2 rounded-full ${student.attendance >= 75 ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                        </div>
-                        <Badge className={getPerformanceColor(student.performance)} size="sm">
-                          {student.performance}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm space-y-1">
-                        <div className="flex items-center space-x-1">
-                          <Mail className="h-3 w-3 text-gray-400" />
-                          <span className="truncate max-w-32">{student.email}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Phone className="h-3 w-3 text-gray-400" />
-                          <span>{student.phone}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <MapPin className="h-3 w-3 text-gray-400" />
-                          <span className="truncate max-w-32">{student.address}</span>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <Badge className={getStatusColor(student.status)}>
-                          {student.status}
-                        </Badge>
-                        {student.warnings > 0 && (
-                          <div className="flex items-center space-x-1">
-                            <AlertTriangle className="h-3 w-3 text-orange-500" />
-                            <span className="text-xs text-orange-600">{student.warnings} warnings</span>
-                          </div>
-                        )}
-                        {student.achievements.length > 0 && (
-                          <div className="flex items-center space-x-1">
-                            <Award className="h-3 w-3 text-yellow-500" />
-                            <span className="text-xs text-yellow-600">{student.achievements.length} achievements</span>
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-600">{student.mentor}</div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
-                          onClick={() => {
-                            setSelectedStudent(student);
-                            setShowStudentDialog(true);
-                          }}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost">
-                          <MessageCircle className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+                    </TableHead>
+                    <TableHead>Student</TableHead>
+                    <TableHead>Academic</TableHead>
+                    <TableHead>Performance</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredStudents.map((student) => {
+                    const performance = getPerformanceStatus(student);
+                    return (
+                      <TableRow
+                        key={student.id}
+                        className={
+                          selectedStudents.includes(student.id)
+                            ? "bg-purple-50"
+                            : ""
+                        }
+                      >
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            checked={selectedStudents.includes(student.id)}
+                            onChange={() => handleSelectStudent(student.id)}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <div
+                              className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                student.source === "registered"
+                                  ? "bg-green-100"
+                                  : "bg-blue-100"
+                              }`}
+                            >
+                              <GraduationCap
+                                className={`h-4 w-4 ${
+                                  student.source === "registered"
+                                    ? "text-green-600"
+                                    : "text-blue-600"
+                                }`}
+                              />
+                            </div>
+                            <div>
+                              <div className="font-medium">
+                                {student.name || student.fullName}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                {student.hallTicket}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {student.source === "registered"
+                                  ? "Registered"
+                                  : "Department DB"}
+                              </div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="text-sm">{student.year}</div>
+                            <div className="text-xs text-gray-600">
+                              {student.semester || "N/A"}
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              {student.branch || "AI & DS"}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="flex items-center space-x-2">
+                              <Badge
+                                variant={
+                                  student.cgpa >= 8.5
+                                    ? "default"
+                                    : student.cgpa >= 7.5
+                                      ? "secondary"
+                                      : "outline"
+                                }
+                              >
+                                CGPA: {student.cgpa || "N/A"}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <div className="text-sm">
+                                Attendance: {student.attendance || 0}%
+                              </div>
+                              <div
+                                className={`w-2 h-2 rounded-full ${(student.attendance || 0) >= 75 ? "bg-green-500" : "bg-red-500"}`}
+                              ></div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm space-y-1">
+                            <div className="flex items-center space-x-1">
+                              <Mail className="h-3 w-3 text-gray-400" />
+                              <span className="truncate max-w-32">
+                                {student.email || "N/A"}
+                              </span>
+                            </div>
+                            {student.phone && (
+                              <div className="flex items-center space-x-1">
+                                <Phone className="h-3 w-3 text-gray-400" />
+                                <span>{student.phone}</span>
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={performance.color}>
+                            {performance.label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => {
+                                setSelectedStudent(student);
+                                setShowStudentDialog(true);
+                              }}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="ghost">
+                              <MessageCircle className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
 
         {/* Student Details Dialog */}
         {selectedStudent && (
           <Dialog open={showStudentDialog} onOpenChange={setShowStudentDialog}>
-            <DialogContent className="max-w-4xl">
+            <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>{selectedStudent.name} - Detailed Analysis</DialogTitle>
-                <DialogDescription>Comprehensive student profile and performance metrics</DialogDescription>
+                <DialogTitle>
+                  {selectedStudent.name || selectedStudent.fullName}
+                </DialogTitle>
+                <DialogDescription>
+                  Student details and performance metrics
+                </DialogDescription>
               </DialogHeader>
-              <div className="space-y-6">
-                {/* Student Info Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <Label className="text-sm font-medium">Hall Ticket</Label>
-                    <p className="text-sm text-gray-900">{selectedStudent.hallTicket}</p>
+                    <strong>Hall Ticket:</strong> {selectedStudent.hallTicket}
                   </div>
                   <div>
-                    <Label className="text-sm font-medium">Year/Semester</Label>
-                    <p className="text-sm text-gray-900">{selectedStudent.year} - {selectedStudent.semester}</p>
+                    <strong>Year:</strong> {selectedStudent.year}
                   </div>
                   <div>
-                    <Label className="text-sm font-medium">Branch</Label>
-                    <p className="text-sm text-gray-900">{selectedStudent.branch}</p>
+                    <strong>Semester:</strong>{" "}
+                    {selectedStudent.semester || "N/A"}
                   </div>
                   <div>
-                    <Label className="text-sm font-medium">Mentor</Label>
-                    <p className="text-sm text-gray-900">{selectedStudent.mentor}</p>
-                  </div>
-                </div>
-
-                {/* Performance Metrics */}
-                <div className="grid grid-cols-3 gap-4">
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-green-600">{selectedStudent.cgpa}</div>
-                      <div className="text-sm text-gray-600">CGPA</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-blue-600">{selectedStudent.attendance}%</div>
-                      <div className="text-sm text-gray-600">Attendance</div>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardContent className="p-4 text-center">
-                      <div className="text-2xl font-bold text-purple-600">{selectedStudent.achievements.length}</div>
-                      <div className="text-sm text-gray-600">Achievements</div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Contact Information */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium">Contact Information</Label>
-                    <div className="space-y-2 mt-2">
-                      <div className="flex items-center space-x-2">
-                        <Mail className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm">{selectedStudent.email}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Phone className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm">{selectedStudent.phone}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm">{selectedStudent.address}</span>
-                      </div>
-                    </div>
+                    <strong>Branch:</strong>{" "}
+                    {selectedStudent.branch || "AI & DS"}
                   </div>
                   <div>
-                    <Label className="text-sm font-medium">Parent Contact</Label>
-                    <div className="mt-2">
-                      <div className="flex items-center space-x-2">
-                        <Phone className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm">{selectedStudent.parentContact}</span>
-                      </div>
-                    </div>
+                    <strong>Email:</strong> {selectedStudent.email || "N/A"}
                   </div>
-                </div>
-
-                {/* Subjects */}
-                <div>
-                  <Label className="text-sm font-medium">Current Subjects</Label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {selectedStudent.subjects.map((subject, index) => (
-                      <Badge key={index} variant="outline">{subject}</Badge>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Achievements */}
-                {selectedStudent.achievements.length > 0 && (
                   <div>
-                    <Label className="text-sm font-medium">Achievements</Label>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {selectedStudent.achievements.map((achievement, index) => (
-                        <Badge key={index} className="bg-yellow-100 text-yellow-800">
-                          <Award className="h-3 w-3 mr-1" />
-                          {achievement}
-                        </Badge>
-                      ))}
-                    </div>
+                    <strong>Phone:</strong> {selectedStudent.phone || "N/A"}
                   </div>
-                )}
-
-                {/* Status and Warnings */}
-                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-sm font-medium">Status</Label>
-                    <div className="mt-2">
-                      <Badge className={getStatusColor(selectedStudent.status)}>
-                        {selectedStudent.status}
-                      </Badge>
-                    </div>
+                    <strong>CGPA:</strong> {selectedStudent.cgpa || "N/A"}
                   </div>
-                  {selectedStudent.warnings > 0 && (
-                    <div>
-                      <Label className="text-sm font-medium">Warnings</Label>
-                      <div className="mt-2">
-                        <Badge variant="destructive">
-                          {selectedStudent.warnings} warnings issued
-                        </Badge>
-                      </div>
-                    </div>
-                  )}
+                  <div>
+                    <strong>Attendance:</strong>{" "}
+                    {selectedStudent.attendance || 0}%
+                  </div>
                 </div>
 
                 <div className="flex justify-end space-x-2">
                   <Button variant="outline">Send Message</Button>
-                  <Button variant="outline">Edit Profile</Button>
-                  <Button variant="outline" onClick={() => setShowStudentDialog(false)}>Close</Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowStudentDialog(false)}
+                  >
+                    Close
+                  </Button>
                 </div>
               </div>
             </DialogContent>
@@ -788,7 +745,10 @@ const HODStudents = () => {
         )}
 
         {/* Bulk Message Dialog */}
-        <Dialog open={showBulkMessageDialog} onOpenChange={setShowBulkMessageDialog}>
+        <Dialog
+          open={showBulkMessageDialog}
+          onOpenChange={setShowBulkMessageDialog}
+        >
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Send Bulk Message</DialogTitle>
@@ -801,21 +761,32 @@ const HODStudents = () => {
                 <Label>Message Title</Label>
                 <Input
                   value={bulkMessage.title}
-                  onChange={(e) => setBulkMessage(prev => ({ ...prev, title: e.target.value }))}
+                  onChange={(e) =>
+                    setBulkMessage((prev) => ({
+                      ...prev,
+                      title: e.target.value,
+                    }))
+                  }
                   placeholder="Important Announcement"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label>Message Type</Label>
-                <Select value={bulkMessage.type} onValueChange={(value) => setBulkMessage(prev => ({ ...prev, type: value }))}>
+                <Select
+                  value={bulkMessage.type}
+                  onValueChange={(value) =>
+                    setBulkMessage((prev) => ({ ...prev, type: value }))
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {messageTypes.map(type => (
-                      <SelectItem key={type} value={type}>{type}</SelectItem>
-                    ))}
+                    <SelectItem value="General">General</SelectItem>
+                    <SelectItem value="Academic">Academic</SelectItem>
+                    <SelectItem value="Alert">Alert</SelectItem>
+                    <SelectItem value="Warning">Warning</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -824,127 +795,27 @@ const HODStudents = () => {
                 <Label>Message Content</Label>
                 <Textarea
                   value={bulkMessage.message}
-                  onChange={(e) => setBulkMessage(prev => ({ ...prev, message: e.target.value }))}
+                  onChange={(e) =>
+                    setBulkMessage((prev) => ({
+                      ...prev,
+                      message: e.target.value,
+                    }))
+                  }
                   placeholder="Enter your message here..."
                   rows={5}
                 />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="sendToParents"
-                  checked={bulkMessage.sendToParents}
-                  onChange={(e) => setBulkMessage(prev => ({ ...prev, sendToParents: e.target.checked }))}
-                />
-                <Label htmlFor="sendToParents">Also send to parents</Label>
               </div>
 
               <div className="flex space-x-2">
                 <Button onClick={handleSendBulkMessage} className="flex-1">
                   Send Message
                 </Button>
-                <Button variant="outline" onClick={() => setShowBulkMessageDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowBulkMessageDialog(false)}
+                >
                   Cancel
                 </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Analytics Dialog */}
-        <Dialog open={showAnalyticsDialog} onOpenChange={setShowAnalyticsDialog}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Department Analytics Dashboard</DialogTitle>
-              <DialogDescription>Overall department performance metrics and insights</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-6">
-              {/* Key Metrics */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Card>
-                  <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-blue-600">{analytics.totalStudents}</div>
-                    <div className="text-sm text-gray-600">Total Students</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-green-600">{analytics.averageCGPA}</div>
-                    <div className="text-sm text-gray-600">Average CGPA</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-purple-600">{analytics.averageAttendance}%</div>
-                    <div className="text-sm text-gray-600">Average Attendance</div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4 text-center">
-                    <div className="text-2xl font-bold text-orange-600">{analytics.needsAttention}</div>
-                    <div className="text-sm text-gray-600">Need Attention</div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Performance Distribution */}
-              <div className="grid grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">CGPA Distribution</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Excellent (9.0+)</span>
-                        <Badge variant="default">{students.filter(s => s.cgpa >= 9.0).length}</Badge>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Good (8.0-8.9)</span>
-                        <Badge variant="secondary">{students.filter(s => s.cgpa >= 8.0 && s.cgpa < 9.0).length}</Badge>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Average (7.0-7.9)</span>
-                        <Badge variant="outline">{students.filter(s => s.cgpa >= 7.0 && s.cgpa < 8.0).length}</Badge>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Below Average (&lt;7.0)</span>
-                        <Badge variant="destructive">{students.filter(s => s.cgpa < 7.0).length}</Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Attendance Distribution</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Excellent (90%+)</span>
-                        <Badge variant="default">{students.filter(s => s.attendance >= 90).length}</Badge>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Good (80-89%)</span>
-                        <Badge variant="secondary">{students.filter(s => s.attendance >= 80 && s.attendance < 90).length}</Badge>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Average (75-79%)</span>
-                        <Badge variant="outline">{students.filter(s => s.attendance >= 75 && s.attendance < 80).length}</Badge>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm">Poor (&lt;75%)</span>
-                        <Badge variant="destructive">{students.filter(s => s.attendance < 75).length}</Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <div className="flex justify-end">
-                <Button variant="outline" onClick={() => setShowAnalyticsDialog(false)}>Close</Button>
               </div>
             </div>
           </DialogContent>

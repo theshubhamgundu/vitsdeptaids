@@ -12,7 +12,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { profilePhotoService } from "@/services/profilePhotoService";
 import { Camera, Edit, Save, X, User } from "lucide-react";
 
 interface StudentData {
@@ -49,21 +51,47 @@ const StudentProfile = () => {
   });
 
   useEffect(() => {
-    // Get current user from localStorage
-    const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
-    setStudentData(currentUser);
+    const loadStudentData = async () => {
+      // Get current user from localStorage
+      const currentUser = JSON.parse(
+        localStorage.getItem("currentUser") || "{}",
+      );
+      setStudentData(currentUser);
 
-    // Initialize profile data with actual user data
-    if (currentUser) {
-      setProfileData((prev) => ({
-        ...prev,
-        fullName: currentUser.name || "",
-        hallTicket: currentUser.hallTicket || "",
-        email: currentUser.email || "",
-        year: currentUser.year || "",
-        section: currentUser.section || "",
-      }));
-    }
+      // Initialize profile data with actual user data
+      if (currentUser && currentUser.id) {
+        setProfileData((prev) => ({
+          ...prev,
+          fullName: currentUser.name || "",
+          hallTicket: currentUser.hallTicket || "",
+          email: currentUser.email || "",
+          phone: currentUser.phone || "",
+          year: currentUser.year || "",
+          section: currentUser.section || "",
+          admissionDate: currentUser.createdAt
+            ? new Date(currentUser.createdAt).toISOString().split("T")[0]
+            : "",
+        }));
+
+        // Load profile photo
+        try {
+          const photoUrl = await profilePhotoService.getProfilePhotoUrl(
+            currentUser.id,
+            "student",
+          );
+          if (photoUrl) {
+            setProfileData((prev) => ({
+              ...prev,
+              profilePhoto: photoUrl,
+            }));
+          }
+        } catch (error) {
+          console.warn("Could not load profile photo:", error);
+        }
+      }
+    };
+
+    loadStudentData();
   }, []);
 
   const handleSave = () => {
@@ -73,11 +101,24 @@ const StudentProfile = () => {
         ...studentData,
         name: profileData.fullName,
         email: profileData.email,
+        phone: profileData.phone,
         year: profileData.year,
         section: profileData.section,
       };
 
+      // Update currentUser
       localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+
+      // Also update the localUsers array if the user exists there
+      const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
+      const userIndex = localUsers.findIndex(
+        (user: any) => user.id === studentData.id,
+      );
+      if (userIndex !== -1) {
+        localUsers[userIndex] = { ...localUsers[userIndex], ...updatedUser };
+        localStorage.setItem("localUsers", JSON.stringify(localUsers));
+      }
+
       setStudentData(updatedUser);
     }
 
@@ -85,17 +126,51 @@ const StudentProfile = () => {
     alert("Profile updated successfully!");
   };
 
-  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const { toast } = useToast();
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handlePhotoUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
+    if (!file || !studentData) return;
+
+    setIsUploading(true);
+    try {
+      const result = await profilePhotoService.uploadProfilePhoto(
+        studentData.id,
+        file,
+        "student",
+      );
+
+      if (result.success && result.photoUrl) {
         setProfileData((prev) => ({
           ...prev,
-          profilePhoto: e.target?.result as string,
+          profilePhoto: result.photoUrl,
         }));
-      };
-      reader.readAsDataURL(file);
+
+        toast({
+          title: "Profile Photo Updated",
+          description: result.isLocalStorage
+            ? "Photo saved locally (database not available)"
+            : "Photo uploaded successfully",
+        });
+      } else {
+        toast({
+          title: "Upload Failed",
+          description: result.error || "Failed to upload photo",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Photo upload error:", error);
+      toast({
+        title: "Upload Error",
+        description: "An error occurred while uploading the photo",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -293,36 +368,7 @@ const StudentProfile = () => {
                   placeholder="Enter your phone number"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="dob">Date of Birth</Label>
-                <Input
-                  id="dob"
-                  type="date"
-                  value={profileData.dateOfBirth}
-                  disabled={!isEditing}
-                  onChange={(e) =>
-                    setProfileData((prev) => ({
-                      ...prev,
-                      dateOfBirth: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="bloodGroup">Blood Group</Label>
-                <Input
-                  id="bloodGroup"
-                  value={profileData.bloodGroup}
-                  disabled={!isEditing}
-                  onChange={(e) =>
-                    setProfileData((prev) => ({
-                      ...prev,
-                      bloodGroup: e.target.value,
-                    }))
-                  }
-                  placeholder="Enter your blood group"
-                />
-              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="emergencyContact">Emergency Contact</Label>
                 <Input

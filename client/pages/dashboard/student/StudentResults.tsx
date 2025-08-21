@@ -1,17 +1,15 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -29,620 +27,407 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { resultsService, StudentResult, StudentPerformance } from "@/services/resultsService";
 import {
-  BarChart3,
+  BarChart,
   TrendingUp,
-  TrendingDown,
   Award,
+  Calendar,
+  FileText,
+  Search,
+  Filter,
   Download,
   Eye,
-  Search,
-  Calendar,
-  BookOpen,
+  GraduationCap,
   Target,
-  Star,
-  ChevronRight,
-  FileText,
-  Calculator
+  Trophy,
+  BookOpen
 } from "lucide-react";
 
 const StudentResults = () => {
-  const [studentData] = useState({
-    name: "Rahul Sharma",
-    hallTicket: "20AI001",
-    year: "3rd Year",
-    semester: "6th Semester",
-    branch: "AI & DS",
-    currentCGPA: 8.45,
-    currentSGPA: 8.72
-  });
-
-  const [semesterResults, setSemesterResults] = useState([
-    {
-      semester: "6th Semester",
-      sgpa: 8.72,
-      cgpa: 8.45,
-      credits: 22,
-      status: "Current",
-      subjects: [
-        { code: "AI601", name: "Machine Learning", credits: 4, internal: 85, external: 78, total: 163, maxMarks: 200, grade: "A", result: "Pass" },
-        { code: "AI602", name: "Deep Learning", credits: 4, internal: 92, external: 85, total: 177, maxMarks: 200, grade: "A+", result: "Pass" },
-        { code: "AI603", name: "Data Science", credits: 4, internal: 88, external: 82, total: 170, maxMarks: 200, grade: "A", result: "Pass" },
-        { code: "AI604", name: "Computer Vision", credits: 3, internal: 80, external: 75, total: 155, maxMarks: 200, grade: "B+", result: "Pass" },
-        { code: "AI605", name: "Natural Language Processing", credits: 3, internal: 87, external: 80, total: 167, maxMarks: 200, grade: "A", result: "Pass" },
-        { code: "AI606", name: "AI Lab", credits: 2, internal: 95, external: 90, total: 185, maxMarks: 200, grade: "A+", result: "Pass" },
-        { code: "AI607", name: "Project Work", credits: 2, internal: 88, external: 85, total: 173, maxMarks: 200, grade: "A", result: "Pass" }
-      ]
-    },
-    {
-      semester: "5th Semester",
-      sgpa: 8.34,
-      cgpa: 8.28,
-      credits: 22,
-      status: "Completed",
-      subjects: [
-        { code: "AI501", name: "Artificial Intelligence", credits: 4, internal: 82, external: 76, total: 158, maxMarks: 200, grade: "A", result: "Pass" },
-        { code: "AI502", name: "Database Management Systems", credits: 4, internal: 85, external: 78, total: 163, maxMarks: 200, grade: "A", result: "Pass" },
-        { code: "AI503", name: "Software Engineering", credits: 4, internal: 88, external: 80, total: 168, maxMarks: 200, grade: "A", result: "Pass" },
-        { code: "AI504", name: "Web Technologies", credits: 3, internal: 78, external: 72, total: 150, maxMarks: 200, grade: "B+", result: "Pass" },
-        { code: "AI505", name: "Operating Systems", credits: 3, internal: 83, external: 77, total: 160, maxMarks: 200, grade: "A", result: "Pass" },
-        { code: "AI506", name: "Programming Lab", credits: 2, internal: 90, external: 88, total: 178, maxMarks: 200, grade: "A+", result: "Pass" },
-        { code: "AI507", name: "Seminar", credits: 2, internal: 85, external: 82, total: 167, maxMarks: 200, grade: "A", result: "Pass" }
-      ]
-    },
-    {
-      semester: "4th Semester",
-      sgpa: 8.56,
-      cgpa: 8.15,
-      credits: 21,
-      status: "Completed",
-      subjects: [
-        { code: "CS401", name: "Data Structures", credits: 4, internal: 90, external: 84, total: 174, maxMarks: 200, grade: "A+", result: "Pass" },
-        { code: "CS402", name: "Algorithms", credits: 4, internal: 87, external: 81, total: 168, maxMarks: 200, grade: "A", result: "Pass" },
-        { code: "CS403", name: "Computer Networks", credits: 4, internal: 85, external: 79, total: 164, maxMarks: 200, grade: "A", result: "Pass" },
-        { code: "CS404", name: "Theory of Computation", credits: 3, internal: 82, external: 75, total: 157, maxMarks: 200, grade: "A", result: "Pass" },
-        { code: "CS405", name: "Microprocessors", credits: 3, internal: 80, external: 74, total: 154, maxMarks: 200, grade: "B+", result: "Pass" },
-        { code: "CS406", name: "Programming Lab", credits: 2, internal: 92, external: 90, total: 182, maxMarks: 200, grade: "A+", result: "Pass" },
-        { code: "HS407", name: "Technical Communication", credits: 1, internal: 88, external: 85, total: 173, maxMarks: 200, grade: "A", result: "Pass" }
-      ]
-    }
-  ]);
-
-  const [selectedSemester, setSelectedSemester] = useState("6th Semester");
-  const [showDetailDialog, setShowDetailDialog] = useState(false);
-  const [selectedSubject, setSelectedSubject] = useState(null);
+  const { user } = useAuth();
+  const [performance, setPerformance] = useState<StudentPerformance | null>(null);
+  const [filteredResults, setFilteredResults] = useState<StudentResult[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState("all");
+  const [selectedExamType, setSelectedExamType] = useState("all");
+  const [selectedSemester, setSelectedSemester] = useState("all");
 
-  const currentSemesterData = semesterResults.find(sem => sem.semester === selectedSemester);
+  useEffect(() => {
+    loadResults();
+    // Initialize demo data
+    resultsService.initializeDemoData();
+  }, [user]);
 
-  const getGradeColor = (grade) => {
+  useEffect(() => {
+    filterResults();
+  }, [performance, searchTerm, selectedSubject, selectedExamType, selectedSemester]);
+
+  const loadResults = () => {
+    if (!user?.id) return;
+
+    setLoading(true);
+    try {
+      const studentPerformance = resultsService.getStudentPerformance(user.id);
+      setPerformance(studentPerformance);
+    } catch (error) {
+      console.error('Error loading results:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterResults = () => {
+    if (!performance) return;
+
+    let filtered = performance.results;
+
+    if (searchTerm) {
+      filtered = filtered.filter(result =>
+        result.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        result.examType.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (selectedSubject !== "all") {
+      filtered = filtered.filter(result => result.subject === selectedSubject);
+    }
+
+    if (selectedExamType !== "all") {
+      filtered = filtered.filter(result => result.examType === selectedExamType);
+    }
+
+    if (selectedSemester !== "all") {
+      filtered = filtered.filter(result => result.semester === selectedSemester);
+    }
+
+    setFilteredResults(filtered);
+  };
+
+  const getGradeColor = (grade: string) => {
     switch (grade) {
       case 'A+':
-        return 'bg-green-100 text-green-800';
       case 'A':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-green-100 text-green-800';
       case 'B+':
-        return 'bg-yellow-100 text-yellow-800';
       case 'B':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-blue-100 text-blue-800';
       case 'C':
-        return 'bg-red-100 text-red-800';
+        return 'bg-yellow-100 text-yellow-800';
+      case 'D':
+        return 'bg-orange-100 text-orange-800';
       case 'F':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getResultColor = (result) => {
-    return result === "Pass" ? 'text-green-600' : 'text-red-600';
+  const getPerformanceColor = (percentage: number) => {
+    if (percentage >= 90) return 'text-green-600';
+    if (percentage >= 80) return 'text-blue-600';
+    if (percentage >= 70) return 'text-yellow-600';
+    if (percentage >= 60) return 'text-orange-600';
+    return 'text-red-600';
   };
 
-  const cgpaHistory = semesterResults.map(sem => ({
-    semester: sem.semester,
-    cgpa: sem.cgpa,
-    sgpa: sem.sgpa
-  })).reverse();
+  const getCGPAIcon = (cgpa: number) => {
+    if (cgpa >= 9.0) return <Trophy className="h-5 w-5 text-yellow-500" />;
+    if (cgpa >= 8.0) return <Award className="h-5 w-5 text-blue-500" />;
+    if (cgpa >= 7.0) return <Target className="h-5 w-5 text-green-500" />;
+    return <BookOpen className="h-5 w-5 text-gray-500" />;
+  };
 
-  const totalCredits = semesterResults.reduce((sum, sem) => sum + sem.credits, 0);
-  const totalSubjects = semesterResults.reduce((sum, sem) => sum + sem.subjects.length, 0);
-  const passedSubjects = semesterResults.reduce((sum, sem) => 
-    sum + sem.subjects.filter(sub => sub.result === "Pass").length, 0
-  );
+  if (loading) {
+    return (
+      <DashboardLayout userType="student" userName={user?.name || "Student"}>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+            <p className="mt-4 text-gray-600">Loading your results...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!performance || performance.results.length === 0) {
+    return (
+      <DashboardLayout userType="student" userName={user?.name || "Student"}>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Academic Results</h1>
+            <p className="text-gray-600">View your examination results and academic performance</p>
+          </div>
+          
+          <Card>
+            <CardContent className="text-center py-12">
+              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Results Available</h3>
+              <p className="text-gray-600">Your examination results will appear here once they are published by faculty.</p>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const subjects = Array.from(new Set(performance.results.map(r => r.subject)));
+  const examTypes = Array.from(new Set(performance.results.map(r => r.examType)));
+  const semesters = Array.from(new Set(performance.results.map(r => r.semester)));
 
   return (
-    <DashboardLayout userType="student" userName="Rahul Sharma">
+    <DashboardLayout userType="student" userName={user?.name || "Student"}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Academic Results</h1>
-            <p className="text-gray-600">View your semester results and academic performance</p>
+            <p className="text-gray-600">Track your academic performance and examination results</p>
           </div>
-          <div className="flex space-x-2">
-            <Button variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Download Transcript
-            </Button>
-          </div>
+          <Badge variant="outline" className="text-lg px-4 py-2">
+            <GraduationCap className="h-4 w-4 mr-2" />
+            CGPA: {performance.overallCGPA}
+          </Badge>
         </div>
 
-        {/* Performance Overview Cards */}
+        {/* Performance Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Current CGPA</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{studentData.currentCGPA}</div>
-              <p className="text-xs text-muted-foreground">Out of 10.0</p>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Overall CGPA</p>
+                  <p className="text-2xl font-bold">{performance.overallCGPA}</p>
+                </div>
+                {getCGPAIcon(performance.overallCGPA)}
+              </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Current SGPA</CardTitle>
-              <Target className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{studentData.currentSGPA}</div>
-              <p className="text-xs text-muted-foreground">This semester</p>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Current Semester</p>
+                  <p className="text-lg font-bold">{performance.currentSemester}</p>
+                </div>
+                <Calendar className="h-5 w-5 text-blue-600" />
+              </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Credits</CardTitle>
-              <BookOpen className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600">{totalCredits}</div>
-              <p className="text-xs text-muted-foreground">Credits earned</p>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Total Credits</p>
+                  <p className="text-2xl font-bold">{performance.totalCredits}</p>
+                </div>
+                <BookOpen className="h-5 w-5 text-green-600" />
+              </div>
             </CardContent>
           </Card>
           
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Subjects Passed</CardTitle>
-              <Award className="h-4 w-4 text-orange-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{passedSubjects}/{totalSubjects}</div>
-              <p className="text-xs text-muted-foreground">Success rate</p>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Total Exams</p>
+                  <p className="text-2xl font-bold">{performance.results.length}</p>
+                </div>
+                <FileText className="h-5 w-5 text-purple-600" />
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="current" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="current">Current Semester</TabsTrigger>
-            <TabsTrigger value="history">Academic History</TabsTrigger>
-            <TabsTrigger value="analysis">Performance Analysis</TabsTrigger>
-          </TabsList>
+        {/* Subject-wise Performance */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <BarChart className="h-5 w-5" />
+              <span>Subject-wise Performance</span>
+            </CardTitle>
+            <CardDescription>
+              Your performance breakdown by subject
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {performance.subjectWisePerformance.map((subject, index) => (
+                <Card key={index}>
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium text-sm">{subject.subject}</h4>
+                        <Badge className={getGradeColor(subject.grade)}>
+                          {subject.grade}
+                        </Badge>
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {subject.totalMarks}/{subject.maxMarks} marks
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full"
+                          style={{ width: `${subject.percentage}%` }}
+                        />
+                      </div>
+                      <div className={`text-sm font-medium ${getPerformanceColor(subject.percentage)}`}>
+                        {subject.percentage.toFixed(1)}%
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Current Semester Tab */}
-          <TabsContent value="current" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-semibold">6th Semester Results</h2>
-                <p className="text-gray-600">Academic Year 2024-25</p>
+        {/* Filters */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Filter className="h-5 w-5" />
+              <span>Filter Results</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="search">Search</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="search"
+                    placeholder="Search subjects or exam types..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
               </div>
-              <div className="flex items-center space-x-4">
-                <div className="text-right">
-                  <div className="text-sm text-gray-600">SGPA</div>
-                  <div className="text-2xl font-bold text-blue-600">{currentSemesterData?.sgpa}</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm text-gray-600">CGPA</div>
-                  <div className="text-2xl font-bold text-green-600">{currentSemesterData?.cgpa}</div>
-                </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="subject-filter">Subject</Label>
+                <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All subjects" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Subjects</SelectItem>
+                    {subjects.map(subject => (
+                      <SelectItem key={subject} value={subject}>{subject}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="exam-type-filter">Exam Type</Label>
+                <Select value={selectedExamType} onValueChange={setSelectedExamType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All exam types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    {examTypes.map(examType => (
+                      <SelectItem key={examType} value={examType}>{examType}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="semester-filter">Semester</Label>
+                <Select value={selectedSemester} onValueChange={setSelectedSemester}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All semesters" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Semesters</SelectItem>
+                    {semesters.map(semester => (
+                      <SelectItem key={semester} value={semester}>{semester}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Subject-wise Results</CardTitle>
-                <CardDescription>Detailed marks and grades for current semester</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Subject</TableHead>
-                      <TableHead>Credits</TableHead>
-                      <TableHead>Internal</TableHead>
-                      <TableHead>External</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead>Grade</TableHead>
-                      <TableHead>Result</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {currentSemesterData?.subjects.map((subject, index) => (
-                      <TableRow key={index}>
+        {/* Results Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Detailed Results</CardTitle>
+            <CardDescription>
+              Complete list of your examination results ({filteredResults.length} results)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {filteredResults.length === 0 ? (
+              <div className="text-center py-12">
+                <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
+                <p className="text-gray-600">Try adjusting your search criteria or filters.</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Subject</TableHead>
+                    <TableHead>Exam Type</TableHead>
+                    <TableHead>Marks</TableHead>
+                    <TableHead>Percentage</TableHead>
+                    <TableHead>Grade</TableHead>
+                    <TableHead>Exam Date</TableHead>
+                    <TableHead>Semester</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredResults.map((result) => {
+                    const percentage = (result.marks / result.maxMarks) * 100;
+                    return (
+                      <TableRow key={result.id}>
                         <TableCell>
-                          <div>
-                            <div className="font-medium">{subject.name}</div>
-                            <div className="text-sm text-gray-600">{subject.code}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{subject.credits}</TableCell>
-                        <TableCell>{subject.internal}</TableCell>
-                        <TableCell>{subject.external}</TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{subject.total}/{subject.maxMarks}</div>
-                            <div className="text-sm text-gray-600">
-                              {((subject.total / subject.maxMarks) * 100).toFixed(1)}%
-                            </div>
-                          </div>
+                          <div className="font-medium">{result.subject}</div>
                         </TableCell>
                         <TableCell>
-                          <Badge className={getGradeColor(subject.grade)}>
-                            {subject.grade}
+                          <Badge variant="outline">{result.examType}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">
+                            {result.marks}/{result.maxMarks}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className={`font-medium ${getPerformanceColor(percentage)}`}>
+                            {percentage.toFixed(1)}%
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getGradeColor(result.grade)}>
+                            {result.grade}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <span className={getResultColor(subject.result)}>
-                            {subject.result}
-                          </span>
+                          <div className="text-sm">
+                            {new Date(result.examDate).toLocaleDateString()}
+                          </div>
                         </TableCell>
                         <TableCell>
-                          <Button 
-                            size="sm" 
-                            variant="ghost"
-                            onClick={() => {
-                              setSelectedSubject(subject);
-                              setShowDetailDialog(true);
-                            }}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                          <div className="text-sm">{result.semester}</div>
                         </TableCell>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-
-            {/* Grade Distribution */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Grade Distribution</CardTitle>
-                <CardDescription>Current semester performance breakdown</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-6 gap-4">
-                  {['A+', 'A', 'B+', 'B', 'C', 'F'].map(grade => {
-                    const count = currentSemesterData?.subjects.filter(sub => sub.grade === grade).length || 0;
-                    return (
-                      <div key={grade} className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="text-2xl font-bold">{count}</div>
-                        <div className="text-sm text-gray-600">Grade {grade}</div>
-                      </div>
                     );
                   })}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Academic History Tab */}
-          <TabsContent value="history" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Semester-wise Performance</CardTitle>
-                    <CardDescription>Your academic journey across all semesters</CardDescription>
-                  </div>
-                  <Select value={selectedSemester} onValueChange={setSelectedSemester}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {semesterResults.map(sem => (
-                        <SelectItem key={sem.semester} value={sem.semester}>
-                          {sem.semester}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {semesterResults.map((semester, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                          <BookOpen className="h-6 w-6 text-blue-600" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold">{semester.semester}</h3>
-                          <p className="text-sm text-gray-600">{semester.credits} Credits • {semester.subjects.length} Subjects</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-6">
-                        <div className="text-center">
-                          <div className="text-sm text-gray-600">SGPA</div>
-                          <div className="font-semibold">{semester.sgpa}</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-sm text-gray-600">CGPA</div>
-                          <div className="font-semibold">{semester.cgpa}</div>
-                        </div>
-                        <Badge variant={semester.status === "Current" ? "default" : "secondary"}>
-                          {semester.status}
-                        </Badge>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => setSelectedSemester(semester.semester)}
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Selected Semester Details */}
-            {selectedSemester && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{selectedSemester} - Detailed Results</CardTitle>
-                  <CardDescription>Subject-wise performance breakdown</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Subject</TableHead>
-                        <TableHead>Credits</TableHead>
-                        <TableHead>Marks</TableHead>
-                        <TableHead>Percentage</TableHead>
-                        <TableHead>Grade</TableHead>
-                        <TableHead>Result</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {semesterResults.find(sem => sem.semester === selectedSemester)?.subjects.map((subject, index) => (
-                        <TableRow key={index}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">{subject.name}</div>
-                              <div className="text-sm text-gray-600">{subject.code}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell>{subject.credits}</TableCell>
-                          <TableCell>{subject.total}/{subject.maxMarks}</TableCell>
-                          <TableCell>{((subject.total / subject.maxMarks) * 100).toFixed(1)}%</TableCell>
-                          <TableCell>
-                            <Badge className={getGradeColor(subject.grade)}>
-                              {subject.grade}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <span className={getResultColor(subject.result)}>
-                              {subject.result}
-                            </span>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+                </TableBody>
+              </Table>
             )}
-          </TabsContent>
-
-          {/* Performance Analysis Tab */}
-          <TabsContent value="analysis" className="space-y-6">
-            {/* CGPA Trend */}
-            <Card>
-              <CardHeader>
-                <CardTitle>CGPA Trend Analysis</CardTitle>
-                <CardDescription>Your academic performance over time</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {cgpaHistory.map((item, index) => (
-                    <div key={index} className="flex items-center space-x-4 p-3 border rounded-lg">
-                      <div className="w-32 font-medium">{item.semester}</div>
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <span className="text-sm">SGPA: {item.sgpa}</span>
-                          <span className="text-sm">CGPA: {item.cgpa}</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-blue-600 h-2 rounded-full"
-                            style={{ width: `${(item.cgpa / 10) * 100}%` }}
-                          />
-                        </div>
-                      </div>
-                      {index > 0 && (
-                        <div className="flex items-center">
-                          {item.cgpa > cgpaHistory[index - 1].cgpa ? (
-                            <TrendingUp className="h-4 w-4 text-green-600" />
-                          ) : item.cgpa < cgpaHistory[index - 1].cgpa ? (
-                            <TrendingDown className="h-4 w-4 text-red-600" />
-                          ) : (
-                            <div className="h-4 w-4" />
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Performance Insights */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Strengths</CardTitle>
-                  <CardDescription>Your best performing areas</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-3">
-                      <Star className="h-5 w-5 text-yellow-500" />
-                      <div>
-                        <div className="font-medium">Practical Subjects</div>
-                        <div className="text-sm text-gray-600">Consistently high grades in lab courses</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <Star className="h-5 w-5 text-yellow-500" />
-                      <div>
-                        <div className="font-medium">Core AI Subjects</div>
-                        <div className="text-sm text-gray-600">Strong performance in ML and DL</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <Star className="h-5 w-5 text-yellow-500" />
-                      <div>
-                        <div className="font-medium">Consistent Performance</div>
-                        <div className="text-sm text-gray-600">Stable CGPA improvement</div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Improvement Areas</CardTitle>
-                  <CardDescription>Focus areas for better performance</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-3">
-                      <Target className="h-5 w-5 text-blue-500" />
-                      <div>
-                        <div className="font-medium">Theory Subjects</div>
-                        <div className="text-sm text-gray-600">Can improve in theoretical concepts</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <Target className="h-5 w-5 text-blue-500" />
-                      <div>
-                        <div className="font-medium">External Exam Performance</div>
-                        <div className="text-sm text-gray-600">Focus on exam preparation</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <Target className="h-5 w-5 text-blue-500" />
-                      <div>
-                        <div className="font-medium">Time Management</div>
-                        <div className="text-sm text-gray-600">Better exam time allocation</div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Academic Goals */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Academic Goals</CardTitle>
-                <CardDescription>Targets for upcoming semesters</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-4 border rounded-lg text-center">
-                    <div className="text-2xl font-bold text-green-600">8.5+</div>
-                    <div className="text-sm text-gray-600">Target CGPA</div>
-                    <div className="text-xs text-gray-500 mt-1">By graduation</div>
-                  </div>
-                  <div className="p-4 border rounded-lg text-center">
-                    <div className="text-2xl font-bold text-blue-600">85%</div>
-                    <div className="text-sm text-gray-600">Target Average</div>
-                    <div className="text-xs text-gray-500 mt-1">Per subject</div>
-                  </div>
-                  <div className="p-4 border rounded-lg text-center">
-                    <div className="text-2xl font-bold text-purple-600">Top 10%</div>
-                    <div className="text-sm text-gray-600">Class Rank</div>
-                    <div className="text-xs text-gray-500 mt-1">Department wise</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        {/* Subject Detail Dialog */}
-        {selectedSubject && (
-          <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{selectedSubject.name}</DialogTitle>
-                <DialogDescription>Detailed marks breakdown</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium">Subject Code</Label>
-                    <p className="text-sm text-gray-900">{selectedSubject.code}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Credits</Label>
-                    <p className="text-sm text-gray-900">{selectedSubject.credits}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium">Internal Marks</Label>
-                    <p className="text-lg font-semibold">{selectedSubject.internal}/100</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">External Marks</Label>
-                    <p className="text-lg font-semibold">{selectedSubject.external}/100</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Total Marks</Label>
-                    <p className="text-lg font-semibold">{selectedSubject.total}/{selectedSubject.maxMarks}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium">Percentage</Label>
-                    <p className="text-lg font-semibold">{((selectedSubject.total / selectedSubject.maxMarks) * 100).toFixed(1)}%</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Grade</Label>
-                    <Badge className={getGradeColor(selectedSubject.grade)}>
-                      {selectedSubject.grade}
-                    </Badge>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium">Result</Label>
-                    <p className={`text-lg font-semibold ${getResultColor(selectedSubject.result)}`}>
-                      {selectedSubject.result}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => setShowDetailDialog(false)}>
-                    Close
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
