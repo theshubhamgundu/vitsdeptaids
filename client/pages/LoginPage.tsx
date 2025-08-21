@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,12 +43,13 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Redirect if already authenticated
-  if (isAuthenticated) {
-    const from = location.state?.from?.pathname || "/";
-    navigate(from, { replace: true });
-    return null;
-  }
+  // Handle redirect if already authenticated (moved to useEffect to avoid setState during render)
+  useEffect(() => {
+    if (isAuthenticated) {
+      const from = location.state?.from?.pathname || "/";
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, location.state?.from?.pathname, navigate]);
 
   const loginTypes = {
     student: {
@@ -106,7 +107,7 @@ const LoginPage = () => {
           const route = dashboardRoutes[faculty.role] || "/dashboard/faculty";
 
           // Use auth context to store user data
-          login({
+          await login({
             id: faculty.id,
             name: faculty.name,
             role: faculty.role.toLowerCase(),
@@ -135,7 +136,7 @@ const LoginPage = () => {
           });
 
           // Use auth context to store user data
-          login({
+          await login({
             id: student.id,
             name: student.name,
             role: "student",
@@ -154,11 +155,24 @@ const LoginPage = () => {
         }
       }
     } catch (err) {
+      console.error("Authentication error:", err);
       setError("Authentication failed. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
+  // Don't render the login form if already authenticated (prevents flash of content)
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
 
   const IconComponent = currentType.icon;
 
