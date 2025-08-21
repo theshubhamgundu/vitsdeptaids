@@ -11,14 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import ProfileCompletion from "@/components/ProfileCompletion";
-import {
-  getStudentCertificates,
-  getStudentResults,
-  getStudentAttendance,
-  getStudentLeaveApplications,
-  subscribeToStudentData,
-} from "@/services/studentDataService";
+import { profileService } from "@/services/profileService";
 import {
   User,
   Award,
@@ -32,6 +25,7 @@ import {
   TrendingUp,
   CheckCircle,
   AlertCircle,
+  Loader2,
 } from "lucide-react";
 
 interface StudentData {
@@ -44,186 +38,98 @@ interface StudentData {
   section: string;
 }
 
+interface StudentStats {
+  certificates: number;
+  pendingApplications: number;
+  attendance: number;
+  cgpa: number;
+}
+
 const StudentDashboard = () => {
   const [studentData, setStudentData] = useState<StudentData | null>(null);
-  const [certificates, setCertificates] = useState([]);
-  const [results, setResults] = useState([]);
-  const [attendance, setAttendance] = useState([]);
-  const [leaveApplications, setLeaveApplications] = useState([]);
+  const [stats, setStats] = useState<StudentStats>({
+    certificates: 0,
+    pendingApplications: 0,
+    attendance: 0,
+    cgpa: 0,
+  });
+  const [recentActivities, setRecentActivities] = useState<any[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showProfileCompletion, setShowProfileCompletion] = useState(false);
 
   useEffect(() => {
-    // Get current user from localStorage
-    const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
-    setStudentData(currentUser);
-
-    // Check if profile completion is required
-    if (currentUser.id) {
-      const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
-      const userProfile = localUsers.find((u: any) => u.id === currentUser.id);
-
-      // Check if profile is completed
-      const isProfileComplete =
-        userProfile?.profileCompleted ||
-        (userProfile?.phone &&
-          userProfile?.address &&
-          userProfile?.fatherName &&
-          userProfile?.motherName &&
-          userProfile?.dateOfBirth &&
-          userProfile?.emergencyContact);
-
-      if (!isProfileComplete) {
-        setShowProfileCompletion(true);
-        return;
-      }
-    }
-
-    if (currentUser.id) {
-      loadStudentData(currentUser.id);
-    }
-
-    // Subscribe to real-time updates
-    const unsubscribe = subscribeToStudentData(() => {
-      if (currentUser.id) {
-        loadStudentData(currentUser.id);
-      }
-    });
-
-    return unsubscribe;
+    loadDashboardData();
   }, []);
 
-  const loadStudentData = async (studentId: string) => {
+  const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const [certsData, resultsData, attendanceData, leavesData] =
-        await Promise.all([
-          getStudentCertificates(studentId),
-          getStudentResults(studentId),
-          getStudentAttendance(studentId),
-          getStudentLeaveApplications(studentId),
-        ]);
 
-      setCertificates(certsData);
-      setResults(resultsData);
-      setAttendance(attendanceData);
-      setLeaveApplications(leavesData);
+      // Get current user from localStorage
+      const currentUser = JSON.parse(
+        localStorage.getItem("currentUser") || "{}"
+      );
+
+      if (!currentUser.id) {
+        console.error("No user session found");
+        return;
+      }
+
+      setStudentData(currentUser);
+
+      // Load real statistics
+      const studentStats = await profileService.getStudentStats(currentUser.id);
+      setStats(studentStats);
+
+      // Load recent activities
+      const activities = await profileService.getRecentActivities(currentUser.id);
+      setRecentActivities(activities);
+
+      // Load upcoming events
+      const events = await profileService.getUpcomingEvents();
+      setUpcomingEvents(events);
+
     } catch (error) {
-      console.error("Error loading student data:", error);
+      console.error("Error loading dashboard data:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Calculate current CGPA from results
-  const calculateCGPA = () => {
-    if (results.length === 0) return "N/A";
-    const totalMarks = results.reduce(
-      (sum: number, result: any) => sum + result.marks,
-      0,
-    );
-    const avgMarks = totalMarks / results.length;
-    // Convert marks to CGPA (assuming 10-point scale)
-    const cgpa = (avgMarks / 100) * 10;
-    return cgpa.toFixed(2);
-  };
-
-  // Calculate attendance percentage
-  const calculateAttendance = () => {
-    if (attendance.length === 0) return "N/A";
-    const presentCount = attendance.filter(
-      (record: any) => record.status === "present",
-    ).length;
-    const percentage = (presentCount / attendance.length) * 100;
-    return `${percentage.toFixed(1)}%`;
-  };
-
-  // Stats based on real data
   const quickStats = [
     {
       title: "Overall CGPA",
-      value: calculateCGPA(),
-      description:
-        results.length > 0
-          ? `Based on ${results.length} subjects`
-          : "No results available",
+      value: stats.cgpa > 0 ? stats.cgpa.toFixed(2) : "N/A",
+      description: stats.cgpa > 0 ? "Current CGPA" : "No data available",
       icon: TrendingUp,
-      color: results.length > 0 ? "text-blue-600" : "text-gray-500",
-      bgColor: results.length > 0 ? "bg-blue-50" : "bg-gray-50",
+      color: stats.cgpa >= 7 ? "text-green-600" : stats.cgpa > 0 ? "text-yellow-600" : "text-gray-500",
+      bgColor: stats.cgpa >= 7 ? "bg-green-50" : stats.cgpa > 0 ? "bg-yellow-50" : "bg-gray-50",
     },
     {
       title: "Attendance",
-      value: calculateAttendance(),
-      description:
-        attendance.length > 0
-          ? `${attendance.length} records`
-          : "No attendance data",
+      value: stats.attendance > 0 ? `${stats.attendance}%` : "N/A",
+      description: stats.attendance > 0 ? "This semester" : "No data available",
       icon: Calendar,
-      color: attendance.length > 0 ? "text-green-600" : "text-gray-500",
-      bgColor: attendance.length > 0 ? "bg-green-50" : "bg-gray-50",
+      color: stats.attendance >= 75 ? "text-green-600" : stats.attendance > 0 ? "text-red-600" : "text-gray-500",
+      bgColor: stats.attendance >= 75 ? "bg-green-50" : stats.attendance > 0 ? "bg-red-50" : "bg-gray-50",
     },
     {
       title: "Certificates",
-      value: certificates.length.toString(),
-      description:
-        certificates.length > 0
-          ? `${certificates.filter((c: any) => c.status === "approved").length} approved`
-          : "No certificates uploaded",
+      value: stats.certificates.toString(),
+      description: stats.certificates > 0 ? "Uploaded certificates" : "No certificates uploaded",
       icon: Award,
-      color: certificates.length > 0 ? "text-purple-600" : "text-gray-500",
-      bgColor: certificates.length > 0 ? "bg-purple-50" : "bg-gray-50",
+      color: stats.certificates > 0 ? "text-blue-600" : "text-gray-500",
+      bgColor: stats.certificates > 0 ? "bg-blue-50" : "bg-gray-50",
     },
     {
       title: "Pending Applications",
-      value: leaveApplications
-        .filter((app: any) => app.status === "pending")
-        .length.toString(),
-      description:
-        leaveApplications.length > 0
-          ? `${leaveApplications.length} total applications`
-          : "No applications submitted",
+      value: stats.pendingApplications.toString(),
+      description: stats.pendingApplications > 0 ? "Awaiting approval" : "No pending requests",
       icon: FileText,
-      color: leaveApplications.length > 0 ? "text-orange-600" : "text-gray-500",
-      bgColor: leaveApplications.length > 0 ? "bg-orange-50" : "bg-gray-50",
+      color: stats.pendingApplications > 0 ? "text-orange-600" : "text-gray-500",
+      bgColor: stats.pendingApplications > 0 ? "bg-orange-50" : "bg-gray-50",
     },
   ];
-
-  // Generate recent activities from real data
-  const recentActivities = [
-    ...certificates.slice(-3).map((cert: any) => ({
-      id: `cert-${cert.id}`,
-      type: "certificate",
-      title: "Certificate uploaded",
-      description: cert.title,
-      time: new Date(cert.uploadDate).toLocaleDateString(),
-      icon: Award,
-      status:
-        cert.status === "approved"
-          ? "success"
-          : cert.status === "rejected"
-            ? "warning"
-            : "info",
-    })),
-    ...leaveApplications.slice(-2).map((leave: any) => ({
-      id: `leave-${leave.id}`,
-      type: "leave",
-      title: "Leave application submitted",
-      description: `${leave.type} leave for ${leave.reason}`,
-      time: new Date(leave.appliedDate).toLocaleDateString(),
-      icon: Plane,
-      status:
-        leave.status === "approved"
-          ? "success"
-          : leave.status === "rejected"
-            ? "warning"
-            : "info",
-    })),
-  ]
-    .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
-    .slice(0, 5);
-
-  // Events will be populated from academic calendar
-  const upcomingEvents = [];
 
   const quickActions = [
     {
@@ -256,28 +162,25 @@ const StudentDashboard = () => {
     },
   ];
 
-  const handleProfileCompletion = () => {
-    setShowProfileCompletion(false);
-    // Reload student data to check profile completion
-    const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
-    setStudentData(currentUser);
-  };
-
-  // Show profile completion form if needed
-  if (showProfileCompletion) {
-    return <ProfileCompletion onComplete={handleProfileCompletion} />;
-  }
-
-  if (!studentData || loading) {
+  if (loading) {
     return (
-      <DashboardLayout
-        userType="student"
-        userName={studentData?.name || "Loading..."}
-      >
+      <DashboardLayout userType="student" userName="Loading...">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="w-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
             <p className="text-gray-600">Loading dashboard...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!studentData) {
+    return (
+      <DashboardLayout userType="student" userName="Error">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <p className="text-red-600">Session expired. Please login again.</p>
           </div>
         </div>
       </DashboardLayout>
@@ -295,12 +198,11 @@ const StudentDashboard = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold">
-                Welcome back, {studentData.name || "Student"}!
+                Welcome back, {studentData.name}!
               </h1>
               <p className="text-blue-100">
-                {studentData.hallTicket || "Hall Ticket"} •{" "}
-                {studentData.year || "Year"} • AI & DS • Section{" "}
-                {studentData.section || "A"}
+                {studentData.hallTicket} • {studentData.year} • AI & DS •
+                Section {studentData.section}
               </p>
             </div>
           </div>
@@ -423,64 +325,104 @@ const StudentDashboard = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {recentActivities.map((activity) => (
-                  <div
-                    key={activity.id}
-                    className="flex items-center space-x-4 p-3 border rounded-lg"
-                  >
+                {recentActivities.map((activity) => {
+                  const IconComponent = activity.icon === "Award" ? Award :
+                    activity.icon === "BarChart3" ? BarChart3 :
+                    activity.icon === "Plane" ? Plane : Bell;
+                  
+                  return (
                     <div
-                      className={`p-2 rounded-full ${
-                        activity.status === "success"
-                          ? "bg-green-50"
-                          : activity.status === "warning"
-                            ? "bg-orange-50"
-                            : "bg-blue-50"
-                      }`}
+                      key={activity.id}
+                      className="flex items-center space-x-4 p-3 border rounded-lg"
                     >
-                      <activity.icon
-                        className={`h-5 w-5 ${
+                      <div
+                        className={`p-2 rounded-full ${
                           activity.status === "success"
-                            ? "text-green-600"
+                            ? "bg-green-50"
                             : activity.status === "warning"
-                              ? "text-orange-600"
-                              : "text-blue-600"
+                              ? "bg-orange-50"
+                              : "bg-blue-50"
                         }`}
-                      />
+                      >
+                        <IconComponent
+                          className={`h-5 w-5 ${
+                            activity.status === "success"
+                              ? "text-green-600"
+                              : activity.status === "warning"
+                                ? "text-orange-600"
+                                : "text-blue-600"
+                          }`}
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium">{activity.title}</h3>
+                        <p className="text-sm text-gray-600">
+                          {activity.description}
+                        </p>
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {activity.time}
+                      </span>
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium">{activity.title}</h3>
-                      <p className="text-sm text-gray-600">
-                        {activity.description}
-                      </p>
-                    </div>
-                    <span className="text-xs text-gray-500">
-                      {activity.time}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Academic Performance - Empty State */}
+        {/* Academic Progress */}
         <Card>
           <CardHeader>
-            <CardTitle>Academic Performance</CardTitle>
+            <CardTitle>Academic Progress</CardTitle>
             <CardDescription>
-              Your grades and attendance overview
+              Your academic performance overview
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8">
-              <BarChart3 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500 text-sm">
-                No academic data available
-              </p>
-              <p className="text-gray-400 text-xs">
-                Performance data will appear once grades are posted
-              </p>
-            </div>
+            {stats.cgpa > 0 || stats.attendance > 0 ? (
+              <div className="space-y-6">
+                {stats.attendance > 0 && (
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-sm font-medium">Attendance</span>
+                      <span className="text-sm text-gray-600">{stats.attendance}%</span>
+                    </div>
+                    <Progress value={stats.attendance} className="h-2" />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>Poor (&lt;75%)</span>
+                      <span>Good (75-85%)</span>
+                      <span>Excellent (&gt;85%)</span>
+                    </div>
+                  </div>
+                )}
+                
+                {stats.cgpa > 0 && (
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-sm font-medium">CGPA Progress</span>
+                      <span className="text-sm text-gray-600">{stats.cgpa.toFixed(2)}/10.0</span>
+                    </div>
+                    <Progress value={stats.cgpa * 10} className="h-2" />
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>6.0</span>
+                      <span>7.5</span>
+                      <span>9.0+</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <BarChart3 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm">
+                  No academic data available
+                </p>
+                <p className="text-gray-400 text-xs">
+                  Performance data will appear once grades are posted
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
