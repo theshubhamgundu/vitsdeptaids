@@ -15,7 +15,8 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { profilePhotoService } from "@/services/profilePhotoService";
-import { Camera, Edit, Save, X, User } from "lucide-react";
+import { profileService } from "@/services/profileService";
+import { Camera, Edit, Save, X, User, Loader2 } from "lucide-react";
 
 interface StudentData {
   id: string;
@@ -30,6 +31,11 @@ interface StudentData {
 const StudentProfile = () => {
   const [studentData, setStudentData] = useState<StudentData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const { toast } = useToast();
+  
   const [profileData, setProfileData] = useState({
     fullName: "",
     hallTicket: "",
@@ -47,146 +53,204 @@ const StudentProfile = () => {
     admissionDate: "",
     counsellor: "",
     status: "Active",
-    profilePhoto: null,
+    profilePhoto: null as string | null,
   });
 
   useEffect(() => {
-    const loadStudentData = async () => {
+    loadStudentData();
+  }, []);
+
+  const loadStudentData = async () => {
+    try {
+      setLoading(true);
+      
       // Get current user from localStorage
       const currentUser = JSON.parse(
-        localStorage.getItem("currentUser") || "{}",
+        localStorage.getItem("currentUser") || "{}"
       );
+      
+      if (!currentUser.id) {
+        toast({
+          title: "Error",
+          description: "User session not found. Please login again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setStudentData(currentUser);
 
-      // Initialize profile data with actual user data
-      if (currentUser && currentUser.id) {
-        setProfileData((prev) => ({
+      // Load complete profile from database
+      const profile = await profileService.getStudentProfile(currentUser.id);
+      
+      if (profile) {
+        setProfileData({
+          fullName: profile.name || "",
+          hallTicket: profile.hall_ticket || "",
+          email: profile.email || "",
+          phone: profile.phone || "",
+          year: profile.year || "",
+          branch: "AI & DS",
+          section: profile.section || "",
+          address: profile.address || "",
+          emergencyContact: "",
+          fatherName: profile.father_name || "",
+          motherName: profile.mother_name || "",
+          dateOfBirth: profile.date_of_birth || "",
+          bloodGroup: profile.blood_group || "",
+          admissionDate: profile.created_at ? new Date(profile.created_at).toISOString().split("T")[0] : "",
+          counsellor: "Dr. Academic Counselor",
+          status: profile.is_active ? "Active" : "Inactive",
+          profilePhoto: profile.profile_photo_url || null,
+        });
+      } else {
+        // Initialize with localStorage data
+        setProfileData(prev => ({
           ...prev,
           fullName: currentUser.name || "",
           hallTicket: currentUser.hallTicket || "",
           email: currentUser.email || "",
-          phone: currentUser.phone || "",
           year: currentUser.year || "",
           section: currentUser.section || "",
           admissionDate: currentUser.createdAt
             ? new Date(currentUser.createdAt).toISOString().split("T")[0]
             : "",
         }));
+      }
 
-        // Load profile photo
-        try {
-          const photoUrl = await profilePhotoService.getProfilePhotoUrl(
-            currentUser.id,
-            "student",
-          );
-          if (photoUrl) {
-            setProfileData((prev) => ({
-              ...prev,
-              profilePhoto: photoUrl,
-            }));
-          }
-        } catch (error) {
-          console.warn("Could not load profile photo:", error);
+      // Load profile photo
+      try {
+        const photoUrl = await profilePhotoService.getProfilePhotoUrl(
+          currentUser.id,
+          "student"
+        );
+        if (photoUrl) {
+          setProfileData(prev => ({ ...prev, profilePhoto: photoUrl }));
         }
+      } catch (photoError) {
+        console.warn("Profile photo loading failed:", photoError);
       }
-    };
-
-    loadStudentData();
-  }, []);
-
-  const handleSave = () => {
-    // Save updated profile data to localStorage
-    if (studentData) {
-      const updatedUser = {
-        ...studentData,
-        name: profileData.fullName,
-        email: profileData.email,
-        phone: profileData.phone,
-        year: profileData.year,
-        section: profileData.section,
-      };
-
-      // Update currentUser
-      localStorage.setItem("currentUser", JSON.stringify(updatedUser));
-
-      // Also update the localUsers array if the user exists there
-      const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
-      const userIndex = localUsers.findIndex(
-        (user: any) => user.id === studentData.id,
-      );
-      if (userIndex !== -1) {
-        localUsers[userIndex] = { ...localUsers[userIndex], ...updatedUser };
-        localStorage.setItem("localUsers", JSON.stringify(localUsers));
-      }
-
-      setStudentData(updatedUser);
+    } catch (error) {
+      console.error("Error loading student data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load profile data.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-
-    setIsEditing(false);
-    alert("Profile updated successfully!");
   };
 
-  const { toast } = useToast();
-  const [isUploading, setIsUploading] = useState(false);
-
-  const handlePhotoUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file || !studentData) return;
-
-    setIsUploading(true);
+  const handleSave = async () => {
     try {
+      setSaving(true);
+
+      if (!studentData?.id) {
+        toast({
+          title: "Error",
+          description: "User session invalid.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update profile in database and localStorage
+      const updateSuccess = await profileService.updateStudentProfile(
+        studentData.id,
+        {
+          name: profileData.fullName,
+          email: profileData.email,
+          phone: profileData.phone,
+          year: profileData.year,
+          section: profileData.section,
+          father_name: profileData.fatherName,
+          mother_name: profileData.motherName,
+          address: profileData.address,
+          date_of_birth: profileData.dateOfBirth,
+          blood_group: profileData.bloodGroup,
+        }
+      );
+
+      if (updateSuccess) {
+        // Update local student data
+        const updatedUser = {
+          ...studentData,
+          name: profileData.fullName,
+          email: profileData.email,
+          year: profileData.year,
+          section: profileData.section,
+        };
+        setStudentData(updatedUser);
+
+        toast({
+          title: "Success",
+          description: "Profile updated successfully!",
+        });
+        setIsEditing(false);
+      } else {
+        toast({
+          title: "Warning",
+          description: "Profile saved locally. Database sync may be delayed.",
+          variant: "destructive",
+        });
+        setIsEditing(false);
+      }
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !studentData?.id) return;
+
+    try {
+      setUploadingPhoto(true);
+      
       const result = await profilePhotoService.uploadProfilePhoto(
         studentData.id,
         file,
-        "student",
+        "student"
       );
 
       if (result.success && result.photoUrl) {
-        setProfileData((prev) => ({
-          ...prev,
-          profilePhoto: result.photoUrl,
-        }));
-
+        setProfileData(prev => ({ ...prev, profilePhoto: result.photoUrl! }));
         toast({
-          title: "Profile Photo Updated",
-          description: result.isLocalStorage
-            ? "Photo saved locally (database not available)"
-            : "Photo uploaded successfully",
+          title: "Success",
+          description: result.isLocalStorage 
+            ? "Photo uploaded (stored locally)" 
+            : "Photo uploaded successfully!",
         });
       } else {
         toast({
-          title: "Upload Failed",
-          description: result.error || "Failed to upload photo",
+          title: "Error",
+          description: result.error || "Failed to upload photo.",
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error("Photo upload error:", error);
       toast({
-        title: "Upload Error",
-        description: "An error occurred while uploading the photo",
+        title: "Error",
+        description: "Failed to upload photo. Please try again.",
         variant: "destructive",
       });
     } finally {
-      setIsUploading(false);
+      setUploadingPhoto(false);
     }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    // Reset form data to original values
-    if (studentData) {
-      setProfileData((prev) => ({
-        ...prev,
-        fullName: studentData.name || "",
-        hallTicket: studentData.hallTicket || "",
-        email: studentData.email || "",
-        year: studentData.year || "",
-        section: studentData.section || "",
-      }));
-    }
+    loadStudentData(); // Reload original data
   };
 
   const academicInfo = [
@@ -194,21 +258,30 @@ const StudentProfile = () => {
     { label: "Year", value: profileData.year || "Not provided" },
     { label: "Branch", value: profileData.branch },
     { label: "Section", value: profileData.section || "Not provided" },
-    {
-      label: "Admission Date",
-      value: profileData.admissionDate || "Not provided",
-    },
+    { label: "Admission Date", value: profileData.admissionDate || "Not provided" },
     { label: "Status", value: profileData.status },
     { label: "Counsellor", value: profileData.counsellor || "Not assigned" },
   ];
 
-  if (!studentData) {
+  if (loading) {
     return (
       <DashboardLayout userType="student" userName="Loading...">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
             <p className="text-gray-600">Loading profile...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!studentData) {
+    return (
+      <DashboardLayout userType="student" userName="Error">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <p className="text-red-600">Failed to load profile data.</p>
           </div>
         </div>
       </DashboardLayout>
@@ -238,12 +311,17 @@ const StudentProfile = () => {
                   <>
                     <Button
                       onClick={handleSave}
+                      disabled={saving}
                       className="bg-green-600 hover:bg-green-700"
                     >
-                      <Save className="h-4 w-4 mr-2" />
+                      {saving ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Save className="h-4 w-4 mr-2" />
+                      )}
                       Save Changes
                     </Button>
-                    <Button onClick={handleCancel} variant="outline">
+                    <Button onClick={handleCancel} variant="outline" disabled={saving}>
                       <X className="h-4 w-4 mr-2" />
                       Cancel
                     </Button>
@@ -277,6 +355,7 @@ const StudentProfile = () => {
                       onChange={handlePhotoUpload}
                       className="hidden"
                       id="photo-upload"
+                      disabled={uploadingPhoto}
                     />
                     <label htmlFor="photo-upload" className="cursor-pointer">
                       <Button
@@ -284,9 +363,14 @@ const StudentProfile = () => {
                         className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
                         type="button"
                         asChild
+                        disabled={uploadingPhoto}
                       >
                         <span>
-                          <Camera className="h-4 w-4" />
+                          {uploadingPhoto ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Camera className="h-4 w-4" />
+                          )}
                         </span>
                       </Button>
                     </label>
@@ -368,7 +452,36 @@ const StudentProfile = () => {
                   placeholder="Enter your phone number"
                 />
               </div>
-
+              <div className="space-y-2">
+                <Label htmlFor="dob">Date of Birth</Label>
+                <Input
+                  id="dob"
+                  type="date"
+                  value={profileData.dateOfBirth}
+                  disabled={!isEditing}
+                  onChange={(e) =>
+                    setProfileData((prev) => ({
+                      ...prev,
+                      dateOfBirth: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bloodGroup">Blood Group</Label>
+                <Input
+                  id="bloodGroup"
+                  value={profileData.bloodGroup}
+                  disabled={!isEditing}
+                  onChange={(e) =>
+                    setProfileData((prev) => ({
+                      ...prev,
+                      bloodGroup: e.target.value,
+                    }))
+                  }
+                  placeholder="Enter your blood group"
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="emergencyContact">Emergency Contact</Label>
                 <Input
