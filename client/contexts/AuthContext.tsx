@@ -3,6 +3,7 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useRef,
   ReactNode,
 } from "react";
 import { User } from "@/services/authService";
@@ -28,34 +29,59 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const isMountedRef = useRef(true);
+
+  // Safe state setter that checks if component is still mounted
+  const safeSetUser = (userData: User | null) => {
+    if (isMountedRef.current) {
+      setUser(userData);
+    }
+  };
+
+  const safeSetLoading = (loading: boolean) => {
+    if (isMountedRef.current) {
+      setIsLoading(loading);
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Check for existing session on app load
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
     const checkExistingSession = async () => {
       try {
         const currentSessionToken =
           databaseSessionService.getCurrentSessionToken();
 
-        if (currentSessionToken) {
+        if (currentSessionToken && isMountedRef.current) {
           // Validate session with database
           const validation =
             await databaseSessionService.validateSession(currentSessionToken);
 
-          if (validation.isValid && validation.user) {
-            setUser(validation.user);
-            console.log("✅ Session restored successfully");
-          } else {
-            // Session invalid, clear local data
-            await databaseSessionService.removeSession(currentSessionToken);
-            console.log("🔄 Session expired, cleared local data");
+          if (isMountedRef.current) {
+            if (validation.isValid && validation.user) {
+              safeSetUser(validation.user);
+              console.log("✅ Session restored successfully");
+            } else {
+              // Session invalid, clear local data
+              await databaseSessionService.removeSession(currentSessionToken);
+              console.log("🔄 Session expired, cleared local data");
+            }
           }
-        } else {
+        } else if (isMountedRef.current) {
           // Check for legacy localStorage user data
           const legacyUser = localStorage.getItem("currentUser");
           if (legacyUser) {
             try {
               const userData = JSON.parse(legacyUser);
-              setUser(userData);
+              safeSetUser(userData);
               console.log("✅ Legacy session restored");
             } catch (error) {
               console.warn("Failed to parse legacy user data:", error);
@@ -65,71 +91,80 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       } catch (error) {
         console.error("Error checking existing session:", error);
-        // Clear any corrupted local data
-        const currentSessionToken =
-          databaseSessionService.getCurrentSessionToken();
-        if (currentSessionToken) {
-          await databaseSessionService.removeSession(currentSessionToken);
-        }
-
-        // Check for basic localStorage user data as fallback
-        try {
-          const fallbackUser = localStorage.getItem("currentUser");
-          if (fallbackUser) {
-            const userData = JSON.parse(fallbackUser);
-            setUser(userData);
-            console.log("✅ Fallback session restored from localStorage");
+        
+        if (isMountedRef.current) {
+          // Clear any corrupted local data
+          const currentSessionToken =
+            databaseSessionService.getCurrentSessionToken();
+          if (currentSessionToken) {
+            await databaseSessionService.removeSession(currentSessionToken);
           }
-        } catch (fallbackError) {
-          console.warn("Fallback session restore failed:", fallbackError);
-          localStorage.removeItem("currentUser");
+          
+          // Check for basic localStorage user data as fallback
+          try {
+            const fallbackUser = localStorage.getItem("currentUser");
+            if (fallbackUser) {
+              const userData = JSON.parse(fallbackUser);
+              safeSetUser(userData);
+              console.log("✅ Fallback session restored from localStorage");
+            }
+          } catch (fallbackError) {
+            console.warn("Fallback session restore failed:", fallbackError);
+            localStorage.removeItem("currentUser");
+          }
         }
       } finally {
-        setIsLoading(false);
+        // Set loading to false after a small delay to prevent flashing
+        timeoutId = setTimeout(() => {
+          safeSetLoading(false);
+        }, 100);
       }
     };
 
     // Clean up expired sessions on app load (don't wait for this)
-    databaseSessionService.cleanupExpiredSessions().catch((error) => {
+    databaseSessionService.cleanupExpiredSessions().catch(error => {
       console.warn("Session cleanup failed:", error);
     });
-
+    
     checkExistingSession();
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, []);
 
   const login = async (userData: User) => {
     try {
       // Always set user data immediately for better UX
-      setUser(userData);
+      safeSetUser(userData);
       localStorage.setItem("currentUser", JSON.stringify(userData));
 
       // Try to create a database session (but don't fail if it doesn't work)
       try {
-        const sessionToken =
-          await databaseSessionService.createSession(userData);
+        const sessionToken = await databaseSessionService.createSession(userData);
         console.log(
           `✅ Login successful. Session token created: ${sessionToken.slice(0, 20)}...`,
         );
       } catch (sessionError) {
-        console.warn(
-          "Database session creation failed, using localStorage fallback:",
-          sessionError,
-        );
+        console.warn("Database session creation failed, using localStorage fallback:", sessionError);
         // Session creation failed, but user is still logged in via localStorage
       }
     } catch (error) {
       console.error("Error during login:", error);
       // Even if database operations fail, we still want to log the user in
-      setUser(userData);
-      localStorage.setItem("currentUser", JSON.stringify(userData));
-      console.log("✅ Login successful (localStorage fallback)");
+      if (isMountedRef.current) {
+        safeSetUser(userData);
+        localStorage.setItem("currentUser", JSON.stringify(userData));
+        console.log("✅ Login successful (localStorage fallback)");
+      }
     }
   };
 
   const logout = async () => {
     try {
-      const currentSessionToken =
-        databaseSessionService.getCurrentSessionToken();
+      const currentSessionToken = databaseSessionService.getCurrentSessionToken();
       if (currentSessionToken) {
         await databaseSessionService.removeSession(currentSessionToken);
       }
@@ -138,7 +173,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     // Always clear local state regardless of database operations
-    setUser(null);
+    if (isMountedRef.current) {
+      safeSetUser(null);
+    }
     localStorage.removeItem("currentUser");
     localStorage.removeItem("currentSessionToken");
     console.log("🔄 Logged out successfully");
@@ -154,17 +191,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     // Always clear local state
-    setUser(null);
+    if (isMountedRef.current) {
+      safeSetUser(null);
+    }
     localStorage.removeItem("currentUser");
     localStorage.removeItem("currentSessionToken");
     console.log("🔄 Logged out from all devices");
   };
 
   const updateUser = (userData: Partial<User>) => {
-    if (user) {
+    if (user && isMountedRef.current) {
       const updatedUser = { ...user, ...userData };
       localStorage.setItem("currentUser", JSON.stringify(updatedUser));
-      setUser(updatedUser);
+      safeSetUser(updatedUser);
     }
   };
 
