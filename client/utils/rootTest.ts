@@ -1,3 +1,5 @@
+import React from "react";
+
 // Utility to test React root creation and detect potential issues
 
 export const testReactRoot = () => {
