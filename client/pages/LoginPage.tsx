@@ -34,7 +34,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, logout } = useAuth();
   const [formData, setFormData] = useState({
     identifier: "",
     password: "",
@@ -42,14 +42,32 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [forceShowLogin, setForceShowLogin] = useState(false);
 
-  // Handle redirect if already authenticated (moved to useEffect to avoid setState during render)
+  // Clear any existing authentication when explicitly navigating to login
   useEffect(() => {
-    if (isAuthenticated) {
-      const from = location.state?.from?.pathname || "/";
+    const clearAuthForExplicitLogin = async () => {
+      // If user is authenticated and we're on a login page (not coming from a protected route redirect)
+      if (isAuthenticated && !location.state?.from) {
+        console.log("🔄 Clearing authentication for explicit login");
+        await logout();
+        setForceShowLogin(true);
+      } else if (!isAuthenticated) {
+        setForceShowLogin(true);
+      }
+    };
+
+    clearAuthForExplicitLogin();
+  }, [isAuthenticated, location.state?.from, logout]);
+
+  // Handle redirect if already authenticated AND coming from a protected route
+  useEffect(() => {
+    if (isAuthenticated && location.state?.from && !forceShowLogin) {
+      const from = location.state.from.pathname || "/";
+      console.log("🔄 Redirecting authenticated user to:", from);
       navigate(from, { replace: true });
     }
-  }, [isAuthenticated, location.state?.from?.pathname, navigate]);
+  }, [isAuthenticated, location.state?.from, navigate, forceShowLogin]);
 
   const loginTypes = {
     student: {
@@ -94,7 +112,7 @@ const LoginPage = () => {
         if (faculty) {
           toast({
             title: "Login Successful",
-            description: `Welcome back, ${faculty.name}! You can now access your account from multiple devices.`,
+            description: `Welcome back, ${faculty.name}!`,
           });
 
           // Route based on faculty role
@@ -132,7 +150,7 @@ const LoginPage = () => {
         if (student) {
           toast({
             title: "Login Successful",
-            description: `Welcome back, ${student.name}! You can now access your account from multiple devices.`,
+            description: `Welcome back, ${student.name}!`,
           });
 
           // Use auth context to store user data
@@ -162,13 +180,13 @@ const LoginPage = () => {
     }
   };
 
-  // Don't render the login form if already authenticated (prevents flash of content)
-  if (isAuthenticated) {
+  // Show loading while determining whether to show login form
+  if (!forceShowLogin) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
         <div className="text-white text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p>Redirecting...</p>
+          <p>Loading...</p>
         </div>
       </div>
     );
@@ -300,12 +318,22 @@ const LoginPage = () => {
 
                 <div className="border rounded-lg p-3 bg-yellow-50 border-yellow-200">
                   <p className="text-xs font-medium text-yellow-800 mb-1">
-                    New students:
+                    Demo Credentials:
                   </p>
                   <p className="text-xs text-yellow-700">
-                    Your initial password is your hall ticket number. You can
-                    change it after completing your profile.
+                    Hall Ticket: 20AI001 | Password: student123
                   </p>
+                </div>
+              </div>
+            )}
+
+            {(type === "faculty" || type === "admin") && (
+              <div className="border rounded-lg p-3 bg-gray-50 text-left">
+                <p className="text-xs font-medium text-gray-700 mb-2">Demo Credentials:</p>
+                <div className="space-y-1 text-xs text-gray-600">
+                  <div><strong>HOD:</strong> AIDS-HVS1 / @VSrinivas231</div>
+                  <div><strong>Faculty:</strong> AIDS-ANK1 / @NMKrishna342</div>
+                  <div><strong>Admin:</strong> AIDS-DKS1 / @KSomesh702</div>
                 </div>
               </div>
             )}
