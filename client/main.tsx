@@ -19,44 +19,61 @@ const AppWithErrorBoundary = () => (
   </React.StrictMode>
 );
 
-// Check if root already exists on the container
-const getOrCreateRoot = (container: HTMLElement): Root => {
-  // Use a data attribute to track if root exists
-  const existingRootId = container.getAttribute('data-react-root');
-  
-  if (existingRootId && (container as any).__reactRoot) {
-    // Return existing root
-    return (container as any).__reactRoot;
-  } else {
-    // Create new root and store reference
-    const newRoot = createRoot(container);
-    (container as any).__reactRoot = newRoot;
-    container.setAttribute('data-react-root', 'true');
-    return newRoot;
-  }
+// Check if React root already exists on this container
+const hasReactRoot = (element: HTMLElement): boolean => {
+  // Check for React 18 internal fiber node properties
+  const keys = Object.keys(element);
+  return keys.some(key => 
+    key.startsWith('__reactContainer') || 
+    key.startsWith('_reactRootContainer') ||
+    key.startsWith('__reactInternalInstance')
+  );
 };
 
-// Get or create the root
-const root = getOrCreateRoot(container);
+// Store root instance to prevent multiple creation
+let rootInstance: Root | null = null;
+
+// Only create root if it doesn't exist
+if (!hasReactRoot(container) && !rootInstance) {
+  console.log("Creating new React root");
+  rootInstance = createRoot(container);
+} else if (rootInstance) {
+  console.log("Reusing existing React root instance");
+} else {
+  console.log("React root already exists on container");
+  // If root exists on container but we don't have instance, create new one
+  // This handles HMR case where the module reloads but DOM wasn't cleared
+  rootInstance = createRoot(container);
+}
 
 // Render the app
-root.render(<AppWithErrorBoundary />);
+if (rootInstance) {
+  rootInstance.render(<AppWithErrorBoundary />);
+}
 
 // For development: enable HMR
-if (import.meta.hot) {
+if (import.meta.hot && rootInstance) {
   import.meta.hot.accept("./App", () => {
     // Re-render using existing root
-    root.render(<AppWithErrorBoundary />);
+    if (rootInstance) {
+      console.log("HMR: Re-rendering app");
+      rootInstance.render(<AppWithErrorBoundary />);
+    }
   });
 
   // Handle module disposal
   import.meta.hot.dispose(() => {
-    console.log("HMR: Module reloading...");
+    console.log("HMR: Module disposing");
+  });
+
+  // Cleanup on page unload
+  import.meta.hot.prune(() => {
+    console.log("HMR: Pruning unused modules");
   });
 }
 
 // Set up global error handlers (only once)
-if (!window.__ERROR_HANDLERS_SETUP__) {
+if (typeof window !== 'undefined' && !(window as any).__ERROR_HANDLERS_SETUP__) {
   window.addEventListener("error", (event) => {
     console.error("Global error:", event.error);
   });
