@@ -329,11 +329,19 @@ const LoginPage = () => {
 
             {(type === "faculty" || type === "admin") && (
               <div className="border rounded-lg p-3 bg-gray-50 text-left">
-                <p className="text-xs font-medium text-gray-700 mb-2">Demo Credentials:</p>
+                <p className="text-xs font-medium text-gray-700 mb-2">
+                  Demo Credentials:
+                </p>
                 <div className="space-y-1 text-xs text-gray-600">
-                  <div><strong>HOD:</strong> AIDS-HVS1 / @VSrinivas231</div>
-                  <div><strong>Faculty:</strong> AIDS-ANK1 / @NMKrishna342</div>
-                  <div><strong>Admin:</strong> AIDS-DKS1 / @KSomesh702</div>
+                  <div>
+                    <strong>HOD:</strong> AIDS-HVS1 / @VSrinivas231
+                  </div>
+                  <div>
+                    <strong>Faculty:</strong> AIDS-ANK1 / @NMKrishna342
+                  </div>
+                  <div>
+                    <strong>Admin:</strong> AIDS-DKS1 / @KSomesh702
+                  </div>
                 </div>
               </div>
             )}
