@@ -10,11 +10,6 @@ if (!container) {
   throw new Error("Root element not found");
 }
 
-// Global variable to store the root instance
-declare global {
-  var __REACT_ROOT__: Root | undefined;
-}
-
 // App wrapper with error boundary
 const AppWithErrorBoundary = () => (
   <React.StrictMode>
@@ -24,17 +19,25 @@ const AppWithErrorBoundary = () => (
   </React.StrictMode>
 );
 
-// Create React root only once using singleton pattern
-let root: Root;
+// Check if root already exists on the container
+const getOrCreateRoot = (container: HTMLElement): Root => {
+  // Use a data attribute to track if root exists
+  const existingRootId = container.getAttribute('data-react-root');
+  
+  if (existingRootId && (container as any).__reactRoot) {
+    // Return existing root
+    return (container as any).__reactRoot;
+  } else {
+    // Create new root and store reference
+    const newRoot = createRoot(container);
+    (container as any).__reactRoot = newRoot;
+    container.setAttribute('data-react-root', 'true');
+    return newRoot;
+  }
+};
 
-if (globalThis.__REACT_ROOT__) {
-  // Reuse existing root (for HMR)
-  root = globalThis.__REACT_ROOT__;
-} else {
-  // Create new root and store globally
-  root = createRoot(container);
-  globalThis.__REACT_ROOT__ = root;
-}
+// Get or create the root
+const root = getOrCreateRoot(container);
 
 // Render the app
 root.render(<AppWithErrorBoundary />);
@@ -46,22 +49,22 @@ if (import.meta.hot) {
     root.render(<AppWithErrorBoundary />);
   });
 
-  // Clean up on module disposal
+  // Handle module disposal
   import.meta.hot.dispose(() => {
-    // Don't unmount in development to preserve state
-    console.log("HMR: Module disposed");
+    console.log("HMR: Module reloading...");
   });
 }
 
-// Handle global errors
-if (!globalThis.__ERROR_HANDLERS_SETUP__) {
+// Set up global error handlers (only once)
+if (!window.__ERROR_HANDLERS_SETUP__) {
   window.addEventListener("error", (event) => {
     console.error("Global error:", event.error);
   });
 
   window.addEventListener("unhandledrejection", (event) => {
     console.error("Unhandled promise rejection:", event.reason);
+    event.preventDefault(); // Prevent default browser error handling
   });
 
-  globalThis.__ERROR_HANDLERS_SETUP__ = true;
+  (window as any).__ERROR_HANDLERS_SETUP__ = true;
 }
