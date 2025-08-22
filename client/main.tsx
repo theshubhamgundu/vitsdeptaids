@@ -1,13 +1,13 @@
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import App from './App';
-import ErrorBoundary from './components/ErrorBoundary';
+import React from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // Ensure DOM is ready
-const container = document.getElementById('root');
+const container = document.getElementById("root");
 
 if (!container) {
-  throw new Error('Root element not found');
+  throw new Error("Root element not found");
 }
 
 // Create React root only once
@@ -27,17 +27,17 @@ root.render(<AppWithErrorBoundary />);
 
 // For development: enable HMR
 if (import.meta.hot) {
-  import.meta.hot.accept('./App', () => {
+  import.meta.hot.accept("./App", () => {
     // Re-render the app when App.tsx changes
     root.render(<AppWithErrorBoundary />);
   });
 }
 
 // Handle global errors
-window.addEventListener('error', (event) => {
-  console.error('Global error:', event.error);
+window.addEventListener("error", (event) => {
+  console.error("Global error:", event.error);
 });
 
-window.addEventListener('unhandledrejection', (event) => {
-  console.error('Unhandled promise rejection:', event.reason);
+window.addEventListener("unhandledrejection", (event) => {
+  console.error("Unhandled promise rejection:", event.reason);
 });

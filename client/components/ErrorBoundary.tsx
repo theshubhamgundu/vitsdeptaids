@@ -1,7 +1,13 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import React, { Component, ErrorInfo, ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 
 interface Props {
   children: ReactNode;
@@ -27,11 +33,11 @@ class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log error details
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
+
     this.setState({
       error,
-      errorInfo
+      errorInfo,
     });
   }
 
@@ -59,14 +65,20 @@ class ErrorBoundary extends Component<Props, State> {
                   <AlertTriangle className="h-8 w-8 text-red-600" />
                 </div>
               </div>
-              <CardTitle className="text-red-800">Something went wrong</CardTitle>
+              <CardTitle className="text-red-800">
+                Something went wrong
+              </CardTitle>
               <CardDescription>
                 An unexpected error occurred. Please try refreshing the page.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-col space-y-2">
-                <Button onClick={this.handleReset} variant="outline" className="w-full">
+                <Button
+                  onClick={this.handleReset}
+                  variant="outline"
+                  className="w-full"
+                >
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Try Again
                 </Button>
@@ -74,15 +86,19 @@ class ErrorBoundary extends Component<Props, State> {
                   Reload Page
                 </Button>
               </div>
-              
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+
+              {process.env.NODE_ENV === "development" && this.state.error && (
                 <details className="mt-4">
                   <summary className="text-sm text-gray-600 cursor-pointer">
                     Error Details (Development)
                   </summary>
                   <div className="mt-2 p-3 bg-gray-100 rounded text-xs font-mono">
-                    <div className="text-red-600 font-bold">{this.state.error.name}</div>
-                    <div className="text-red-800">{this.state.error.message}</div>
+                    <div className="text-red-600 font-bold">
+                      {this.state.error.name}
+                    </div>
+                    <div className="text-red-800">
+                      {this.state.error.message}
+                    </div>
                     <pre className="mt-2 text-gray-600 whitespace-pre-wrap overflow-auto">
                       {this.state.error.stack}
                     </pre>
