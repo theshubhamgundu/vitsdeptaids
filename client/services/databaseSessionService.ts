@@ -29,7 +29,7 @@ const getDeviceInfo = (): string => {
 
 // Helper function to extract error message
 const getErrorMessage = (error: any): string => {
-  if (typeof error === 'string') return error;
+  if (typeof error === "string") return error;
   if (error?.message) return error.message;
   if (error?.error_description) return error.error_description;
   if (error?.details) return error.details;
@@ -41,7 +41,7 @@ export const databaseSessionService = {
   // Create a new session in database
   createSession: async (user: User): Promise<string> => {
     const sessionToken = generateSessionToken();
-    
+
     try {
       const deviceInfo = getDeviceInfo();
       const now = new Date().toISOString();
@@ -78,19 +78,29 @@ export const databaseSessionService = {
 
         if (error) {
           // Check if it's a table not found error
-          if (error.code === 'PGRST116' || error.message?.includes('relation "user_sessions" does not exist')) {
-            console.warn("⚠️ user_sessions table not found, using localStorage fallback");
-            console.log("💡 To enable database sessions, run USER_SESSIONS_TABLE.sql in Supabase");
+          if (
+            error.code === "PGRST116" ||
+            error.message?.includes('relation "user_sessions" does not exist')
+          ) {
+            console.warn(
+              "⚠️ user_sessions table not found, using localStorage fallback",
+            );
+            console.log(
+              "💡 To enable database sessions, run USER_SESSIONS_TABLE.sql in Supabase",
+            );
           } else {
-            console.warn("⚠️ Database session creation failed:", getErrorMessage(error));
+            console.warn(
+              "⚠️ Database session creation failed:",
+              getErrorMessage(error),
+            );
             console.warn("🔧 Error details:", {
               code: error.code,
               message: error.message,
               details: error.details,
-              hint: error.hint
+              hint: error.hint,
             });
           }
-          
+
           // Always fallback to localStorage
           localStorage.setItem("currentSessionToken", sessionToken);
           localStorage.setItem("currentUser", JSON.stringify(user));
@@ -103,7 +113,6 @@ export const databaseSessionService = {
 
         console.log("✅ Database session created successfully");
         return sessionToken;
-        
       } catch (dbError) {
         console.warn("⚠️ Database insert failed:", getErrorMessage(dbError));
         // Fallback to localStorage
@@ -111,7 +120,6 @@ export const databaseSessionService = {
         localStorage.setItem("currentUser", JSON.stringify(user));
         return sessionToken;
       }
-      
     } catch (error) {
       console.warn("⚠️ Session creation error:", getErrorMessage(error));
       // Always provide a fallback session
@@ -160,12 +168,17 @@ export const databaseSessionService = {
           .single();
 
         if (error) {
-          if (error.code === 'PGRST116' || error.message?.includes('relation "user_sessions" does not exist')) {
-            console.log("📱 user_sessions table not found, checking localStorage");
+          if (
+            error.code === "PGRST116" ||
+            error.message?.includes('relation "user_sessions" does not exist')
+          ) {
+            console.log(
+              "📱 user_sessions table not found, checking localStorage",
+            );
           } else {
             console.warn("Session validation error:", getErrorMessage(error));
           }
-          
+
           // Fallback to localStorage check
           const storedToken = localStorage.getItem("currentSessionToken");
           const storedUser = localStorage.getItem("currentUser");
@@ -204,7 +217,12 @@ export const databaseSessionService = {
           .update({ last_activity: new Date().toISOString() })
           .eq("session_token", sessionToken)
           .then()
-          .catch(err => console.warn("Failed to update last activity:", getErrorMessage(err)));
+          .catch((err) =>
+            console.warn(
+              "Failed to update last activity:",
+              getErrorMessage(err),
+            ),
+          );
 
         // Get user data based on role and user_id
         let userData: User | null = null;
@@ -214,7 +232,9 @@ export const databaseSessionService = {
           const localUsers = JSON.parse(
             localStorage.getItem("localUsers") || "[]",
           );
-          const localUser = localUsers.find((u: any) => u.id === session.user_id);
+          const localUser = localUsers.find(
+            (u: any) => u.id === session.user_id,
+          );
 
           if (localUser) {
             userData = {
@@ -244,7 +264,10 @@ export const databaseSessionService = {
                   };
                 }
               } catch (studentError) {
-                console.warn("Failed to fetch student data:", getErrorMessage(studentError));
+                console.warn(
+                  "Failed to fetch student data:",
+                  getErrorMessage(studentError),
+                );
               }
             }
           }
@@ -268,7 +291,10 @@ export const databaseSessionService = {
                 };
               }
             } catch (facultyError) {
-              console.warn("Failed to fetch faculty data:", getErrorMessage(facultyError));
+              console.warn(
+                "Failed to fetch faculty data:",
+                getErrorMessage(facultyError),
+              );
             }
           }
         }
@@ -281,9 +307,11 @@ export const databaseSessionService = {
         localStorage.setItem("currentUser", JSON.stringify(userData));
 
         return { isValid: true, user: userData };
-        
       } catch (dbError) {
-        console.warn("Database session validation failed:", getErrorMessage(dbError));
+        console.warn(
+          "Database session validation failed:",
+          getErrorMessage(dbError),
+        );
         // Fallback to localStorage
         const storedToken = localStorage.getItem("currentSessionToken");
         const storedUser = localStorage.getItem("currentUser");
@@ -301,7 +329,6 @@ export const databaseSessionService = {
         }
         return { isValid: false };
       }
-      
     } catch (error) {
       console.warn("Session validation error:", getErrorMessage(error));
       return { isValid: false };
@@ -321,7 +348,10 @@ export const databaseSessionService = {
             .update({ is_active: false })
             .eq("session_token", sessionToken);
         } catch (dbError) {
-          console.warn("Failed to deactivate database session:", getErrorMessage(dbError));
+          console.warn(
+            "Failed to deactivate database session:",
+            getErrorMessage(dbError),
+          );
         }
       }
 
@@ -354,7 +384,10 @@ export const databaseSessionService = {
             .update({ is_active: false })
             .eq("user_id", userId);
         } catch (dbError) {
-          console.warn("Failed to remove database sessions:", getErrorMessage(dbError));
+          console.warn(
+            "Failed to remove database sessions:",
+            getErrorMessage(dbError),
+          );
         }
       }
 
@@ -411,7 +444,10 @@ export const databaseSessionService = {
 
       console.log("✅ Expired sessions cleaned up");
     } catch (error) {
-      console.warn("Error cleaning up expired sessions:", getErrorMessage(error));
+      console.warn(
+        "Error cleaning up expired sessions:",
+        getErrorMessage(error),
+      );
     }
   },
 };
