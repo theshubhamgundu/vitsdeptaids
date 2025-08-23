@@ -36,7 +36,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { getAllFaculty } from "@/data/facultyData";
+import { getAllFaculty } from "@/services/authService";
 import {
   Users,
   Search,
@@ -83,12 +83,25 @@ const AdminFaculty = () => {
   });
 
   useEffect(() => {
+    loadFaculty();
+  }, []);
+
+  useEffect(() => {
     setFilteredFaculty(faculty);
   }, [faculty]);
 
   useEffect(() => {
     filterFaculty();
   }, [faculty, searchTerm, designationFilter]);
+
+  const loadFaculty = async () => {
+    try {
+      const facultyData = await getAllFaculty();
+      setFaculty(facultyData);
+    } catch (error) {
+      console.error('Error loading faculty:', error);
+    }
+  };
 
   const filterFaculty = () => {
     let filtered = faculty;
@@ -97,7 +110,7 @@ const AdminFaculty = () => {
       filtered = filtered.filter(
         (member) =>
           member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          member.employeeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          member.facultyId.toLowerCase().includes(searchTerm.toLowerCase()) ||
           member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
           member.specialization
             .toLowerCase()
@@ -163,14 +176,14 @@ const AdminFaculty = () => {
     return "text-green-600";
   };
 
-  const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
-      case "active":
-        return "bg-green-100 text-green-800";
-      case "inactive":
+  const getStatusColor = (role) => {
+    switch (role.toLowerCase()) {
+      case "hod":
+        return "bg-purple-100 text-purple-800";
+      case "admin":
         return "bg-red-100 text-red-800";
-      case "on leave":
-        return "bg-yellow-100 text-yellow-800";
+      case "faculty":
+        return "bg-blue-100 text-blue-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -542,7 +555,7 @@ const AdminFaculty = () => {
                 <TableRow>
                   <TableHead>Faculty Name</TableHead>
                   <TableHead>Faculty ID</TableHead>
-                  <TableHead>Status</TableHead>
+                                        <TableHead>Role</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -569,11 +582,11 @@ const AdminFaculty = () => {
                       </div>
                     </TableCell>
                     <TableCell>{member.facultyId || member.employeeId}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(member.status)}>
-                        {member.status}
-                      </Badge>
-                    </TableCell>
+                                            <TableCell>
+                          <Badge className={getStatusColor(member.role)}>
+                            {member.role}
+                          </Badge>
+                        </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
                         <Button

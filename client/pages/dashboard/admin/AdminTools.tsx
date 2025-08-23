@@ -34,12 +34,12 @@ const AdminTools = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("results");
   const [loading, setLoading] = useState(false);
-  
+
   // Results management
   const [results, setResults] = useState([]);
   const [selectedResult, setSelectedResult] = useState(null);
   const [showAddResult, setShowAddResult] = useState(false);
-  
+
   // Attendance management
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [selectedAttendance, setSelectedAttendance] = useState(null);
@@ -242,12 +242,12 @@ const AdminTools = () => {
                         <Download className="h-4 w-4 mr-2" />
                         Export Data
                       </Button>
-                    </div>
+                        </div>
                     <p className="text-sm text-gray-600">
                       {results.length} results found in system
                     </p>
-                  </div>
-                )}
+                              </div>
+                            )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -271,12 +271,12 @@ const AdminTools = () => {
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                      <div className="space-y-4">
                     <p className="text-sm text-gray-600">
                       {attendanceRecords.length} attendance records found
                     </p>
-                  </div>
-                )}
+                              </div>
+                            )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -298,19 +298,19 @@ const AdminTools = () => {
                     <p className="text-gray-400 text-xs">
                       Materials will appear here once uploaded
                     </p>
-                  </div>
+                          </div>
                 ) : (
                   <div className="space-y-4">
                     <div className="flex gap-2">
                       <Button onClick={handleBulkUpload} variant="outline">
                         <Upload className="h-4 w-4 mr-2" />
                         Bulk Upload
-                      </Button>
+                            </Button>
                       <Button onClick={handleExportData} variant="outline">
                         <Download className="h-4 w-4 mr-2" />
                         Export List
-                      </Button>
-                    </div>
+                            </Button>
+                          </div>
                     <p className="text-sm text-gray-600">
                       {materials.length} materials found in system
                     </p>
@@ -365,9 +365,9 @@ const AdminTools = () => {
                         <option value="weekly">Weekly</option>
                         <option value="monthly">Monthly</option>
                       </select>
-                    </div>
-                  </div>
-                </div>
+                              </div>
+                              </div>
+                            </div>
 
                 {/* Notification Settings */}
                 <div className="space-y-3">
@@ -390,15 +390,15 @@ const AdminTools = () => {
                         <Label htmlFor={key} className="capitalize">
                           {key} Notifications
                         </Label>
-                      </div>
+                            </div>
                     ))}
-                  </div>
-                </div>
+                            </div>
+                            </div>
 
                 <Button onClick={handleSaveSettings} className="w-full">
                   <Save className="h-4 w-4 mr-2" />
                   Save Settings
-                </Button>
+                              </Button>
               </CardContent>
             </Card>
           </TabsContent>

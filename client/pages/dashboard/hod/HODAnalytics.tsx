@@ -272,58 +272,58 @@ const HODAnalytics = () => {
           {/* Academic Performance Tab */}
           <TabsContent value="academic" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Students</CardTitle>
                   <Users className="h-4 w-4 text-blue-600" />
-                </CardHeader>
-                <CardContent>
+            </CardHeader>
+            <CardContent>
                   <div className="text-2xl font-bold">{analyticsData.studentPerformance.totalStudents}</div>
                   <p className="text-xs text-muted-foreground">Enrolled students</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Average CGPA</CardTitle>
                   <BarChart3 className="h-4 w-4 text-green-600" />
-                </CardHeader>
-                <CardContent>
+            </CardHeader>
+            <CardContent>
                   <div className="text-2xl font-bold">{analyticsData.studentPerformance.averageCGPA}</div>
                   <p className="text-xs text-muted-foreground">Department average</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Pass Rate</CardTitle>
                   <Target className="h-4 w-4 text-purple-600" />
-                </CardHeader>
-                <CardContent>
+            </CardHeader>
+            <CardContent>
                   <div className="text-2xl font-bold">{analyticsData.studentPerformance.passPercentage}%</div>
                   <p className="text-xs text-muted-foreground">Success rate</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Attendance Rate</CardTitle>
                   <Activity className="h-4 w-4 text-orange-600" />
-                </CardHeader>
-                <CardContent>
+            </CardHeader>
+            <CardContent>
                   <div className="text-2xl font-bold">{analyticsData.studentPerformance.attendanceRate}%</div>
                   <p className="text-xs text-muted-foreground">Average attendance</p>
-                </CardContent>
-              </Card>
-            </div>
+            </CardContent>
+          </Card>
+        </div>
 
             {/* Year-wise Distribution */}
-            <Card>
-              <CardHeader>
+              <Card>
+                <CardHeader>
                 <CardTitle>Year-wise Student Distribution</CardTitle>
                 <CardDescription>Student count and performance by academic year</CardDescription>
-              </CardHeader>
-              <CardContent>
+                </CardHeader>
+                <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   {Object.entries(analyticsData.studentPerformance.yearWiseDistribution).map(([year, data]) => (
                     <div key={year} className="text-center p-4 border rounded-lg">
@@ -331,8 +331,8 @@ const HODAnalytics = () => {
                       <div className="text-2xl font-bold text-blue-600">{data.count}</div>
                       <div className="text-sm text-gray-600">Students</div>
                       <div className="text-sm text-gray-500">CGPA: {data.avgCGPA.toFixed(2)}</div>
-                    </div>
-                  ))}
+                      </div>
+                    ))}
                 </div>
               </CardContent>
             </Card>
@@ -400,7 +400,7 @@ const HODAnalytics = () => {
                     <p className="text-gray-400 text-xs">
                       Faculty performance data will appear here once available
                     </p>
-                  </div>
+                      </div>
                 ) : (
                   <div className="space-y-4">
                     {analyticsData.facultyPerformance.facultyMetrics.map((faculty, index) => (
@@ -411,15 +411,15 @@ const HODAnalytics = () => {
                             <p className="text-sm text-gray-600">
                               {faculty.subjects.join(", ") || "No subjects assigned"}
                             </p>
-                          </div>
+                      </div>
                           <div className="text-right">
                             <div className="text-lg font-bold">{faculty.avgRating}/5.0</div>
                             <div className="text-sm text-gray-600">Rating</div>
-                          </div>
-                        </div>
                       </div>
-                    ))}
+                    </div>
                   </div>
+                    ))}
+                </div>
                 )}
               </CardContent>
             </Card>
@@ -450,27 +450,27 @@ const HODAnalytics = () => {
                 </CardContent>
               </Card>
 
-              <Card>
+            <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Industry Partners</CardTitle>
                   <Building className="h-4 w-4 text-purple-600" />
-                </CardHeader>
-                <CardContent>
+              </CardHeader>
+              <CardContent>
                   <div className="text-2xl font-bold">{analyticsData.departmentMetrics.industryPartnerships}</div>
                   <p className="text-xs text-muted-foreground">Active partnerships</p>
-                </CardContent>
-              </Card>
+              </CardContent>
+            </Card>
 
-              <Card>
+            <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Student Satisfaction</CardTitle>
                   <Star className="h-4 w-4 text-yellow-600" />
-                </CardHeader>
-                <CardContent>
+              </CardHeader>
+              <CardContent>
                   <div className="text-2xl font-bold">{analyticsData.departmentMetrics.studentSatisfaction}%</div>
                   <p className="text-xs text-muted-foreground">Satisfaction rate</p>
-                </CardContent>
-              </Card>
+              </CardContent>
+            </Card>
             </div>
           </TabsContent>
 

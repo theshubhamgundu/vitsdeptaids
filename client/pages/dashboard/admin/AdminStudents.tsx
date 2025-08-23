@@ -835,9 +835,11 @@ const AdminStudents = () => {
                               <AvatarImage src="/api/placeholder/40/40" />
                               <AvatarFallback>
                                 {student.fullName
-                                  .split(" ")
-                                  .map((n) => n[0])
-                                  .join("")}
+                                  ? student.fullName
+                                      .split(" ")
+                                      .map((n) => n[0])
+                                      .join("")
+                                  : "ST"}
                               </AvatarFallback>
                             </Avatar>
                             <div>
