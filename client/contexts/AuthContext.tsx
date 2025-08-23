@@ -54,6 +54,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Check for existing session on app load
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
+    let loadingTimeoutId: NodeJS.Timeout;
 
     const checkExistingSession = async () => {
       try {
@@ -114,12 +115,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         }
       } finally {
-        // Set loading to false after a small delay to prevent flashing
-        timeoutId = setTimeout(() => {
+        // Always set loading to false, regardless of success or failure
+        if (isMountedRef.current) {
           safeSetLoading(false);
-        }, 100);
+        }
       }
     };
+
+    // Set a maximum timeout for loading state (fallback safety)
+    loadingTimeoutId = setTimeout(() => {
+      if (isMountedRef.current) {
+        console.warn("⚠️ Loading timeout reached, forcing loading state to false");
+        safeSetLoading(false);
+      }
+    }, 3000); // 3 second maximum loading time
 
     // Clean up expired sessions on app load (don't wait for this)
     databaseSessionService.cleanupExpiredSessions().catch((error) => {
@@ -132,6 +141,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
+      if (loadingTimeoutId) {
+        clearTimeout(loadingTimeoutId);
+      }
     };
   }, []);
 
@@ -140,6 +152,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Always set user data immediately for better UX
       safeSetUser(userData);
       localStorage.setItem("currentUser", JSON.stringify(userData));
+
+      // Ensure loading is set to false after login
+      safeSetLoading(false);
 
       // Try to create a database session (but don't fail if it doesn't work)
       try {
@@ -161,6 +176,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (isMountedRef.current) {
         safeSetUser(userData);
         localStorage.setItem("currentUser", JSON.stringify(userData));
+        safeSetLoading(false);
         console.log("✅ Login successful (localStorage fallback)");
       }
     }
