@@ -46,27 +46,28 @@ const LoginPage = () => {
 
   // Handle authentication state and redirects
   useEffect(() => {
-    const handleAuthState = async () => {
-      // If user is authenticated and coming from a protected route, redirect them
-      if (isAuthenticated && location.state?.from) {
-        const from = location.state.from.pathname || "/";
-        console.log("🔄 Redirecting authenticated user to:", from);
-        navigate(from, { replace: true });
-        return;
-      }
+    // If user is authenticated and coming from a protected route, redirect them
+    if (isAuthenticated && location.state?.from) {
+      const from = location.state.from.pathname || "/";
+      console.log("🔄 Redirecting authenticated user to:", from);
+      navigate(from, { replace: true });
+      return;
+    }
 
-      // If user is authenticated but accessing login directly, log them out for fresh login
-      if (isAuthenticated && !location.state?.from) {
-        console.log("🔄 Clearing authentication for explicit login");
-        await logout();
-      }
+    // If user is authenticated but accessing login directly, log them out for fresh login
+    if (isAuthenticated && !location.state?.from && !forceShowLogin) {
+      console.log("🔄 Clearing authentication for explicit login");
+      logout().then(() => {
+        setForceShowLogin(true);
+      });
+      return;
+    }
 
-      // Always show login form if we reach this point
+    // Show login form by default
+    if (!forceShowLogin) {
       setForceShowLogin(true);
-    };
-
-    handleAuthState();
-  }, [isAuthenticated, location.state?.from, logout, navigate]);
+    }
+  }, [isAuthenticated, location.state?.from, logout, navigate, forceShowLogin]);
 
   const loginTypes = {
     student: {
