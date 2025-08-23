@@ -128,9 +128,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Set a maximum timeout for loading state (fallback safety)
     loadingTimeoutId = setTimeout(() => {
-      if (isMountedRef.current) {
+      if (isMountedRef.current && !initializationCompleteRef.current) {
         console.warn("⚠️ Loading timeout reached, forcing loading state to false");
         safeSetLoading(false);
+        initializationCompleteRef.current = true;
       }
     }, 3000); // 3 second maximum loading time
 
