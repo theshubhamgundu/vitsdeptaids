@@ -118,9 +118,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         }
       } finally {
-        // Always set loading to false, regardless of success or failure
-        if (isMountedRef.current) {
+        // Only set loading to false if initialization hasn't been completed by login
+        if (isMountedRef.current && !initializationCompleteRef.current) {
           safeSetLoading(false);
+          initializationCompleteRef.current = true;
         }
       }
     };
