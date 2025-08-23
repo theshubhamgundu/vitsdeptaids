@@ -43,7 +43,7 @@ import {
 interface DashboardLayoutProps {
   children: React.ReactNode;
   userType: "student" | "faculty" | "admin" | "hod";
-  userName: string;
+  userName?: string; // Make optional since we'll use AuthContext
 }
 
 const DashboardLayout = ({
@@ -55,6 +55,10 @@ const DashboardLayout = ({
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, logoutAllDevices } = useAuth();
+
+  // Use real user data from AuthContext, fallback to prop
+  const displayName = user?.name || userName || "User";
+  const displayEmail = user?.email || "";
 
   const navigationConfig = {
     student: {
