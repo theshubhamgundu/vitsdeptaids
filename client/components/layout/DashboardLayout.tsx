@@ -258,7 +258,7 @@ const DashboardLayout = ({
               <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
                 <AvatarImage src="/api/placeholder/40/40" />
                 <AvatarFallback className="text-xs sm:text-sm">
-                  {userName
+                  {displayName
                     .split(" ")
                     .map((n) => n[0])
                     .join("")}
@@ -266,7 +266,7 @@ const DashboardLayout = ({
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">
-                  {userName}
+                  {displayName}
                 </p>
                 <p className="text-xs text-gray-500 capitalize">{userType}</p>
               </div>
