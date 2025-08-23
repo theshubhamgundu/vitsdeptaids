@@ -17,13 +17,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { user, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
-  // Show loading state while checking authentication
+  // Show loading state while checking authentication (with timeout)
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
+          <p className="text-xs text-gray-400 mt-2">Checking authentication...</p>
         </div>
       </div>
     );
