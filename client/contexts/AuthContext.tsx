@@ -151,13 +151,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const login = async (userData: User) => {
+    console.log("🔐 Starting login process for:", userData.name);
+
     try {
+      // Mark initialization as complete to prevent conflicts
+      initializationCompleteRef.current = true;
+
       // Always set user data immediately for better UX
       safeSetUser(userData);
       localStorage.setItem("currentUser", JSON.stringify(userData));
 
       // Ensure loading is set to false after login
       safeSetLoading(false);
+
+      console.log("✅ User authenticated and loading state cleared");
 
       // Try to create a database session (but don't fail if it doesn't work)
       try {
@@ -177,6 +184,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error("Error during login:", error);
       // Even if database operations fail, we still want to log the user in
       if (isMountedRef.current) {
+        initializationCompleteRef.current = true;
         safeSetUser(userData);
         localStorage.setItem("currentUser", JSON.stringify(userData));
         safeSetLoading(false);
