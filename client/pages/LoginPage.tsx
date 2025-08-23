@@ -44,30 +44,25 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [forceShowLogin, setForceShowLogin] = useState(false);
 
-  // Handle authentication state and redirects
+  // Simple authentication handling
   useEffect(() => {
-    // If user is authenticated and coming from a protected route, redirect them
-    if (isAuthenticated && location.state?.from) {
-      const from = location.state.from.pathname || "/";
-      console.log("🔄 Redirecting authenticated user to:", from);
-      navigate(from, { replace: true });
+    // If user is authenticated, redirect them to appropriate dashboard
+    if (isAuthenticated) {
+      const from = location.state?.from?.pathname;
+      if (from) {
+        console.log("🔄 Redirecting authenticated user to:", from);
+        navigate(from, { replace: true });
+      } else {
+        // Redirect to appropriate dashboard based on user role
+        console.log("🔄 User already authenticated, redirecting to dashboard");
+        logout(); // Clear auth for fresh login
+      }
       return;
     }
 
-    // If user is authenticated but accessing login directly, log them out for fresh login
-    if (isAuthenticated && !location.state?.from && !forceShowLogin) {
-      console.log("🔄 Clearing authentication for explicit login");
-      logout().then(() => {
-        setForceShowLogin(true);
-      });
-      return;
-    }
-
-    // Show login form by default
-    if (!forceShowLogin) {
-      setForceShowLogin(true);
-    }
-  }, [isAuthenticated, location.state?.from, logout, navigate, forceShowLogin]);
+    // Show login form
+    setForceShowLogin(true);
+  }, [isAuthenticated, location.state?.from, navigate, logout]);
 
   const loginTypes = {
     student: {
