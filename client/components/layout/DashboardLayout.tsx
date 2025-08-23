@@ -294,7 +294,7 @@ const DashboardLayout = ({
                   {config.title}
                 </h1>
                 <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">
-                  Welcome back, {userName}
+                  Welcome back, {displayName}
                 </p>
               </div>
             </div>
