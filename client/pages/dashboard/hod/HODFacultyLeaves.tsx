@@ -101,27 +101,6 @@ const HODFacultyLeaves = () => {
       console.error('Error loading leave data:', error);
     }
   };
-      appliedDate: "2024-09-03",
-      status: "Rejected",
-      priority: "low",
-      documents: [],
-      substituteArrangement: "Not specified",
-      contactDuringLeave: "+91 9876543210",
-      previousLeaves: 3,
-      remainingLeaves: 12,
-      rejectedDate: "2024-09-04",
-      rejectedBy: "Dr. Priya Sharma",
-      hodComments: "Rejected due to important departmental meeting scheduled. Please reschedule."
-    }
-  ]);
-
-  const [facultyLeaveStats] = useState({
-    totalApplications: 24,
-    pendingApprovals: 2,
-    approvedThisMonth: 8,
-    averageResponseTime: "1.2 days",
-    mostCommonLeaveType: "Conference Attendance"
-  });
 
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
