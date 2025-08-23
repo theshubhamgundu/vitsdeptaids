@@ -300,8 +300,8 @@ const LoginPage = () => {
 
             <Button
               type="submit"
-              className={`w-full h-11 bg-gradient-to-r ${currentType.gradient} hover:opacity-90 transition-opacity`}
-              disabled={loading}
+              className={`w-full h-11 bg-gradient-to-r ${currentType.gradient} hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed`}
+              disabled={loading || !formData.identifier || !formData.password}
             >
               {loading ? (
                 <div className="flex items-center space-x-2">
