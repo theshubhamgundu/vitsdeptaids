@@ -551,6 +551,47 @@ const FacultyDashboard = () => {
           </Card>
         </div>
 
+        {/* Assigned Students */}
+        {assignedStudents.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Assigned Students</CardTitle>
+              <CardDescription>Students under your guidance and support</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {assignedStudents.slice(0, 6).map((student, index) => (
+                  <div key={index} className="p-4 border rounded-lg bg-gray-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <User className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <Badge variant="secondary" className="text-xs">
+                        {student.year || "N/A"}
+                      </Badge>
+                    </div>
+                    <h3 className="font-medium text-sm">{student.student_name || student.name || "Unknown Student"}</h3>
+                    <p className="text-xs text-gray-600">HT: {student.ht_no || student.hallTicket || "N/A"}</p>
+                    <p className="text-xs text-gray-500">{student.branch || "AI & DS"}</p>
+                  </div>
+                ))}
+              </div>
+              {assignedStudents.length > 6 && (
+                <div className="text-center pt-4">
+                  <p className="text-sm text-gray-500">
+                    +{assignedStudents.length - 6} more students assigned
+                  </p>
+                  <Link to="/dashboard/faculty/students">
+                    <Button variant="outline" size="sm" className="mt-2">
+                      View All Students
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Recent Activities */}
         <Card>
           <CardHeader>

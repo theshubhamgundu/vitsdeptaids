@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { profileService } from "@/services/profileService";
+import { getCounsellorForStudent } from "@/services/facultyAssignmentService";
 import {
   User,
   Award,
@@ -55,6 +56,7 @@ const StudentDashboard = () => {
   });
   const [recentActivities, setRecentActivities] = useState<any[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+  const [counsellorInfo, setCounsellorInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -88,6 +90,12 @@ const StudentDashboard = () => {
       // Load upcoming events
       const events = await profileService.getUpcomingEvents();
       setUpcomingEvents(events);
+
+      // Load counsellor information
+      if (currentUser.hallTicket) {
+        const counsellor = await getCounsellorForStudent(currentUser.hallTicket);
+        setCounsellorInfo(counsellor);
+      }
 
     } catch (error) {
       console.error("Error loading dashboard data:", error);
@@ -239,6 +247,32 @@ const StudentDashboard = () => {
             </Card>
           ))}
         </div>
+
+        {/* Counsellor Information */}
+        {counsellorInfo && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <UserCheck className="h-5 w-5" />
+                <span>Academic Counsellor</span>
+              </CardTitle>
+              <CardDescription>Your assigned academic counsellor for guidance and support</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <User className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold">{counsellorInfo.faculty?.name || "Not Assigned"}</h3>
+                  <p className="text-sm text-gray-600">{counsellorInfo.faculty?.designation || ""}</p>
+                  <p className="text-sm text-gray-500">{counsellorInfo.faculty?.email || ""}</p>
+                  <p className="text-xs text-gray-400">Specialization: {counsellorInfo.faculty?.specialization || "N/A"}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

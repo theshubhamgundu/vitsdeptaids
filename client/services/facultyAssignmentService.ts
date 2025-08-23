@@ -390,6 +390,41 @@ export const removeStudentAssignment = async (studentHtNo: string, year: string)
   }
 };
 
+// Get counsellor information for a specific student
+export const getCounsellorForStudent = async (studentHtNo: string): Promise<any> => {
+  try {
+    const studentCounsellorAssignmentsTable = tables.studentCounsellorAssignments();
+    if (!studentCounsellorAssignmentsTable) {
+      console.warn("Supabase not configured - student_counsellor_assignments table unavailable");
+      return null;
+    }
+
+    const { data, error } = await studentCounsellorAssignmentsTable
+      .select(`
+        *,
+        faculty:faculty_id (
+          id,
+          name,
+          email,
+          designation,
+          specialization
+        )
+      `)
+      .eq("student_ht_no", studentHtNo)
+      .single();
+
+    if (error) {
+      console.error("Error fetching counsellor for student:", error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error in getCounsellorForStudent:", error);
+    return null;
+  }
+};
+
 export default {
   getAllFacultyAssignments,
   getFacultyAssignmentsByYear,
@@ -401,5 +436,6 @@ export default {
   getVisibleStudentsForFaculty,
   getYearAssignmentSummary,
   assignStudentToCounsellor,
-  removeStudentAssignment
+  removeStudentAssignment,
+  getCounsellorForStudent
 };

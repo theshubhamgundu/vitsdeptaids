@@ -393,6 +393,8 @@ const AdminStudents = () => {
   };
 
   const getStatusColor = (status) => {
+    if (!status) return "bg-gray-100 text-gray-800";
+    
     switch (status.toLowerCase()) {
       case "active":
         return "bg-green-100 text-green-800";
