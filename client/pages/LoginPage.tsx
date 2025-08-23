@@ -98,8 +98,16 @@ const LoginPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Prevent duplicate submissions
+    if (loading) {
+      console.log("🔄 Login already in progress, ignoring submission");
+      return;
+    }
+
     setLoading(true);
     setError("");
+    console.log("🔐 Starting login attempt for:", formData.identifier);
 
     try {
       if (type === "faculty" || type === "admin") {
@@ -110,6 +118,9 @@ const LoginPage = () => {
         );
 
         if (faculty) {
+          console.log("✅ Faculty authentication successful");
+
+          // Show success toast only once
           toast({
             title: "Login Successful",
             description: `Welcome back, ${faculty.name}!`,
@@ -134,7 +145,9 @@ const LoginPage = () => {
             designation: faculty.designation,
           });
 
+          // Navigate after successful login
           const from = location.state?.from?.pathname || route;
+          console.log("🔄 Navigating to:", from);
           navigate(from, { replace: true });
         } else {
           setError(
@@ -147,7 +160,11 @@ const LoginPage = () => {
           formData.identifier,
           formData.password,
         );
+
         if (student) {
+          console.log("✅ Student authentication successful");
+
+          // Show success toast only once
           toast({
             title: "Login Successful",
             description: `Welcome back, ${student.name}!`,
@@ -164,7 +181,9 @@ const LoginPage = () => {
             section: student.section,
           });
 
+          // Navigate after successful login
           const from = location.state?.from?.pathname || "/dashboard/student";
+          console.log("🔄 Navigating to:", from);
           navigate(from, { replace: true });
         } else {
           setError(
