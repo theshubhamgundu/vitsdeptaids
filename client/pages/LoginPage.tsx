@@ -180,10 +180,14 @@ const LoginPage = () => {
             section: student.section,
           });
 
-          // Navigate after successful login
+          // Navigate immediately after login
           const from = location.state?.from?.pathname || "/dashboard/student";
-          console.log("🔄 Navigating to:", from);
-          navigate(from, { replace: true });
+          console.log("🔄 Navigating immediately to:", from);
+
+          // Use setTimeout to ensure state is updated before navigation
+          setTimeout(() => {
+            navigate(from, { replace: true });
+          }, 0);
         } else {
           setError(
             "Invalid credentials. Please check your Hall Ticket Number and password.",
