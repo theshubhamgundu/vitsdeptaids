@@ -91,6 +91,16 @@ const StudentDashboard = () => {
 
     } catch (error) {
       console.error("Error loading dashboard data:", error);
+      
+      // Set default empty state on error
+      setStats({
+        certificates: 0,
+        pendingApplications: 0,
+        attendance: 0,
+        cgpa: 0,
+      });
+      setRecentActivities([]);
+      setUpcomingEvents([]);
     } finally {
       setLoading(false);
     }

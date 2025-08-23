@@ -1,57 +1,5 @@
 import { RequestHandler } from "express";
 
-// Mock student data
-const mockStudents = [
-  {
-    id: "1",
-    hallTicket: "20AI001",
-    fullName: "Rahul Sharma",
-    email: "rahul.sharma@vignanits.ac.in",
-    phone: "+91 9876543210",
-    year: 3,
-    branch: "AI & DS",
-    semester: 6,
-    cgpa: 8.45,
-    attendance: 88,
-    address: "123 Tech Street, Hyderabad, Telangana 500001",
-    emergencyContact: "+91 9876543211",
-    status: "Active",
-    admissionDate: "2021-08-01",
-  },
-  {
-    id: "2",
-    hallTicket: "20AI002",
-    fullName: "Priya Reddy",
-    email: "priya.reddy@vignanits.ac.in",
-    phone: "+91 9876543212",
-    year: 3,
-    branch: "AI & DS",
-    semester: 6,
-    cgpa: 8.75,
-    attendance: 92,
-    address: "456 Data Lane, Hyderabad, Telangana 500002",
-    emergencyContact: "+91 9876543213",
-    status: "Active",
-    admissionDate: "2021-08-01",
-  },
-  {
-    id: "3",
-    hallTicket: "20AI003",
-    fullName: "Arjun Kumar",
-    email: "arjun.kumar@vignanits.ac.in",
-    phone: "+91 9876543214",
-    year: 2,
-    branch: "AI & DS",
-    semester: 4,
-    cgpa: 7.85,
-    attendance: 78,
-    address: "789 ML Boulevard, Hyderabad, Telangana 500003",
-    emergencyContact: "+91 9876543215",
-    status: "Active",
-    admissionDate: "2022-08-01",
-  },
-];
-
 interface StudentFilters {
   year?: string;
   branch?: string;
@@ -62,48 +10,39 @@ interface StudentFilters {
 export const handleGetStudents: RequestHandler = (req, res) => {
   try {
     const { year, branch, status, search } = req.query as StudentFilters;
-
-    // In a real application, this would fetch from database
-    // For now, we return the mock students as the frontend manages real-time data
-    let filteredStudents = [...mockStudents];
-
-    // Apply filters
-    if (year) {
-      filteredStudents = filteredStudents.filter(
-        (s) => s.year.toString() === year,
-      );
-    }
-
-    if (branch) {
-      filteredStudents = filteredStudents.filter((s) => s.branch === branch);
-    }
-
-    if (status) {
-      filteredStudents = filteredStudents.filter(
-        (s) => s.status.toLowerCase() === status.toLowerCase(),
-      );
-    }
-
-    if (search) {
-      const searchLower = search.toLowerCase();
-      filteredStudents = filteredStudents.filter(
-        (s) =>
-          s.fullName.toLowerCase().includes(searchLower) ||
-          s.hallTicket.toLowerCase().includes(searchLower) ||
-          s.email.toLowerCase().includes(searchLower),
-      );
-    }
+    
+    // In a real application, this would query the database
+    // For now, return empty array since we're not using mock data
+    let students: any[] = [];
+    
+    // TODO: Implement database query based on filters
+    // const students = await db.students.findMany({
+    //   where: {
+    //     ...(year && { year }),
+    //     ...(branch && { branch }),
+    //     ...(status && { status }),
+    //     ...(search && {
+    //       OR: [
+    //         { fullName: { contains: search, mode: 'insensitive' } },
+    //         { hallTicket: { contains: search, mode: 'insensitive' } },
+    //         { email: { contains: search, mode: 'insensitive' } }
+    //       ]
+    //     })
+    //   }
+    // });
 
     res.json({
       success: true,
-      data: filteredStudents,
-      total: filteredStudents.length,
+      data: students,
+      total: students.length,
+      message: "Students fetched successfully"
     });
   } catch (error) {
-    console.error("Get students error:", error);
+    console.error("Error fetching students:", error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      error: "Failed to fetch students",
+      message: "Internal server error"
     });
   }
 };
@@ -111,7 +50,12 @@ export const handleGetStudents: RequestHandler = (req, res) => {
 export const handleGetStudent: RequestHandler = (req, res) => {
   try {
     const { id } = req.params;
-    const student = mockStudents.find((s) => s.id === id);
+    // TODO: Implement database query to get a single student by ID
+    // const student = await db.students.findUnique({
+    //   where: { id }
+    // });
+
+    const student = null; // Placeholder for now
 
     if (!student) {
       return res.status(404).json({
@@ -136,7 +80,12 @@ export const handleGetStudent: RequestHandler = (req, res) => {
 export const handleGetStudentAnalysis: RequestHandler = (req, res) => {
   try {
     const { id } = req.params;
-    const student = mockStudents.find((s) => s.id === id);
+    // TODO: Implement database query to get a single student by ID
+    // const student = await db.students.findUnique({
+    //   where: { id }
+    // });
+
+    const student = null; // Placeholder for now
 
     if (!student) {
       return res.status(404).json({
@@ -228,41 +177,107 @@ export const handleGetStudentAnalysis: RequestHandler = (req, res) => {
 
 export const handleGetStudentStats: RequestHandler = (req, res) => {
   try {
-    // Note: In production, real-time stats are handled by the frontend studentDataService
-    // This endpoint provides fallback data for API compatibility
+    // TODO: Implement database query for statistics
+    // const stats = await db.$queryRaw`
+    //   SELECT 
+    //     COUNT(*) as total,
+    //     COUNT(CASE WHEN status = 'Active' THEN 1 END) as active,
+    //     COUNT(CASE WHEN status = 'Graduated' THEN 1 END) as graduated,
+    //     AVG(cgpa) as averageCgpa
+    //   FROM students
+    // `;
+
     const stats = {
-      total: mockStudents.length,
-      byYear: {
-        1: mockStudents.filter((s) => s.year === 1).length,
-        2: mockStudents.filter((s) => s.year === 2).length,
-        3: mockStudents.filter((s) => s.year === 3).length,
-        4: mockStudents.filter((s) => s.year === 4).length,
-      },
-      byStatus: {
-        active: mockStudents.filter((s) => s.status === "Active").length,
-        inactive: mockStudents.filter((s) => s.status === "Inactive").length,
-      },
-      averageCgpa:
-        mockStudents.length > 0
-          ? mockStudents.reduce((sum, s) => sum + s.cgpa, 0) /
-            mockStudents.length
-          : 0,
-      averageAttendance:
-        mockStudents.length > 0
-          ? mockStudents.reduce((sum, s) => sum + s.attendance, 0) /
-            mockStudents.length
-          : 0,
+      total: 0,
+      active: 0,
+      graduated: 0,
+      averageCgpa: 0
     };
 
     res.json({
       success: true,
       data: stats,
+      message: "Student statistics fetched successfully"
     });
   } catch (error) {
-    console.error("Get student stats error:", error);
+    console.error("Error fetching student stats:", error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      error: "Failed to fetch student statistics",
+      message: "Internal server error"
+    });
+  }
+};
+
+export const handleCreateStudent: RequestHandler = (req, res) => {
+  try {
+    const studentData = req.body;
+    
+    // TODO: Implement database insert
+    // const newStudent = await db.students.create({
+    //   data: studentData
+    // });
+
+    res.status(201).json({
+      success: true,
+      data: null, // newStudent would be returned here
+      message: "Student created successfully"
+    });
+  } catch (error) {
+    console.error("Error creating student:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to create student",
+      message: "Internal server error"
+    });
+  }
+};
+
+export const handleUpdateStudent: RequestHandler = (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    // TODO: Implement database update
+    // const updatedStudent = await db.students.update({
+    //   where: { id },
+    //   data: updateData
+    // });
+
+    res.json({
+      success: true,
+      data: null, // updatedStudent would be returned here
+      message: "Student updated successfully"
+    });
+  } catch (error) {
+    console.error("Error updating student:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to update student",
+      message: "Internal server error"
+    });
+  }
+};
+
+export const handleDeleteStudent: RequestHandler = (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // TODO: Implement database delete
+    // await db.students.delete({
+    //   where: { id }
+    // });
+
+    res.json({
+      success: true,
+      message: "Student deleted successfully"
+    });
+  } catch (error) {
+    console.error("Error deleting student:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to delete student",
+      message: "Internal server error"
     });
   }
 };

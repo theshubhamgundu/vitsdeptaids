@@ -28,6 +28,10 @@ export const getAllStudentsFromList = async (): Promise<
 
     if (error) {
       console.error("Error fetching students list:", error);
+      // If it's a table doesn't exist error, log it specifically
+      if (error.code === '42P01') {
+        console.warn("Students list table doesn't exist yet. Please run the database setup script.");
+      }
       return [];
     }
 

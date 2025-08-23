@@ -27,17 +27,17 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Search, Users, TrendingUp, BookOpen, RefreshCw } from "lucide-react";
 import {
-  getAllStudentsFromList,
-  getStudentsByYear,
-  searchStudentsByName,
-  getStudentsListStats,
-  StudentsListRecord,
-} from "@/services/studentsListService";
+  getAllStudentsFromData,
+  getStudentsByYearFromData,
+  searchStudentsByNameInData,
+  getStudentDataStats,
+  MappedStudentRecord,
+} from "@/services/studentDataMappingService";
 
 const StudentsListViewer = () => {
-  const [students, setStudents] = useState<StudentsListRecord[]>([]);
+  const [students, setStudents] = useState<MappedStudentRecord[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<
-    StudentsListRecord[]
+    MappedStudentRecord[]
   >([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -65,9 +65,9 @@ const StudentsListViewer = () => {
   const loadStudents = async () => {
     setLoading(true);
     try {
-      const data = await getAllStudentsFromList();
+      const data = await getAllStudentsFromData();
       setStudents(data);
-      console.log(`✅ Loaded ${data.length} students from students_list table`);
+      console.log(`✅ Loaded ${data.length} students from student_data table`);
     } catch (error) {
       console.error("Error loading students:", error);
     } finally {
@@ -77,7 +77,7 @@ const StudentsListViewer = () => {
 
   const loadStats = async () => {
     try {
-      const statsData = await getStudentsListStats();
+      const statsData = await getStudentDataStats();
       setStats(statsData);
     } catch (error) {
       console.error("Error loading stats:", error);
@@ -96,10 +96,10 @@ const StudentsListViewer = () => {
     if (searchTerm) {
       filtered = filtered.filter(
         (student) =>
-          student.student_name
+          student.fullName
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          student.ht_no.toLowerCase().includes(searchTerm.toLowerCase()),
+          student.hallTicket.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
@@ -114,7 +114,7 @@ const StudentsListViewer = () => {
 
     setLoading(true);
     try {
-      const searchResults = await searchStudentsByName(searchTerm);
+      const searchResults = await searchStudentsByNameInData(searchTerm);
       setStudents(searchResults);
     } catch (error) {
       console.error("Error searching students:", error);
@@ -130,7 +130,7 @@ const StudentsListViewer = () => {
     } else {
       setLoading(true);
       try {
-        const yearData = await getStudentsByYear(year);
+        const yearData = await getStudentsByYearFromData(year);
         setStudents(yearData);
       } catch (error) {
         console.error("Error filtering by year:", error);
@@ -254,10 +254,10 @@ const StudentsListViewer = () => {
                   {filteredStudents.map((student, index) => (
                     <TableRow key={student.id || index}>
                       <TableCell className="font-mono">
-                        {student.ht_no}
+                        {student.hallTicket}
                       </TableCell>
                       <TableCell className="font-medium">
-                        {student.student_name}
+                        {student.fullName}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">{student.year}</Badge>

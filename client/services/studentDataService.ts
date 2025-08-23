@@ -1,11 +1,11 @@
-import { supabase, tables } from "@/lib/supabase";
+import { tables } from "@/lib/supabase";
 
 export interface StudentRecord {
   id: string;
   hallTicket: string;
   fullName: string;
   email: string;
-  phone?: string;
+  phone: string;
   year: string;
   section: string;
   cgpa: number;
@@ -13,11 +13,10 @@ export interface StudentRecord {
   status: string;
   branch: string;
   semester: number;
-  address?: string;
-  emergencyContact?: string;
+  address: string;
+  emergencyContact: string;
   admissionDate: string;
   createdAt: string;
-  password?: string; // For local authentication
 }
 
 export interface Certificate {
@@ -35,133 +34,70 @@ export interface Certificate {
   rejectionReason?: string;
 }
 
-export interface Result {
-  id: string;
-  studentId: string;
-  subject: string;
-  semester: number;
-  marks: number;
-  grade: string;
-  examType: string;
-  examDate: string;
-}
-
-export interface AttendanceRecord {
-  id: string;
-  studentId: string;
-  subject: string;
-  date: string;
-  status: "present" | "absent" | "late";
-  period: number;
-}
-
-export interface LeaveApplication {
-  id: string;
-  studentId: string;
-  startDate: string;
-  endDate: string;
-  reason: string;
-  type: "medical" | "personal" | "emergency";
-  status: "pending" | "approved" | "rejected";
-  appliedDate: string;
-  approvedBy?: string;
-  approvedAt?: string;
-  rejectionReason?: string;
-}
-
 // Get all student data from various sources
 export const getAllStudents = async (): Promise<StudentRecord[]> => {
   try {
     let students: StudentRecord[] = [];
 
-    // Get from localStorage (newly registered students)
-    const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
-    const localStudents = localUsers.filter(
-      (user: any) => user.role === "student",
-    );
-
-    students = localStudents.map((student: any) => ({
-      id: student.id,
-      hallTicket: student.hallTicket,
-      fullName: student.name,
-      email: student.email,
-      phone: student.phone || "",
-      year: student.year,
-      section: student.section || "A",
-      cgpa: student.cgpa || 0.0,
-      attendance: student.attendance || 0,
-      status: student.status || "Active",
-      branch: "AI & DS",
-      semester: getDefaultSemester(student.year),
-      address: student.address || "",
-      emergencyContact: student.emergencyContact || "",
-      admissionDate: student.createdAt || new Date().toISOString(),
-      createdAt: student.createdAt || new Date().toISOString(),
-      password: student.password,
-    }));
-
-    // Get from Supabase if available
-    const studentsTable = tables.students();
-    if (studentsTable) {
-      try {
-        const { data: dbStudents, error } = await studentsTable
+    // Try to fetch from Supabase first
+    try {
+      const studentsTable = tables.students();
+      if (studentsTable) {
+        const { data, error } = await studentsTable
           .select("*")
-          .order("name");
+          .order("full_name");
 
-        if (!error && dbStudents) {
-          const dbStudentRecords = dbStudents.map((student: any) => ({
+        if (error) {
+          console.error("Error fetching from Supabase:", error);
+          // If it's a table doesn't exist error, log it specifically
+          if (error.code === '42P01') {
+            console.warn("Students table doesn't exist yet. Please run the database setup script.");
+          }
+        } else if (data) {
+          students = data.map((student: any) => ({
             id: student.id,
-            hallTicket: student.hall_ticket,
-            fullName: student.name,
+            hallTicket: student.hall_ticket || student.hallTicket,
+            fullName: student.full_name || student.fullName,
             email: student.email,
-            phone: student.phone || "",
+            phone: student.phone,
             year: student.year,
-            section: student.section || "A",
-            cgpa: student.cgpa || 0.0,
+            section: student.section,
+            cgpa: student.cgpa || 0,
             attendance: student.attendance || 0,
             status: student.status || "Active",
             branch: student.branch || "AI & DS",
-            semester: student.semester || getDefaultSemester(student.year),
+            semester: student.semester || 1,
             address: student.address || "",
-            emergencyContact: student.emergency_contact || "",
-            admissionDate: student.admission_date || student.created_at,
-            createdAt: student.created_at,
+            emergencyContact: student.emergency_contact || student.emergencyContact || "",
+            admissionDate: student.admission_date || student.admissionDate || "",
+            createdAt: student.created_at || student.createdAt || "",
           }));
-
-          // Merge with local students, avoiding duplicates
-          const existingHallTickets = students.map((s) => s.hallTicket);
-          const newDbStudents = dbStudentRecords.filter(
-            (s) => !existingHallTickets.includes(s.hallTicket),
-          );
-          students = [...students, ...newDbStudents];
         }
-      } catch (dbError) {
-        console.warn("Database fetch failed, using local data only:", dbError);
       }
+    } catch (dbError) {
+      console.warn("Database fetch failed, using local data only:", dbError);
     }
 
-    // Add demo students if no data exists
+    // If no data from database, try to get from localStorage
     if (students.length === 0) {
-      students = [
-        {
-          id: "demo-1",
-          hallTicket: "20AI001",
-          fullName: "Demo Student",
-          email: "demo@vignan.ac.in",
-          phone: "+91 9876543210",
-          year: "3rd Year",
-          section: "A",
-          cgpa: 8.45,
-          attendance: 88,
-          status: "Active",
-          branch: "AI & DS",
-          semester: 6,
-          address: "Demo Address",
-          emergencyContact: "+91 9876543211",
-          admissionDate: "2021-08-01",
-          createdAt: "2021-08-01T00:00:00.000Z",
-        },
-      ];
+      try {
+        // Get admin-created students
+        const adminStudents = JSON.parse(
+          localStorage.getItem("adminCreatedStudents") || "[]"
+        );
+        
+        // Get local users who are students
+        const localUsers = JSON.parse(
+          localStorage.getItem("localUsers") || "[]"
+        );
+        
+        const localStudents = localUsers.filter((user: any) => user.role === "student");
+        
+        // Combine both sources
+        students = [...adminStudents, ...localStudents];
+      } catch (localError) {
+        console.warn("Local storage fetch failed:", localError);
+      }
     }
 
     return students;
@@ -175,46 +111,135 @@ export const getAllStudents = async (): Promise<StudentRecord[]> => {
 export const getStudentById = async (
   studentId: string,
 ): Promise<StudentRecord | null> => {
-  const students = await getAllStudents();
-  return students.find((s) => s.id === studentId) || null;
+  try {
+    const students = await getAllStudents();
+    return students.find((student) => student.id === studentId) || null;
+  } catch (error) {
+    console.error("Error fetching student by ID:", error);
+    return null;
+  }
 };
 
 // Get student by hall ticket
 export const getStudentByHallTicket = async (
   hallTicket: string,
 ): Promise<StudentRecord | null> => {
-  const students = await getAllStudents();
-  return students.find((s) => s.hallTicket === hallTicket) || null;
+  try {
+    const students = await getAllStudents();
+    return (
+      students.find(
+        (student) =>
+          student.hallTicket.toLowerCase() === hallTicket.toLowerCase(),
+      ) || null
+    );
+  } catch (error) {
+    console.error("Error fetching student by hall ticket:", error);
+    return null;
+  }
+};
+
+// Get students by year
+export const getStudentsByYear = async (
+  year: string,
+): Promise<StudentRecord[]> => {
+  try {
+    const students = await getAllStudents();
+    return students.filter((student) => student.year === year);
+  } catch (error) {
+    console.error("Error fetching students by year:", error);
+    return [];
+  }
+};
+
+// Get students by status
+export const getStudentsByStatus = async (
+  status: string,
+): Promise<StudentRecord[]> => {
+  try {
+    const students = await getAllStudents();
+    return students.filter(
+      (student) => student.status.toLowerCase() === status.toLowerCase(),
+    );
+  } catch (error) {
+    console.error("Error fetching students by status:", error);
+    return [];
+  }
+};
+
+// Search students
+export const searchStudents = async (
+  query: string,
+): Promise<StudentRecord[]> => {
+  try {
+    const students = await getAllStudents();
+    const searchTerm = query.toLowerCase();
+
+    return students.filter(
+      (student) =>
+        student.fullName.toLowerCase().includes(searchTerm) ||
+        student.hallTicket.toLowerCase().includes(searchTerm) ||
+        student.email.toLowerCase().includes(searchTerm),
+    );
+  } catch (error) {
+    console.error("Error searching students:", error);
+    return [];
+  }
 };
 
 // Get student statistics
-export const getStudentStats = async () => {
-  const students = await getAllStudents();
+export const getStudentStats = async (): Promise<{
+  total: number;
+  byYear: Record<number, number>;
+  byStatus: Record<string, number>;
+  averageCgpa: number;
+  averageAttendance: number;
+}> => {
+  try {
+    const students = await getAllStudents();
 
-  const stats = {
-    total: students.length,
-    byYear: {
-      1: students.filter((s) => s.year.includes("1st")).length,
-      2: students.filter((s) => s.year.includes("2nd")).length,
-      3: students.filter((s) => s.year.includes("3rd")).length,
-      4: students.filter((s) => s.year.includes("4th")).length,
-    },
-    byStatus: {
-      active: students.filter((s) => s.status === "Active").length,
-      inactive: students.filter((s) => s.status === "Inactive").length,
-      graduated: students.filter((s) => s.status === "Graduated").length,
-    },
-    averageCgpa:
-      students.length > 0
-        ? students.reduce((sum, s) => sum + s.cgpa, 0) / students.length
-        : 0,
-    averageAttendance:
-      students.length > 0
-        ? students.reduce((sum, s) => sum + s.attendance, 0) / students.length
-        : 0,
-  };
+    const stats = {
+      total: students.length,
+      byYear: {} as Record<number, number>,
+      byStatus: {} as Record<string, number>,
+      averageCgpa: 0,
+      averageAttendance: 0,
+    };
 
-  return stats;
+    // Calculate year-wise distribution
+    students.forEach((student) => {
+      const yearNum = parseInt(student.year.match(/\d+/)?.[0] || "1");
+      stats.byYear[yearNum] = (stats.byYear[yearNum] || 0) + 1;
+    });
+
+    // Calculate status-wise distribution
+    students.forEach((student) => {
+      const status = student.status.toLowerCase();
+      stats.byStatus[status] = (stats.byStatus[status] || 0) + 1;
+    });
+
+    // Calculate averages
+    if (students.length > 0) {
+      const totalCgpa = students.reduce((sum, student) => sum + student.cgpa, 0);
+      const totalAttendance = students.reduce(
+        (sum, student) => sum + student.attendance,
+        0,
+      );
+
+      stats.averageCgpa = totalCgpa / students.length;
+      stats.averageAttendance = totalAttendance / students.length;
+    }
+
+    return stats;
+  } catch (error) {
+    console.error("Error calculating student stats:", error);
+    return {
+      total: 0,
+      byYear: {},
+      byStatus: {},
+      averageCgpa: 0,
+      averageAttendance: 0,
+    };
+  }
 };
 
 // Get certificates for a student
@@ -273,103 +298,12 @@ export const addStudentCertificate = async (
   }
 };
 
-// Get results for a student
-export const getStudentResults = async (
-  studentId: string,
-): Promise<Result[]> => {
-  try {
-    const localResults = JSON.parse(
-      localStorage.getItem(`results_${studentId}`) || "[]",
-    );
-    return localResults;
-  } catch (error) {
-    console.error("Error fetching results:", error);
-    return [];
-  }
-};
-
-// Get attendance for a student
-export const getStudentAttendance = async (
-  studentId: string,
-): Promise<AttendanceRecord[]> => {
-  try {
-    const localAttendance = JSON.parse(
-      localStorage.getItem(`attendance_${studentId}`) || "[]",
-    );
-    return localAttendance;
-  } catch (error) {
-    console.error("Error fetching attendance:", error);
-    return [];
-  }
-};
-
-// Get leave applications for a student
-export const getStudentLeaveApplications = async (
-  studentId: string,
-): Promise<LeaveApplication[]> => {
-  try {
-    const localLeaves = JSON.parse(
-      localStorage.getItem(`leaves_${studentId}`) || "[]",
-    );
-    return localLeaves;
-  } catch (error) {
-    console.error("Error fetching leave applications:", error);
-    return [];
-  }
-};
-
-// Add a leave application
-export const addLeaveApplication = async (
-  studentId: string,
-  leave: Omit<LeaveApplication, "id" | "studentId" | "appliedDate" | "status">,
-): Promise<boolean> => {
-  try {
-    const newLeave: LeaveApplication = {
-      id: crypto.randomUUID(),
-      studentId,
-      ...leave,
-      appliedDate: new Date().toISOString(),
-      status: "pending",
-    };
-
-    const existingLeaves = await getStudentLeaveApplications(studentId);
-    const updatedLeaves = [...existingLeaves, newLeave];
-
-    localStorage.setItem(`leaves_${studentId}`, JSON.stringify(updatedLeaves));
-
-    // Trigger storage event for real-time updates
-    window.dispatchEvent(
-      new StorageEvent("storage", {
-        key: `leaves_${studentId}`,
-        newValue: JSON.stringify(updatedLeaves),
-      }),
-    );
-
-    return true;
-  } catch (error) {
-    console.error("Error adding leave application:", error);
-    return false;
-  }
-};
-
-// Helper function to get default semester based on year
-function getDefaultSemester(year: string): number {
-  if (year.includes("1st")) return 2;
-  if (year.includes("2nd")) return 4;
-  if (year.includes("3rd")) return 6;
-  if (year.includes("4th")) return 8;
-  return 1;
-}
-
-// Real-time data update listeners
+// Subscribe to student data changes
 export const subscribeToStudentData = (callback: () => void) => {
   const handleStorageChange = (event: StorageEvent) => {
     if (
       event.key === "localUsers" ||
-      event.key?.startsWith("certificates_") ||
-      event.key?.startsWith("results_") ||
-      event.key?.startsWith("attendance_") ||
-      event.key?.startsWith("leaves_")
+      event.key === "adminCreatedStudents"
     ) {
       callback();
     }
@@ -377,21 +311,148 @@ export const subscribeToStudentData = (callback: () => void) => {
 
   window.addEventListener("storage", handleStorageChange);
 
+  // Return unsubscribe function
   return () => {
     window.removeEventListener("storage", handleStorageChange);
   };
+};
+
+// Add new student
+export const addStudent = async (
+  studentData: Omit<StudentRecord, "id" | "createdAt">,
+): Promise<StudentRecord> => {
+  try {
+    const newStudent: StudentRecord = {
+      ...studentData,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+    };
+
+    // Save to localStorage for now
+    const existingStudents = JSON.parse(
+      localStorage.getItem("adminCreatedStudents") || "[]",
+    );
+    existingStudents.push(newStudent);
+    localStorage.setItem(
+      "adminCreatedStudents",
+      JSON.stringify(existingStudents),
+    );
+
+    // Also add to localUsers for authentication
+    const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
+    localUsers.push({
+      id: newStudent.id,
+      name: newStudent.fullName,
+      role: "student",
+      hallTicket: newStudent.hallTicket,
+      email: newStudent.email,
+      phone: newStudent.phone,
+      year: newStudent.year,
+      section: newStudent.section,
+      password: "student123", // Default password
+      cgpa: newStudent.cgpa,
+      attendance: newStudent.attendance,
+      status: newStudent.status,
+      createdAt: newStudent.createdAt,
+    });
+    localStorage.setItem("localUsers", JSON.stringify(localUsers));
+
+    return newStudent;
+  } catch (error) {
+    console.error("Error adding student:", error);
+    throw error;
+  }
+};
+
+// Update student
+export const updateStudent = async (
+  studentId: string,
+  updates: Partial<StudentRecord>,
+): Promise<StudentRecord | null> => {
+  try {
+    const students = await getAllStudents();
+    const studentIndex = students.findIndex(
+      (student) => student.id === studentId,
+    );
+
+    if (studentIndex === -1) return null;
+
+    const updatedStudent = { ...students[studentIndex], ...updates };
+    students[studentIndex] = updatedStudent;
+
+    // Update in localStorage
+    const adminStudents = JSON.parse(
+      localStorage.getItem("adminCreatedStudents") || "[]",
+    );
+    const adminIndex = adminStudents.findIndex(
+      (s: any) => s.id === studentId,
+    );
+
+    if (adminIndex !== -1) {
+      adminStudents[adminIndex] = updatedStudent;
+      localStorage.setItem(
+        "adminCreatedStudents",
+        JSON.stringify(adminStudents),
+      );
+    }
+
+    // Update in localUsers
+    const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
+    const userIndex = localUsers.findIndex((u: any) => u.id === studentId);
+
+    if (userIndex !== -1) {
+      localUsers[userIndex] = { ...localUsers[userIndex], ...updates };
+      localStorage.setItem("localUsers", JSON.stringify(localUsers));
+    }
+
+    return updatedStudent;
+  } catch (error) {
+    console.error("Error updating student:", error);
+    return null;
+  }
+};
+
+// Delete student
+export const deleteStudent = async (studentId: string): Promise<boolean> => {
+  try {
+    // Remove from adminCreatedStudents
+    const adminStudents = JSON.parse(
+      localStorage.getItem("adminCreatedStudents") || "[]",
+    );
+    const filteredAdminStudents = adminStudents.filter(
+      (s: any) => s.id !== studentId,
+    );
+    localStorage.setItem(
+      "adminCreatedStudents",
+      JSON.stringify(filteredAdminStudents),
+    );
+
+    // Remove from localUsers
+    const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
+    const filteredLocalUsers = localUsers.filter(
+      (u: any) => u.id !== studentId,
+    );
+    localStorage.setItem("localUsers", JSON.stringify(filteredLocalUsers));
+
+    return true;
+  } catch (error) {
+    console.error("Error deleting student:", error);
+    return false;
+  }
 };
 
 export default {
   getAllStudents,
   getStudentById,
   getStudentByHallTicket,
+  getStudentsByYear,
+  getStudentsByStatus,
+  searchStudents,
   getStudentStats,
   getStudentCertificates,
   addStudentCertificate,
-  getStudentResults,
-  getStudentAttendance,
-  getStudentLeaveApplications,
-  addLeaveApplication,
   subscribeToStudentData,
+  addStudent,
+  updateStudent,
+  deleteStudent,
 };

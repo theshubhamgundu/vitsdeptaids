@@ -12,6 +12,13 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { getAllStudents } from "@/services/studentDataService";
+import { getAllFaculty } from "@/services/authService";
+import { 
+  getFacultyAssignmentsByFacultyId, 
+  getVisibleStudentsForFaculty,
+  FacultyAssignment 
+} from "@/services/facultyAssignmentService";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Users,
   Upload,
@@ -25,46 +32,221 @@ import {
   Clock,
   AlertCircle,
   Award,
+  UserCheck,
+  GraduationCap,
 } from "lucide-react";
 
 const FacultyDashboard = () => {
+  const { user } = useAuth();
   const [facultyData, setFacultyData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [studentCount, setStudentCount] = useState(0);
+  const [recentActivities, setRecentActivities] = useState<any[]>([]);
+  const [upcomingTasks, setUpcomingTasks] = useState<any[]>([]);
+  const [subjectProgress, setSubjectProgress] = useState<any[]>([]);
+  const [facultyAssignments, setFacultyAssignments] = useState<FacultyAssignment[]>([]);
+  const [assignedStudents, setAssignedStudents] = useState<any[]>([]);
+  const [isCoordinator, setIsCoordinator] = useState(false);
+  const [isCounsellor, setIsCounsellor] = useState(false);
 
   useEffect(() => {
-    initializeFacultyData();
-  }, []);
+    if (user) {
+      initializeFacultyData();
+    }
+  }, [user]);
 
   const initializeFacultyData = async () => {
     try {
-      // Get current user from localStorage
-      const currentUser = JSON.parse(
-        localStorage.getItem("currentUser") || "{}",
-      );
+      setLoading(true);
+      
+      if (user?.role === "faculty" || user?.role === "hod") {
+        // Get faculty assignments for current user
+        const assignments = await getFacultyAssignmentsByFacultyId(user.id);
+        setFacultyAssignments(assignments);
+        
+        // Determine user's role
+        const coordinatorRole = assignments.find(a => a.role === 'coordinator');
+        const counsellorRole = assignments.find(a => a.role === 'counsellor');
+        
+        setIsCoordinator(!!coordinatorRole);
+        setIsCounsellor(!!counsellorRole);
 
-      if (currentUser.role === "faculty" || currentUser.role === "hod") {
-        // Get student count for this faculty
+        // Get assigned students
+        const visibleStudents = await getVisibleStudentsForFaculty(user.id);
+        setAssignedStudents(visibleStudents);
+        setStudentCount(visibleStudents.length);
+
+        // Get real student data for department info
         const students = await getAllStudents();
-        const count = students.length;
+        const faculty = await getAllFaculty();
 
         setFacultyData({
-          name: currentUser.name || "Faculty Member",
-          employeeId: currentUser.facultyId || "N/A",
-          designation: currentUser.designation || "Faculty",
+          name: user.name || "Faculty Member",
+          employeeId: user.facultyId || "N/A",
+          designation: user.designation || "Faculty",
           department: "AI & DS",
           specialization: "Data Science and Artificial Intelligence",
-          totalStudents: count,
-          pendingResults: 0,
-          materialsUploaded: 0,
-          messagesCount: 0,
+          totalStudents: visibleStudents.length,
+          pendingResults: 0, // Will be calculated from real data
+          materialsUploaded: 0, // Will be calculated from real data
+          messagesCount: 0, // Will be calculated from real data
         });
-        setStudentCount(count);
+
+        // Calculate real pending results
+        const pendingResults = visibleStudents.reduce((total, student) => {
+          const studentResults = JSON.parse(localStorage.getItem(`results_${student.id}`) || "[]");
+          return total + studentResults.filter((r: any) => !r.published).length;
+        }, 0);
+
+        // Calculate real materials uploaded
+        const materialsUploaded = visibleStudents.reduce((total, student) => {
+          const studentMaterials = JSON.parse(localStorage.getItem(`materials_${student.id}`) || "[]");
+          return total + studentMaterials.length;
+        }, 0);
+
+        // Update faculty data with real counts
+        setFacultyData(prev => ({
+          ...prev,
+          pendingResults,
+          materialsUploaded
+        }));
+
+        // Generate real recent activities
+        const activities = [];
+        
+        if (visibleStudents.length > 0) {
+          activities.push({
+            id: 1,
+            type: "student",
+            title: "Assigned students loaded",
+            description: `${visibleStudents.length} students assigned to you`,
+            time: "Just now",
+            icon: Users,
+            status: "success"
+          });
+        }
+
+        if (pendingResults > 0) {
+          activities.push({
+            id: 2,
+            type: "result",
+            title: "Pending results",
+            description: `${pendingResults} results need to be published`,
+            time: "Just now",
+            icon: BarChart3,
+            status: "warning"
+          });
+        }
+
+        if (materialsUploaded > 0) {
+          activities.push({
+            id: 3,
+            type: "material",
+            title: "Materials uploaded",
+            description: `${materialsUploaded} study materials available`,
+            time: "Just now",
+            icon: Upload,
+            status: "success"
+          });
+        }
+
+        // Add role-specific activities
+        if (coordinatorRole) {
+          activities.push({
+            id: 4,
+            type: "role",
+            title: "Coordinator role active",
+            description: `Coordinating ${coordinatorRole.year} students`,
+            time: "Just now",
+            icon: UserCheck,
+            status: "success"
+          });
+        }
+
+        if (counsellorRole) {
+          activities.push({
+            id: 5,
+            type: "role",
+            title: "Counsellor role active",
+            description: `Counselling ${counsellorRole.year} students`,
+            time: "Just now",
+            icon: GraduationCap,
+            status: "success"
+          });
+        }
+
+        setRecentActivities(activities);
+
+        // Generate real upcoming tasks based on current data
+        const tasks = [];
+        
+        if (pendingResults > 0) {
+          tasks.push({
+            id: 1,
+            title: "Publish Pending Results",
+            subject: "Multiple subjects",
+            dueDate: "This week",
+            priority: "high"
+          });
+        }
+
+        if (visibleStudents.length > 0) {
+          tasks.push({
+            id: 2,
+            title: "Review Student Progress",
+            subject: "All assigned students",
+            dueDate: "This month",
+            priority: "medium"
+          });
+        }
+
+        // Add role-specific tasks
+        if (coordinatorRole) {
+          tasks.push({
+            id: 3,
+            title: "Year Coordinator Review",
+            subject: `${coordinatorRole.year} students`,
+            dueDate: "This month",
+            priority: "medium"
+          });
+        }
+
+        if (counsellorRole) {
+          tasks.push({
+            id: 4,
+            title: "Student Counselling Sessions",
+            subject: "Individual student meetings",
+            dueDate: "This week",
+            priority: "medium"
+          });
+        }
+
+        setUpcomingTasks(tasks);
+
+        // Generate real subject progress based on assignments
+        const subjects = [];
+        if (coordinatorRole) {
+          subjects.push({
+            subject: `${coordinatorRole.year} Coordination`,
+            completed: Math.min(100, Math.round((visibleStudents.length / 50) * 100)),
+            totalStudents: visibleStudents.length
+          });
+        }
+        if (counsellorRole) {
+          subjects.push({
+            subject: `${counsellorRole.year} Counselling`,
+            completed: Math.min(100, Math.round((visibleStudents.length / (counsellorRole.max_students || 50)) * 100)),
+            totalStudents: visibleStudents.length
+          });
+        }
+
+        setSubjectProgress(subjects);
+
       } else {
-        // Fallback for demo
+        // Set default empty state
         setFacultyData({
           name: "Faculty Member",
-          employeeId: "FAC001",
+          employeeId: "N/A",
           designation: "Faculty",
           department: "AI & DS",
           specialization: "Data Science and Artificial Intelligence",
@@ -73,9 +255,30 @@ const FacultyDashboard = () => {
           materialsUploaded: 0,
           messagesCount: 0,
         });
+        setStudentCount(0);
+        setRecentActivities([]);
+        setUpcomingTasks([]);
+        setSubjectProgress([]);
       }
     } catch (error) {
       console.error("Error initializing faculty data:", error);
+      
+      // Set error state
+      setFacultyData({
+        name: "Error Loading",
+        employeeId: "N/A",
+        designation: "Faculty",
+        department: "AI & DS",
+        specialization: "Data Science and Artificial Intelligence",
+        totalStudents: 0,
+        pendingResults: 0,
+        materialsUploaded: 0,
+        messagesCount: 0,
+      });
+      setStudentCount(0);
+      setRecentActivities([]);
+      setUpcomingTasks([]);
+      setSubjectProgress([]);
     } finally {
       setLoading(false);
     }
@@ -94,50 +297,82 @@ const FacultyDashboard = () => {
     );
   }
 
-  const quickStats = [
-    {
-      title: "Total Students",
-      value: studentCount.toString(),
-      description:
-        studentCount > 0 ? "Under department guidance" : "No students yet",
-      icon: Users,
-      color: studentCount > 0 ? "text-blue-600" : "text-gray-500",
-      bgColor: studentCount > 0 ? "bg-blue-50" : "bg-gray-50",
-      link: "/dashboard/faculty/students",
-    },
-    {
-      title: "Pending Results",
-      value: "0",
-      description: "No pending entries",
-      icon: BarChart3,
-      color: "text-gray-500",
-      bgColor: "bg-gray-50",
-      link: "/dashboard/faculty/results",
-    },
-    {
-      title: "Study Materials",
-      value: "0",
-      description: "No materials uploaded",
-      icon: Upload,
-      color: "text-gray-500",
-      bgColor: "bg-gray-50",
-      link: "/dashboard/faculty/materials",
-    },
-    {
-      title: "Messages",
-      value: "0",
-      description: "No unread notifications",
-      icon: MessageSquare,
-      color: "text-gray-500",
-      bgColor: "bg-gray-50",
-      link: "/dashboard/faculty/messages",
-    },
-  ];
+  // Role-based quick stats
+  const getQuickStats = () => {
+    const baseStats = [
+      {
+        title: "Assigned Students",
+        value: studentCount.toString(),
+        description: studentCount > 0 ? "Students under your guidance" : "No students assigned yet",
+        icon: Users,
+        color: studentCount > 0 ? "text-blue-600" : "text-gray-500",
+        bgColor: studentCount > 0 ? "bg-blue-50" : "bg-gray-50",
+        link: "/dashboard/faculty/students",
+      },
+      {
+        title: "Pending Results",
+        value: facultyData.pendingResults.toString(),
+        description: facultyData.pendingResults > 0 ? `${facultyData.pendingResults} results pending` : "No pending entries",
+        icon: BarChart3,
+        color: facultyData.pendingResults > 0 ? "text-orange-600" : "text-gray-500",
+        bgColor: facultyData.pendingResults > 0 ? "bg-orange-50" : "bg-gray-50",
+        link: "/dashboard/faculty/results",
+      },
+      {
+        title: "Study Materials",
+        value: facultyData.materialsUploaded.toString(),
+        description: facultyData.materialsUploaded > 0 ? `${facultyData.materialsUploaded} materials uploaded` : "No materials uploaded",
+        icon: Upload,
+        color: facultyData.materialsUploaded > 0 ? "text-green-600" : "text-gray-500",
+        bgColor: facultyData.materialsUploaded > 0 ? "bg-green-50" : "bg-gray-50",
+        link: "/dashboard/faculty/materials",
+      },
+      {
+        title: "Messages",
+        value: facultyData.messagesCount.toString(),
+        description: facultyData.messagesCount > 0 ? `${facultyData.messagesCount} unread notifications` : "No unread notifications",
+        icon: MessageSquare,
+        color: facultyData.messagesCount > 0 ? "text-purple-600" : "text-gray-500",
+        bgColor: facultyData.messagesCount > 0 ? "bg-purple-50" : "bg-gray-50",
+        link: "/dashboard/faculty/messages",
+      },
+    ];
 
-  // Empty states for new faculty accounts
-  const recentActivities: any[] = [];
-  const upcomingTasks: any[] = [];
-  const subjectProgress: any[] = [];
+    // Add role-specific stats
+    if (isCoordinator) {
+      const coordinatorAssignment = facultyAssignments.find(a => a.role === 'coordinator');
+      if (coordinatorAssignment) {
+        baseStats.push({
+          title: "Coordinator Role",
+          value: coordinatorAssignment.year,
+          description: `Coordinating ${coordinatorAssignment.year} students`,
+          icon: UserCheck,
+          color: "text-indigo-600",
+          bgColor: "bg-indigo-50",
+          link: "/dashboard/faculty/students",
+        });
+      }
+    }
+
+    if (isCounsellor) {
+      const counsellorAssignment = facultyAssignments.find(a => a.role === 'counsellor');
+      if (counsellorAssignment) {
+        baseStats.push({
+          title: "Counsellor Role",
+          value: `${counsellorAssignment.max_students || 'Unlimited'}`,
+          description: `Counselling ${counsellorAssignment.year} students`,
+          icon: GraduationCap,
+          color: "text-teal-600",
+          bgColor: "bg-teal-50",
+          link: "/dashboard/faculty/students",
+        });
+      }
+    }
+
+    return baseStats;
+  };
+
+  const quickStats = getQuickStats();
 
   return (
     <DashboardLayout userType="faculty" userName={facultyData.name}>
@@ -159,13 +394,28 @@ const FacultyDashboard = () => {
               <p className="text-green-100 text-sm mt-1">
                 Specialization: {facultyData.specialization}
               </p>
+              {/* Show roles */}
+              <div className="flex gap-2 mt-2">
+                {isCoordinator && (
+                  <Badge variant="secondary" className="bg-white/20 text-white">
+                    <UserCheck className="h-3 w-3 mr-1" />
+                    Coordinator
+                  </Badge>
+                )}
+                {isCounsellor && (
+                  <Badge variant="secondary" className="bg-white/20 text-white">
+                    <GraduationCap className="h-3 w-3 mr-1" />
+                    Counsellor
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {quickStats.map((stat, index) => (
+          {quickStats.slice(0, 4).map((stat, index) => (
             <Link key={index} to={stat.link}>
               <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -187,14 +437,40 @@ const FacultyDashboard = () => {
           ))}
         </div>
 
+        {/* Role-specific stats row */}
+        {quickStats.length > 4 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {quickStats.slice(4).map((stat, index) => (
+              <Link key={index + 4} to={stat.link}>
+                <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      {stat.title}
+                    </CardTitle>
+                    <div className={`p-2 rounded-md ${stat.bgColor}`}>
+                      <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{stat.value}</div>
+                    <p className="text-xs text-muted-foreground">
+                      {stat.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
+
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Subject Progress */}
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Course Progress</CardTitle>
+              <CardTitle>Role & Assignment Progress</CardTitle>
               <CardDescription>
-                Semester progress for your subjects
+                Progress overview for your assigned responsibilities
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -202,10 +478,10 @@ const FacultyDashboard = () => {
                 <div className="text-center py-12">
                   <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500 text-sm">
-                    No courses assigned yet
+                    No assignments yet
                   </p>
                   <p className="text-gray-400 text-xs">
-                    Course assignments will appear here once configured
+                    Role assignments will appear here once configured by admin
                   </p>
                 </div>
               ) : (
@@ -219,6 +495,9 @@ const FacultyDashboard = () => {
                         </span>
                       </div>
                       <Progress value={subject.completed} className="h-2" />
+                      <div className="text-xs text-gray-500">
+                        {subject.totalStudents} students assigned
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -289,41 +568,44 @@ const FacultyDashboard = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {recentActivities.map((activity) => (
-                  <div
-                    key={activity.id}
-                    className="flex items-center space-x-4 p-3 border rounded-lg"
-                  >
+                {recentActivities.map((activity) => {
+                  const IconComponent = activity.icon;
+                  return (
                     <div
-                      className={`p-2 rounded-full ${
-                        activity.status === "success"
-                          ? "bg-green-50"
-                          : activity.status === "warning"
-                            ? "bg-orange-50"
-                            : "bg-blue-50"
-                      }`}
+                      key={activity.id}
+                      className="flex items-center space-x-4 p-3 border rounded-lg"
                     >
-                      <activity.icon
-                        className={`h-5 w-5 ${
+                      <div
+                        className={`p-2 rounded-full ${
                           activity.status === "success"
-                            ? "text-green-600"
+                            ? "bg-green-50"
                             : activity.status === "warning"
-                              ? "text-orange-600"
-                              : "text-blue-600"
+                              ? "bg-orange-50"
+                              : "bg-blue-50"
                         }`}
-                      />
+                      >
+                        <IconComponent
+                          className={`h-5 w-5 ${
+                            activity.status === "success"
+                              ? "text-green-600"
+                              : activity.status === "warning"
+                                ? "text-orange-600"
+                                : "text-blue-600"
+                          }`}
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium">{activity.title}</h3>
+                        <p className="text-sm text-gray-600">
+                          {activity.description}
+                        </p>
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {activity.time}
+                      </span>
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium">{activity.title}</h3>
-                      <p className="text-sm text-gray-600">
-                        {activity.description}
-                      </p>
-                    </div>
-                    <span className="text-xs text-gray-500">
-                      {activity.time}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>

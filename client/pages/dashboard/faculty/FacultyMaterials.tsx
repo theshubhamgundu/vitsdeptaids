@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,7 @@ const FacultyMaterials = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [materials, setMaterials] = useState<StudyMaterial[]>([]);
+  const [filteredMaterials, setFilteredMaterials] = useState<StudyMaterial[]>([]);
   const [myMaterials, setMyMaterials] = useState<StudyMaterial[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -75,14 +76,24 @@ const FacultyMaterials = () => {
     tags: ""
   });
 
-  useEffect(() => {
-    loadMaterials();
-    // Initialize demo data on first load
-    materialsService.initializeDemoData();
-  }, []);
+  // Define filterMaterials function first using useCallback
+  const filterMaterials = useCallback(() => {
+    let filtered = materials;
 
-  useEffect(() => {
-    filterMaterials();
+    // Apply search first
+    if (searchTerm) {
+      filtered = materialsService.searchMaterials(searchTerm);
+    }
+
+    // Apply filters
+    if (selectedSubject !== "all") {
+      filtered = filtered.filter(m => m.subject === selectedSubject);
+    }
+    if (selectedYear !== "all") {
+      filtered = filtered.filter(m => m.year === selectedYear);
+    }
+
+    setFilteredMaterials(filtered);
   }, [materials, searchTerm, selectedSubject, selectedYear]);
 
   const loadMaterials = () => {
@@ -90,9 +101,10 @@ const FacultyMaterials = () => {
     try {
       const allMaterials = materialsService.getAllMaterials();
       setMaterials(allMaterials);
+      setFilteredMaterials(allMaterials);
       
       if (user?.id) {
-        const userMaterials = materialsService.getMaterialsByUploader(user.id);
+        const userMaterials = materialsService.getMaterialsByFaculty(user.id);
         setMyMaterials(userMaterials);
       }
     } catch (error) {
@@ -107,26 +119,15 @@ const FacultyMaterials = () => {
     }
   };
 
-  const filterMaterials = () => {
-    let filtered = materials;
+  // Load materials on component mount
+  useEffect(() => {
+    loadMaterials();
+  }, []);
 
-    if (searchTerm) {
-      filtered = materialsService.searchMaterials(searchTerm, {
-        subject: selectedSubject !== "all" ? selectedSubject : undefined,
-        year: selectedYear !== "all" ? selectedYear : undefined
-      });
-    } else {
-      // Apply filters without search
-      if (selectedSubject !== "all") {
-        filtered = filtered.filter(m => m.subject === selectedSubject);
-      }
-      if (selectedYear !== "all") {
-        filtered = filtered.filter(m => m.year === selectedYear);
-      }
-    }
-
-    setMaterials(filtered);
-  };
+  // Apply filters when dependencies change
+  useEffect(() => {
+    filterMaterials();
+  }, [filterMaterials]);
 
   const handleUpload = async () => {
     if (!uploadForm.title || !uploadForm.subject || !uploadForm.file || !user) {
@@ -141,17 +142,23 @@ const FacultyMaterials = () => {
     try {
       const tags = uploadForm.tags ? uploadForm.tags.split(',').map(t => t.trim()) : [];
       
-      materialsService.uploadMaterial(
-        uploadForm.title,
-        uploadForm.description,
-        uploadForm.subject,
-        uploadForm.year,
-        uploadForm.semester,
-        uploadForm.file,
-        user.id,
-        user.name,
-        tags
-      );
+      const newMaterial = materialsService.addMaterial({
+        title: uploadForm.title,
+        description: uploadForm.description,
+        subject: uploadForm.subject,
+        year: uploadForm.year,
+        semester: uploadForm.semester,
+        fileType: uploadForm.file?.type.includes('pdf') ? 'pdf' : 
+                 uploadForm.file?.type.includes('doc') ? 'doc' : 
+                 uploadForm.file?.type.includes('ppt') ? 'ppt' : 'link',
+        fileName: uploadForm.file?.name || '',
+        fileSize: uploadForm.file?.size || 0,
+        fileUrl: '', // This would be set after file upload
+        uploadedBy: user.id,
+        uploadedByName: user.name,
+        tags,
+        isActive: true
+      });
 
       toast({
         title: "Upload Successful",
@@ -170,6 +177,7 @@ const FacultyMaterials = () => {
       });
       setShowUploadDialog(false);
       loadMaterials();
+      filterMaterials();
     } catch (error) {
       toast({
         title: "Upload Failed",
@@ -209,6 +217,7 @@ const FacultyMaterials = () => {
       setEditingMaterial(null);
       resetForm();
       loadMaterials();
+      filterMaterials();
     } catch (error) {
       toast({
         title: "Update Failed",
@@ -227,6 +236,7 @@ const FacultyMaterials = () => {
           description: "Study material deleted successfully",
         });
         loadMaterials();
+        filterMaterials();
       } catch (error) {
         toast({
           title: "Delete Failed",
@@ -296,8 +306,8 @@ const FacultyMaterials = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const subjects = materialsService.getSubjects();
-  const years = materialsService.getYears();
+  const subjects = materialsService.getSubjects() || [];
+  const years = materialsService.getYears() || [];
 
   if (loading) {
     return (
@@ -470,7 +480,7 @@ const FacultyMaterials = () => {
                 <BookOpen className="h-5 w-5 text-blue-600" />
                 <div>
                   <p className="text-sm text-gray-600">Total Materials</p>
-                  <p className="text-2xl font-bold">{materials.length}</p>
+                  <p className="text-2xl font-bold">{filteredMaterials.length}</p>
                 </div>
               </div>
             </CardContent>
@@ -547,9 +557,13 @@ const FacultyMaterials = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Subjects</SelectItem>
-                    {subjects.map(subject => (
-                      <SelectItem key={subject} value={subject}>{subject}</SelectItem>
-                    ))}
+                    {subjects && subjects.length > 0 ? (
+                      subjects.map(subject => (
+                        <SelectItem key={subject} value={subject}>{subject}</SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="No subjects available" disabled>No subjects available</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -562,9 +576,13 @@ const FacultyMaterials = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Years</SelectItem>
-                    {years.map(year => (
-                      <SelectItem key={year} value={year}>{year}</SelectItem>
-                    ))}
+                    {years && years.length > 0 ? (
+                      years.map(year => (
+                        <SelectItem key={year} value={year}>{year}</SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="No years available" disabled>No years available</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -575,7 +593,7 @@ const FacultyMaterials = () => {
         {/* Materials Tabs */}
         <Tabs defaultValue="all" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="all">All Materials ({materials.length})</TabsTrigger>
+                            <TabsTrigger value="all">All Materials ({filteredMaterials.length})</TabsTrigger>
             <TabsTrigger value="my">My Uploads ({myMaterials.length})</TabsTrigger>
           </TabsList>
 
@@ -589,7 +607,7 @@ const FacultyMaterials = () => {
               </CardHeader>
               <CardContent>
                 <MaterialsTable 
-                  materials={materials}
+                  materials={filteredMaterials}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                   onDownload={handleDownload}
@@ -651,7 +669,7 @@ const MaterialsTable: React.FC<MaterialsTableProps> = ({
   currentUserId,
   showActions = false
 }) => {
-  if (materials.length === 0) {
+          if (materials.length === 0) {
     return (
       <div className="text-center py-12">
         <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />

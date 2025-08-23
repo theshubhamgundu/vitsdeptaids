@@ -45,6 +45,7 @@ import AdminStudents from "./pages/dashboard/admin/AdminStudents";
 import AdminFaculty from "./pages/dashboard/admin/AdminFaculty";
 import AdminContent from "./pages/dashboard/admin/AdminContent";
 import AdminTools from "./pages/dashboard/admin/AdminTools";
+import FacultyAssignments from "./pages/dashboard/admin/FacultyAssignments";
 import SimpleTimetableCreator from "./pages/dashboard/admin/SimpleTimetableCreator";
 
 import HODDashboard from "./pages/dashboard/hod/HODDashboard";
@@ -267,6 +268,14 @@ const App = () => (
               element={
                 <AdminRoute>
                   <AdminTools />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/dashboard/admin/faculty-assignments"
+              element={
+                <AdminRoute>
+                  <FacultyAssignments />
                 </AdminRoute>
               }
             />

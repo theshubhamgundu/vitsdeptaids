@@ -67,8 +67,9 @@ import {
   Phone,
   Mail,
   ExternalLink,
+  UserCheck,
 } from "lucide-react";
-import EnhancedStudentFacultyMapping from "@/components/EnhancedStudentFacultyMapping";
+
 import { profilePhotoService } from "@/services/profilePhotoService";
 
 const AdminContent = () => {
@@ -1441,7 +1442,37 @@ const AdminContent = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <EnhancedStudentFacultyMapping />
+                <div className="text-center py-12">
+                  <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <UserCheck className="h-12 w-12 text-blue-600" />
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">New Faculty Assignment System</h3>
+                  <p className="text-gray-600 mb-6">
+                    We've moved to a new, improved faculty assignment system with better student selection methods.
+                  </p>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <span>Select students by year (for coordinators)</span>
+                    </div>
+                    <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <span>Select students by HT range (for counsellors)</span>
+                    </div>
+                    <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <span>Individual student selection</span>
+                    </div>
+                  </div>
+                  <div className="mt-6">
+                    <Button asChild size="lg">
+                      <Link to="/dashboard/admin/faculty-assignments">
+                        <UserCheck className="h-4 w-4 mr-2" />
+                        Go to New Faculty Assignments
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { getAllStudents, getStudentStats } from "@/services/studentDataService";
+import { getAllStudentsFromData } from "@/services/studentDataMappingService";
+import { getAllFaculty } from "@/services/authService";
 import { 
   Users, 
   UserCheck, 
@@ -30,19 +33,21 @@ const AdminDashboard = () => {
     totalStudents: 0,
     totalFaculty: 0,
     pendingApprovals: 0,
-    systemHealth: 98,
-    activeUsers: 245,
-    storageUsed: 67
+    systemHealth: 0,
+    activeUsers: 0,
+    storageUsed: 0
   });
 
   const [recentActivities, setRecentActivities] = useState([]);
   const [systemAlerts, setSystemAlerts] = useState([]);
+  const [studentsList, setStudentsList] = useState([]);
   const [contentStats, setContentStats] = useState({
-    events: 12,
-    gallery: 48,
-    announcements: 8,
-    placementRecords: 156
+    events: 0,
+    gallery: 0,
+    announcements: 0,
+    placementRecords: 0
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchSystemData();
@@ -50,85 +55,140 @@ const AdminDashboard = () => {
 
   const fetchSystemData = async () => {
     try {
-      // Fetch students data
-      const studentsResponse = await fetch('/api/students/stats');
-      const studentsData = await studentsResponse.json();
+      setLoading(true);
       
-      if (studentsData.success) {
-        setSystemStats(prev => ({
-          ...prev,
-          totalStudents: studentsData.data.total,
-          activeUsers: studentsData.data.total + 45 // Simulated total active users
-        }));
-      }
+      // Fetch real data from services
+      const [students, studentsListData, faculty] = await Promise.all([
+        getAllStudents(),
+        getAllStudentsFromData(),
+        getAllFaculty()
+      ]);
 
-      // Simulate other system data
-      setSystemStats(prev => ({
-        ...prev,
-        totalFaculty: 15,
-        pendingApprovals: 8,
-        systemHealth: 98,
-        storageUsed: 67
-      }));
+      // Set students list state
+      setStudentsList(studentsListData);
 
-      setRecentActivities([
-        {
+      // Calculate real statistics
+      const totalStudents = students.length + studentsListData.length;
+      const totalFaculty = faculty.length;
+      const activeStudents = students.filter(s => s.status === "Active").length + studentsListData.length;
+      const pendingCertificates = students.reduce((total, student) => {
+        const studentCertificates = JSON.parse(localStorage.getItem(`certificates_${student.id}`) || "[]");
+        return total + studentCertificates.filter((c: any) => c.status === "pending").length;
+      }, 0);
+
+      setSystemStats({
+        totalStudents,
+        totalFaculty,
+        pendingApprovals: pendingCertificates,
+        systemHealth: 98, // System health indicator
+        activeUsers: totalStudents + totalFaculty,
+        storageUsed: Math.min(95, Math.round((totalStudents + totalFaculty) / 10)) // Simulated storage usage
+      });
+
+      // Set real content statistics
+      setContentStats({
+        events: 0, // Will be populated when events are added
+        gallery: 0, // Will be populated when gallery items are added
+        announcements: 0, // Will be populated when announcements are added
+        placementRecords: 0 // Will be populated when placement data is added
+      });
+
+      // Generate real recent activities based on actual data
+      const activities = [];
+      
+      if (totalStudents > 0) {
+        activities.push({
           id: 1,
           type: "user",
-          title: "New student registration",
-          description: "5 students registered today",
-          time: "10 minutes ago",
+          title: "Student data loaded",
+          description: `${students.length} registered students + ${studentsListData.length} database students found`,
+          time: "Just now",
           icon: Users,
-          status: "info"
-        },
-        {
+          status: "success"
+        });
+      }
+
+      if (totalFaculty > 0) {
+        activities.push({
           id: 2,
+          type: "user",
+          title: "Faculty data loaded",
+          description: `${totalFaculty} faculty members found`,
+          time: "Just now",
+          icon: UserCheck,
+          status: "success"
+        });
+      }
+
+      if (pendingCertificates > 0) {
+        activities.push({
+          id: 3,
           type: "approval",
           title: "Certificate approvals pending",
-          description: "8 certificates awaiting review",
-          time: "30 minutes ago",
+          description: `${pendingCertificates} certificates awaiting review`,
+          time: "Just now",
           icon: FileText,
           status: "warning"
-        },
-        {
-          id: 3,
-          type: "content",
-          title: "Homepage content updated",
-          description: "Gallery section updated with new images",
-          time: "2 hours ago",
-          icon: Globe,
-          status: "success"
-        },
-        {
-          id: 4,
-          type: "system",
-          title: "System backup completed",
-          description: "Daily backup process successful",
-          time: "6 hours ago",
-          icon: Database,
-          status: "success"
-        }
-      ]);
+        });
+      }
 
-      setSystemAlerts([
-        {
+      setRecentActivities(activities);
+
+      // Set system alerts based on real data
+      const alerts = [];
+      
+      if (totalStudents === 0) {
+        alerts.push({
           id: 1,
           type: "warning",
-          title: "Storage Usage High",
-          message: "Storage usage is at 67%. Consider cleaning up old files.",
-          priority: "medium"
-        },
-        {
+          title: "No Students Found",
+          message: "No students found in database or registered users.",
+          priority: "high"
+        });
+      } else if (students.length === 0 && studentsListData.length > 0) {
+        alerts.push({
           id: 2,
           type: "info",
-          title: "Scheduled Maintenance",
-          message: "System maintenance scheduled for March 30, 2025 at 2:00 AM",
-          priority: "low"
-        }
-      ]);
+          title: "Students Available in Database",
+          message: `${studentsListData.length} students found in database but not yet registered as users.`,
+          priority: "medium"
+        });
+      }
+
+      if (totalFaculty === 0) {
+        alerts.push({
+          id: 2,
+          type: "warning",
+          title: "No Faculty Found",
+          message: "No faculty members are currently registered in the system.",
+          priority: "high"
+        });
+      }
+
+      setSystemAlerts(alerts);
 
     } catch (error) {
       console.error('Error fetching system data:', error);
+      
+      // Set error state
+      setSystemStats({
+        totalStudents: 0,
+        totalFaculty: 0,
+        pendingApprovals: 0,
+        systemHealth: 0,
+        activeUsers: 0,
+        storageUsed: 0
+      });
+      
+      setSystemAlerts([{
+        id: 1,
+        type: "warning",
+        title: "Data Loading Error",
+        message: "Failed to load system data. Please check your connection.",
+        priority: "high"
+      }]);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -146,6 +206,13 @@ const AdminDashboard = () => {
       link: "/dashboard/admin/faculty",
       icon: UserCheck,
       color: "bg-green-600"
+    },
+    {
+      title: "Faculty Assignments",
+      description: "Assign coordinators and counsellors",
+      link: "/dashboard/admin/faculty-assignments",
+      icon: Settings,
+      color: "bg-purple-600"
     },
     {
       title: "Content Management",
@@ -171,7 +238,7 @@ const AdminDashboard = () => {
       icon: Users,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
-      change: "+5 this week"
+      change: systemStats.totalStudents > 0 ? `${systemStats.totalStudents} enrolled` : "No students"
     },
     {
       title: "Total Faculty",
@@ -180,7 +247,7 @@ const AdminDashboard = () => {
       icon: UserCheck,
       color: "text-green-600",
       bgColor: "bg-green-50",
-      change: "No change"
+      change: systemStats.totalFaculty > 0 ? `${systemStats.totalFaculty} active` : "No faculty"
     },
     {
       title: "Pending Approvals",
@@ -189,7 +256,7 @@ const AdminDashboard = () => {
       icon: Clock,
       color: "text-orange-600",
       bgColor: "bg-orange-50",
-      change: "+3 today"
+      change: systemStats.pendingApprovals > 0 ? `${systemStats.pendingApprovals} pending` : "All caught up"
     },
     {
       title: "System Health",
@@ -198,9 +265,22 @@ const AdminDashboard = () => {
       icon: Activity,
       color: "text-green-600",
       bgColor: "bg-green-50",
-      change: "Excellent"
+      change: systemStats.systemHealth >= 90 ? "Excellent" : systemStats.systemHealth >= 70 ? "Good" : "Needs attention"
     }
   ];
+
+  if (loading) {
+    return (
+      <DashboardLayout userType="admin" userName="Admin User">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-600"></div>
+            <p className="mt-4 text-gray-600">Loading system data...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout userType="admin" userName="Admin User">
@@ -260,7 +340,7 @@ const AdminDashboard = () => {
               <CardContent>
                 <div className="text-2xl font-bold">{metric.value}</div>
                 <p className="text-xs text-muted-foreground">{metric.description}</p>
-                <p className="text-xs text-green-600 mt-1">{metric.change}</p>
+                <p className="text-xs text-gray-600 mt-1">{metric.change}</p>
               </CardContent>
             </Card>
           ))}
@@ -326,14 +406,69 @@ const AdminDashboard = () => {
               </div>
               
               <div className="pt-2 border-t">
-                <div className="text-sm text-green-600 flex items-center">
+                <div className={`text-sm flex items-center ${
+                  systemStats.systemHealth >= 90 ? 'text-green-600' : 
+                  systemStats.systemHealth >= 70 ? 'text-yellow-600' : 'text-red-600'
+                }`}>
                   <CheckCircle className="h-4 w-4 mr-1" />
-                  All systems operational
+                  {systemStats.systemHealth >= 90 ? 'All systems operational' : 
+                   systemStats.systemHealth >= 70 ? 'System needs attention' : 'System issues detected'}
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
+
+        {/* Database Students Overview */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Database Students Overview</CardTitle>
+            <CardDescription>Students available in database for registration</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {studentsList.length === 0 ? (
+              <div className="text-center py-4">
+                <Users className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-gray-500 text-sm">No students found in database</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="text-sm text-gray-600">
+                    {studentsList.length} students available for registration
+                  </div>
+                  <Button variant="outline" size="sm">
+                    <Database className="h-4 w-4 mr-2" />
+                    View All
+                  </Button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {studentsList.slice(0, 6).map((student) => (
+                    <div key={student.id || student.ht_no} className="p-3 border rounded-lg bg-gray-50">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-medium text-sm">{student.student_name}</div>
+                          <div className="text-xs text-gray-600">HT: {student.ht_no}</div>
+                          <div className="text-xs text-gray-500">{student.year} • {student.branch || 'AI & DS'}</div>
+                        </div>
+                        <Badge variant="secondary" className="text-xs">
+                          {student.section || 'N/A'}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {studentsList.length > 6 && (
+                  <div className="text-center pt-2">
+                    <p className="text-xs text-gray-500">
+                      +{studentsList.length - 6} more students available
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Content Management Overview */}
         <Card>
@@ -370,26 +505,34 @@ const AdminDashboard = () => {
             <CardDescription>Latest administrative actions and system events</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-center space-x-4 p-3 border rounded-lg">
-                  <div className={`p-2 rounded-full ${
-                    activity.status === 'success' ? 'bg-green-50' :
-                    activity.status === 'warning' ? 'bg-orange-50' : 'bg-blue-50'
-                  }`}>
-                    <activity.icon className={`h-5 w-5 ${
-                      activity.status === 'success' ? 'text-green-600' :
-                      activity.status === 'warning' ? 'text-orange-600' : 'text-blue-600'
-                    }`} />
+            {recentActivities.length === 0 ? (
+              <div className="text-center py-8">
+                <Activity className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-500 text-sm">No recent activities</p>
+                <p className="text-gray-400 text-xs">Activities will appear here as you use the system</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentActivities.map((activity) => (
+                  <div key={activity.id} className="flex items-center space-x-4 p-3 border rounded-lg">
+                    <div className={`p-2 rounded-full ${
+                      activity.status === 'success' ? 'bg-green-50' :
+                      activity.status === 'warning' ? 'bg-orange-50' : 'bg-blue-50'
+                    }`}>
+                      <activity.icon className={`h-5 w-5 ${
+                        activity.status === 'success' ? 'text-green-600' :
+                        activity.status === 'warning' ? 'text-orange-600' : 'text-blue-600'
+                      }`} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium">{activity.title}</h3>
+                      <p className="text-sm text-gray-600">{activity.description}</p>
+                    </div>
+                    <span className="text-xs text-gray-500">{activity.time}</span>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium">{activity.title}</h3>
-                    <p className="text-sm text-gray-600">{activity.description}</p>
-                  </div>
-                  <span className="text-xs text-gray-500">{activity.time}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 

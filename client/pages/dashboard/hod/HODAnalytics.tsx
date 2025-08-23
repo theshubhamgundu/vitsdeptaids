@@ -2,34 +2,19 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { getAllStudents, getStudentStats } from "@/services/studentDataService";
+import { getAllFaculty } from "@/data/facultyData";
 import {
   BarChart3,
   TrendingUp,
   TrendingDown,
   Users,
-  GraduationCap,
-  Award,
   BookOpen,
+  Award,
   Target,
-  Calendar,
-  Download,
-  RefreshCw,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Brain,
-  Database,
-  Code,
+  Activity,
   Briefcase,
   Building,
   Star
@@ -38,714 +23,473 @@ import {
 const HODAnalytics = () => {
   const [selectedTimeRange, setSelectedTimeRange] = useState("current-sem");
   const [selectedMetric, setSelectedMetric] = useState("academic");
+  const [loading, setLoading] = useState(true);
 
   const [analyticsData, setAnalyticsData] = useState({
     studentPerformance: {
-      totalStudents: 342,
-      averageCGPA: 8.2,
-      passPercentage: 94.5,
-      topPerformers: 28,
-      strugglingStudents: 12,
-      attendanceRate: 87.3,
+      totalStudents: 0,
+      averageCGPA: 0,
+      passPercentage: 0,
+      topPerformers: 0,
+      strugglingStudents: 0,
+      attendanceRate: 0,
       yearWiseDistribution: {
-        firstYear: { count: 95, avgCGPA: 7.8, passRate: 92 },
-        secondYear: { count: 89, avgCGPA: 8.1, passRate: 95 },
-        thirdYear: { count: 84, avgCGPA: 8.4, passRate: 96 },
-        fourthYear: { count: 74, avgCGPA: 8.6, passRate: 98 }
+        firstYear: { count: 0, avgCGPA: 0, passRate: 0 },
+        secondYear: { count: 0, avgCGPA: 0, passRate: 0 },
+        thirdYear: { count: 0, avgCGPA: 0, passRate: 0 },
+        fourthYear: { count: 0, avgCGPA: 0, passRate: 0 }
       },
-      subjectWisePerformance: [
-        { subject: "Machine Learning", avgScore: 85.2, passRate: 96, difficulty: "high" },
-        { subject: "Data Structures", avgScore: 78.5, passRate: 91, difficulty: "medium" },
-        { subject: "Database Management", avgScore: 82.1, passRate: 94, difficulty: "medium" },
-        { subject: "Python Programming", avgScore: 88.7, passRate: 98, difficulty: "low" },
-        { subject: "Computer Vision", avgScore: 79.3, passRate: 89, difficulty: "high" },
-        { subject: "Statistics", avgScore: 76.8, passRate: 88, difficulty: "medium" }
-      ]
+      subjectWisePerformance: []
     },
     facultyPerformance: {
-      totalFaculty: 15,
-      averageRating: 4.3,
-      researchActive: 12,
-      publicationsThisYear: 45,
-      facultyMetrics: [
-        { 
-          name: "Dr. Priya Sharma", 
-          subjects: ["Machine Learning", "Deep Learning"], 
-          avgRating: 4.8, 
-          publications: 8, 
-          studentFeedback: 4.7,
-          researchProjects: 3
-        },
-        { 
-          name: "Dr. Rajesh Kumar", 
-          subjects: ["Data Mining", "Big Data"], 
-          avgRating: 4.5, 
-          publications: 6, 
-          studentFeedback: 4.4,
-          researchProjects: 2
-        },
-        { 
-          name: "Dr. Anita Verma", 
-          subjects: ["Computer Vision", "AI"], 
-          avgRating: 4.6, 
-          publications: 7, 
-          studentFeedback: 4.6,
-          researchProjects: 2
-        },
-        { 
-          name: "Dr. Suresh Reddy", 
-          subjects: ["NLP", "Text Analytics"], 
-          avgRating: 4.4, 
-          publications: 5, 
-          studentFeedback: 4.3,
-          researchProjects: 1
-        }
-      ]
+      totalFaculty: 0,
+      averageRating: 0,
+      researchActive: 0,
+      publicationsThisYear: 0,
+      facultyMetrics: []
     },
     departmentMetrics: {
-      placementRate: 95.2,
-      averagePackage: "₹8.5L",
-      highestPackage: "₹25L",
-      industryPartnerships: 28,
-      researchFunding: "₹2.4Cr",
-      patentsFiled: 8,
-      rankingImprovement: "+15%",
-      studentSatisfaction: 91.2,
-      facilityUtilization: 78.5,
-      libraryUsage: 67.3
+      placementRate: 0,
+      averagePackage: "₹0",
+      highestPackage: "₹0",
+      industryPartnerships: 0,
+      researchFunding: "₹0",
+      patentsFiled: 0,
+      rankingImprovement: "0%",
+      studentSatisfaction: 0,
+      facilityUtilization: 0,
+      libraryUsage: 0
     },
     trends: {
-      enrollmentTrend: [
-        { year: "2020", count: 280, growth: 0 },
-        { year: "2021", count: 295, growth: 5.4 },
-        { year: "2022", count: 315, growth: 6.8 },
-        { year: "2023", count: 330, growth: 4.8 },
-        { year: "2024", count: 342, growth: 3.6 }
-      ],
-      placementTrend: [
-        { year: "2020", rate: 87, packages: "₹6.2L" },
-        { year: "2021", rate: 89, packages: "₹6.8L" },
-        { year: "2022", rate: 92, packages: "₹7.5L" },
-        { year: "2023", rate: 94, packages: "₹8.1L" },
-        { year: "2024", rate: 95.2, packages: "₹8.5L" }
-      ],
-      researchTrend: [
-        { year: "2020", publications: 28, funding: "₹1.2Cr" },
-        { year: "2021", publications: 32, funding: "₹1.5Cr" },
-        { year: "2022", publications: 38, funding: "₹1.8Cr" },
-        { year: "2023", publications: 42, funding: "₹2.1Cr" },
-        { year: "2024", publications: 45, funding: "₹2.4Cr" }
-      ]
+      enrollmentTrend: [],
+      performanceTrend: [],
+      placementTrend: []
     }
   });
 
-  const [comparisonData] = useState({
-    benchmarkMetrics: [
-      { metric: "Student Satisfaction", ourValue: 91.2, benchmark: 85.0, status: "above" },
-      { metric: "Faculty Research Output", ourValue: 45, benchmark: 35, status: "above" },
-      { metric: "Placement Rate", ourValue: 95.2, benchmark: 88.0, status: "above" },
-      { metric: "Average Package", ourValue: 8.5, benchmark: 7.2, status: "above" },
-      { metric: "Industry Partnerships", ourValue: 28, benchmark: 20, status: "above" },
-      { metric: "Student Retention", ourValue: 96.8, benchmark: 92.0, status: "above" }
-    ]
-  });
+  useEffect(() => {
+    loadAnalyticsData();
+  }, []);
 
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case 'high':
-        return 'bg-red-100 text-red-800';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'low':
-        return 'bg-green-100 text-green-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+  const loadAnalyticsData = async () => {
+    try {
+      setLoading(true);
+      
+      // Load real data
+      const [students, studentStats, faculty] = await Promise.all([
+        getAllStudents(),
+        getStudentStats(),
+        getAllFaculty()
+      ]);
+
+      // Calculate student performance metrics
+      const totalStudents = students.length;
+      const averageCGPA = students.length > 0 ? 
+        students.reduce((sum, s) => sum + (s.cgpa || 0), 0) / students.length : 0;
+      
+      const yearWiseDistribution = {
+        firstYear: { count: 0, avgCGPA: 0, passRate: 0 },
+        secondYear: { count: 0, avgCGPA: 0, passRate: 0 },
+        thirdYear: { count: 0, avgCGPA: 0, passRate: 0 },
+        fourthYear: { count: 0, avgCGPA: 0, passRate: 0 }
+      };
+
+      // Group students by year and calculate metrics
+      students.forEach(student => {
+        const year = student.year;
+        if (year.includes("1st")) {
+          yearWiseDistribution.firstYear.count++;
+          yearWiseDistribution.firstYear.avgCGPA += student.cgpa || 0;
+        } else if (year.includes("2nd")) {
+          yearWiseDistribution.secondYear.count++;
+          yearWiseDistribution.secondYear.avgCGPA += student.cgpa || 0;
+        } else if (year.includes("3rd")) {
+          yearWiseDistribution.thirdYear.count++;
+          yearWiseDistribution.thirdYear.avgCGPA += student.cgpa || 0;
+        } else if (year.includes("4th")) {
+          yearWiseDistribution.fourthYear.count++;
+          yearWiseDistribution.fourthYear.avgCGPA += student.cgpa || 0;
+        }
+      });
+
+      // Calculate averages
+      Object.keys(yearWiseDistribution).forEach(year => {
+        const yearData = yearWiseDistribution[year as keyof typeof yearWiseDistribution];
+        if (yearData.count > 0) {
+          yearData.avgCGPA = yearData.avgCGPA / yearData.count;
+        }
+      });
+
+      // Calculate faculty metrics
+      const totalFaculty = faculty.length;
+      const facultyMetrics = faculty.map(member => ({
+        name: member.name,
+        subjects: member.subjects || [],
+        avgRating: 0, // Will be calculated from feedback data
+        publications: 0, // Will be calculated from research data
+        studentFeedback: 0, // Will be calculated from feedback data
+        researchProjects: 0 // Will be calculated from research data
+      }));
+
+      setAnalyticsData({
+        studentPerformance: {
+          totalStudents,
+          averageCGPA: parseFloat(averageCGPA.toFixed(2)),
+          passPercentage: 0, // Will be calculated from results data
+          topPerformers: 0, // Will be calculated from results data
+          strugglingStudents: 0, // Will be calculated from results data
+          attendanceRate: 0, // Will be calculated from attendance data
+          yearWiseDistribution,
+          subjectWisePerformance: [] // Will be populated from results data
+        },
+        facultyPerformance: {
+          totalFaculty,
+          averageRating: 0, // Will be calculated from feedback data
+          researchActive: 0, // Will be calculated from research data
+          publicationsThisYear: 0, // Will be calculated from research data
+          facultyMetrics
+        },
+        departmentMetrics: {
+          placementRate: 0, // Will be calculated from placement data
+          averagePackage: "₹0", // Will be calculated from placement data
+          highestPackage: "₹0", // Will be calculated from placement data
+          industryPartnerships: 0, // Will be calculated from partnerships data
+          researchFunding: "₹0", // Will be calculated from research data
+          patentsFiled: 0, // Will be calculated from research data
+          rankingImprovement: "0%", // Will be calculated from ranking data
+          studentSatisfaction: 0, // Will be calculated from feedback data
+          facilityUtilization: 0, // Will be calculated from facility data
+          libraryUsage: 0 // Will be calculated from library data
+        },
+        trends: {
+          enrollmentTrend: [], // Will be populated from enrollment data
+          performanceTrend: [], // Will be populated from results data
+          placementTrend: [] // Will be populated from placement data
+        }
+      });
+
+    } catch (error) {
+      console.error("Error loading analytics data:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getPerformanceColor = (value, threshold = 80) => {
-    if (value >= threshold + 10) return 'text-green-600';
-    if (value >= threshold) return 'text-blue-600';
-    if (value >= threshold - 10) return 'text-yellow-600';
-    return 'text-red-600';
-  };
+  const timeRangeOptions = [
+    { value: "current-sem", label: "Current Semester" },
+    { value: "current-year", label: "Current Academic Year" },
+    { value: "last-year", label: "Last Academic Year" },
+    { value: "custom", label: "Custom Range" }
+  ];
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'above':
-        return <TrendingUp className="h-4 w-4 text-green-600" />;
-      case 'below':
-        return <TrendingDown className="h-4 w-4 text-red-600" />;
-      case 'equal':
-        return <Target className="h-4 w-4 text-blue-600" />;
-      default:
-        return <AlertTriangle className="h-4 w-4 text-gray-600" />;
-    }
-  };
+  const metricOptions = [
+    { value: "academic", label: "Academic Performance" },
+    { value: "faculty", label: "Faculty Performance" },
+    { value: "department", label: "Department Metrics" },
+    { value: "trends", label: "Trends & Analysis" }
+  ];
+
+  if (loading) {
+    return (
+      <DashboardLayout userType="hod" userName="HOD">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
+            <p className="mt-4 text-gray-600">Loading analytics...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
-    <DashboardLayout userType="hod" userName="Dr. Priya Sharma">
+    <DashboardLayout userType="hod" userName="HOD">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Department Analytics</h1>
-            <p className="text-gray-600">Comprehensive insights and performance metrics</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+              Department Analytics
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600">
+              Comprehensive insights into department performance and trends
+            </p>
           </div>
-          <div className="flex space-x-2">
-            <Select value={selectedTimeRange} onValueChange={setSelectedTimeRange}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Time Range" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="current-sem">Current Semester</SelectItem>
-                <SelectItem value="academic-year">Academic Year</SelectItem>
-                <SelectItem value="last-year">Last Year</SelectItem>
-                <SelectItem value="3-years">Last 3 Years</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" size="sm">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Export Report
+          <div className="flex gap-2">
+            <Button onClick={loadAnalyticsData} variant="outline" size="sm">
+              <Activity className="h-4 w-4 mr-2" />
+              Refresh Data
             </Button>
           </div>
         </div>
 
-        {/* Key Performance Indicators */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Student Performance</CardTitle>
-              <GraduationCap className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{analyticsData.studentPerformance.averageCGPA}</div>
-              <p className="text-xs text-muted-foreground">Average CGPA</p>
-              <div className="flex items-center mt-2">
-                <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
-                <span className="text-xs text-green-600">+0.3 from last sem</span>
+        {/* Filters */}
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1">
+                <label className="text-sm font-medium mb-2 block">Time Range</label>
+                <select
+                  value={selectedTimeRange}
+                  onChange={(e) => setSelectedTimeRange(e.target.value)}
+                  className="w-full p-2 border rounded-md"
+                >
+                  {timeRangeOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Placement Rate</CardTitle>
-              <Briefcase className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{analyticsData.departmentMetrics.placementRate}%</div>
-              <p className="text-xs text-muted-foreground">Current batch</p>
-              <div className="flex items-center mt-2">
-                <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
-                <span className="text-xs text-green-600">+1.2% from last year</span>
+              
+              <div className="flex-1">
+                <label className="text-sm font-medium mb-2 block">Metric Focus</label>
+                <select
+                  value={selectedMetric}
+                  onChange={(e) => setSelectedMetric(e.target.value)}
+                  className="w-full p-2 border rounded-md"
+                >
+                  {metricOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Research Output</CardTitle>
-              <BookOpen className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600">{analyticsData.facultyPerformance.publicationsThisYear}</div>
-              <p className="text-xs text-muted-foreground">Publications this year</p>
-              <div className="flex items-center mt-2">
-                <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
-                <span className="text-xs text-green-600">+7% increase</span>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Student Satisfaction</CardTitle>
-              <Star className="h-4 w-4 text-yellow-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{analyticsData.departmentMetrics.studentSatisfaction}%</div>
-              <p className="text-xs text-muted-foreground">Satisfaction score</p>
-              <div className="flex items-center mt-2">
-                <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
-                <span className="text-xs text-green-600">+2.5% improvement</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <Tabs defaultValue="students" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="students">Student Analytics</TabsTrigger>
+        {/* Main Analytics Tabs */}
+        <Tabs value={selectedMetric} onValueChange={setSelectedMetric} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="academic">Academic Performance</TabsTrigger>
             <TabsTrigger value="faculty">Faculty Performance</TabsTrigger>
             <TabsTrigger value="department">Department Metrics</TabsTrigger>
-            <TabsTrigger value="trends">Trends & Growth</TabsTrigger>
-            <TabsTrigger value="benchmark">Benchmarking</TabsTrigger>
+            <TabsTrigger value="trends">Trends & Analysis</TabsTrigger>
           </TabsList>
 
-          {/* Student Analytics */}
-          <TabsContent value="students" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Academic Performance Tab */}
+          <TabsContent value="academic" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card>
-                <CardHeader>
-                  <CardTitle>Academic Performance Overview</CardTitle>
-                  <CardDescription>Student performance metrics across all years</CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+                  <Users className="h-4 w-4 text-blue-600" />
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-3 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{analyticsData.studentPerformance.totalStudents}</div>
-                      <div className="text-sm text-gray-600">Total Students</div>
-                    </div>
-                    <div className="text-center p-3 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">{analyticsData.studentPerformance.passPercentage}%</div>
-                      <div className="text-sm text-gray-600">Pass Percentage</div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <h4 className="font-semibold">Year-wise Distribution</h4>
-                    {Object.entries(analyticsData.studentPerformance.yearWiseDistribution).map(([year, data]) => (
-                      <div key={year} className="space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="capitalize font-medium">{year.replace('Year', ' Year')}</span>
-                          <div className="text-sm">
-                            <span className="font-medium">{data.count} students</span>
-                            <span className="text-gray-500 ml-2">CGPA: {data.avgCGPA}</span>
-                          </div>
-                        </div>
-                        <Progress value={data.passRate} className="h-2" />
-                        <div className="text-xs text-gray-500">Pass Rate: {data.passRate}%</div>
-                      </div>
-                    ))}
-                  </div>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analyticsData.studentPerformance.totalStudents}</div>
+                  <p className="text-xs text-muted-foreground">Enrolled students</p>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader>
-                  <CardTitle>Subject-wise Performance</CardTitle>
-                  <CardDescription>Performance analysis across different subjects</CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Average CGPA</CardTitle>
+                  <BarChart3 className="h-4 w-4 text-green-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {analyticsData.studentPerformance.subjectWisePerformance.map((subject, index) => (
-                      <div key={index} className="p-3 border rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium">{subject.subject}</span>
-                          <Badge className={getDifficultyColor(subject.difficulty)}>
-                            {subject.difficulty}
-                          </Badge>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="text-gray-600">Avg Score:</span>
-                            <span className={`ml-2 font-medium ${getPerformanceColor(subject.avgScore)}`}>
-                              {subject.avgScore}%
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-gray-600">Pass Rate:</span>
-                            <span className={`ml-2 font-medium ${getPerformanceColor(subject.passRate, 85)}`}>
-                              {subject.passRate}%
-                            </span>
-                          </div>
-                        </div>
-                        <Progress value={subject.avgScore} className="h-2 mt-2" />
-                      </div>
-                    ))}
-                  </div>
+                  <div className="text-2xl font-bold">{analyticsData.studentPerformance.averageCGPA}</div>
+                  <p className="text-xs text-muted-foreground">Department average</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Pass Rate</CardTitle>
+                  <Target className="h-4 w-4 text-purple-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analyticsData.studentPerformance.passPercentage}%</div>
+                  <p className="text-xs text-muted-foreground">Success rate</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Attendance Rate</CardTitle>
+                  <Activity className="h-4 w-4 text-orange-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analyticsData.studentPerformance.attendanceRate}%</div>
+                  <p className="text-xs text-muted-foreground">Average attendance</p>
                 </CardContent>
               </Card>
             </div>
 
+            {/* Year-wise Distribution */}
             <Card>
               <CardHeader>
-                <CardTitle>Student Categories</CardTitle>
-                <CardDescription>Distribution of students by performance categories</CardDescription>
+                <CardTitle>Year-wise Student Distribution</CardTitle>
+                <CardDescription>Student count and performance by academic year</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="text-center p-6 bg-green-50 rounded-lg border border-green-200">
-                    <Award className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-green-600">{analyticsData.studentPerformance.topPerformers}</div>
-                    <div className="text-sm text-gray-600">Top Performers</div>
-                    <div className="text-xs text-gray-500 mt-1">CGPA ≥ 9.0</div>
-                  </div>
-                  <div className="text-center p-6 bg-blue-50 rounded-lg border border-blue-200">
-                    <Users className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-blue-600">
-                      {analyticsData.studentPerformance.totalStudents - analyticsData.studentPerformance.topPerformers - analyticsData.studentPerformance.strugglingStudents}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  {Object.entries(analyticsData.studentPerformance.yearWiseDistribution).map(([year, data]) => (
+                    <div key={year} className="text-center p-4 border rounded-lg">
+                      <h3 className="font-medium capitalize">{year.replace(/([A-Z])/g, ' $1').trim()}</h3>
+                      <div className="text-2xl font-bold text-blue-600">{data.count}</div>
+                      <div className="text-sm text-gray-600">Students</div>
+                      <div className="text-sm text-gray-500">CGPA: {data.avgCGPA.toFixed(2)}</div>
                     </div>
-                    <div className="text-sm text-gray-600">Average Performers</div>
-                    <div className="text-xs text-gray-500 mt-1">CGPA 6.0 - 9.0</div>
-                  </div>
-                  <div className="text-center p-6 bg-red-50 rounded-lg border border-red-200">
-                    <AlertTriangle className="h-8 w-8 text-red-600 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-red-600">{analyticsData.studentPerformance.strugglingStudents}</div>
-                    <div className="text-sm text-gray-600">Need Support</div>
-                    <div className="text-xs text-gray-500 mt-1">CGPA &lt; 6.0</div>
-                  </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Faculty Performance */}
+          {/* Faculty Performance Tab */}
           <TabsContent value="faculty" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card>
-                <CardHeader>
-                  <CardTitle>Faculty Overview</CardTitle>
-                  <CardDescription>Overall faculty performance metrics</CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Faculty</CardTitle>
+                  <Users className="h-4 w-4 text-blue-600" />
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">{analyticsData.facultyPerformance.totalFaculty}</div>
-                    <div className="text-sm text-gray-600">Total Faculty</div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span>Average Rating</span>
-                      <span className="font-bold text-yellow-600">{analyticsData.facultyPerformance.averageRating}/5.0</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Research Active</span>
-                      <span className="font-bold text-blue-600">{analyticsData.facultyPerformance.researchActive}/{analyticsData.facultyPerformance.totalFaculty}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Publications</span>
-                      <span className="font-bold text-green-600">{analyticsData.facultyPerformance.publicationsThisYear}</span>
-                    </div>
-                  </div>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analyticsData.facultyPerformance.totalFaculty}</div>
+                  <p className="text-xs text-muted-foreground">Teaching staff</p>
                 </CardContent>
               </Card>
 
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <CardTitle>Individual Faculty Performance</CardTitle>
-                  <CardDescription>Detailed performance metrics for each faculty member</CardDescription>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Average Rating</CardTitle>
+                  <Star className="h-4 w-4 text-yellow-600" />
                 </CardHeader>
                 <CardContent>
+                  <div className="text-2xl font-bold">{analyticsData.facultyPerformance.averageRating}/5.0</div>
+                  <p className="text-xs text-muted-foreground">Student feedback</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Research Active</CardTitle>
+                  <BookOpen className="h-4 w-4 text-green-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analyticsData.facultyPerformance.researchActive}</div>
+                  <p className="text-xs text-muted-foreground">Active researchers</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Publications</CardTitle>
+                  <Award className="h-4 w-4 text-purple-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analyticsData.facultyPerformance.publicationsThisYear}</div>
+                  <p className="text-xs text-muted-foreground">This year</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Faculty List */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Faculty Performance Overview</CardTitle>
+                <CardDescription>Individual faculty metrics and achievements</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {analyticsData.facultyPerformance.facultyMetrics.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 text-sm">No faculty data available</p>
+                    <p className="text-gray-400 text-xs">
+                      Faculty performance data will appear here once available
+                    </p>
+                  </div>
+                ) : (
                   <div className="space-y-4">
                     {analyticsData.facultyPerformance.facultyMetrics.map((faculty, index) => (
-                      <div key={index} className="p-4 border rounded-lg">
-                        <div className="flex items-center justify-between mb-3">
+                      <div key={index} className="border rounded-lg p-4">
+                        <div className="flex items-center justify-between">
                           <div>
-                            <h3 className="font-semibold">{faculty.name}</h3>
-                            <p className="text-sm text-gray-600">{faculty.subjects.join(", ")}</p>
+                            <h3 className="font-medium">{faculty.name}</h3>
+                            <p className="text-sm text-gray-600">
+                              {faculty.subjects.join(", ") || "No subjects assigned"}
+                            </p>
                           </div>
-                          <Badge className="bg-yellow-100 text-yellow-800">
-                            ⭐ {faculty.avgRating}/5.0
-                          </Badge>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                          <div className="flex items-center space-x-2">
-                            <BookOpen className="h-4 w-4 text-blue-600" />
-                            <span>Publications: <strong>{faculty.publications}</strong></span>
+                          <div className="text-right">
+                            <div className="text-lg font-bold">{faculty.avgRating}/5.0</div>
+                            <div className="text-sm text-gray-600">Rating</div>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <Users className="h-4 w-4 text-green-600" />
-                            <span>Student Rating: <strong>{faculty.studentFeedback}/5.0</strong></span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Target className="h-4 w-4 text-purple-600" />
-                            <span>Research Projects: <strong>{faculty.researchProjects}</strong></span>
-                          </div>
-                        </div>
-                        
-                        <div className="mt-3">
-                          <Progress value={faculty.avgRating * 20} className="h-2" />
                         </div>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
-          {/* Department Metrics */}
+          {/* Department Metrics Tab */}
           <TabsContent value="department" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card>
-                <CardHeader>
-                  <CardTitle>Placement Metrics</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Placement Rate</CardTitle>
+                  <Briefcase className="h-4 w-4 text-green-600" />
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-3xl font-bold text-green-600">{analyticsData.departmentMetrics.placementRate}%</div>
-                    <div className="text-sm text-gray-600">Placement Rate</div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Average Package</span>
-                      <span className="font-bold">{analyticsData.departmentMetrics.averagePackage}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Highest Package</span>
-                      <span className="font-bold text-blue-600">{analyticsData.departmentMetrics.highestPackage}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Industry Partners</span>
-                      <span className="font-bold">{analyticsData.departmentMetrics.industryPartnerships}</span>
-                    </div>
-                  </div>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analyticsData.departmentMetrics.placementRate}%</div>
+                  <p className="text-xs text-muted-foreground">Graduates placed</p>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader>
-                  <CardTitle>Research & Innovation</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Avg Package</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-blue-600" />
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-3xl font-bold text-blue-600">{analyticsData.departmentMetrics.researchFunding}</div>
-                    <div className="text-sm text-gray-600">Research Funding</div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Patents Filed</span>
-                      <span className="font-bold">{analyticsData.departmentMetrics.patentsFiled}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Publications</span>
-                      <span className="font-bold">{analyticsData.facultyPerformance.publicationsThisYear}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Active Projects</span>
-                      <span className="font-bold">15</span>
-                    </div>
-                  </div>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analyticsData.departmentMetrics.averagePackage}</div>
+                  <p className="text-xs text-muted-foreground">Annual CTC</p>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader>
-                  <CardTitle>Infrastructure & Satisfaction</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Industry Partners</CardTitle>
+                  <Building className="h-4 w-4 text-purple-600" />
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <div className="text-3xl font-bold text-purple-600">{analyticsData.departmentMetrics.studentSatisfaction}%</div>
-                    <div className="text-sm text-gray-600">Student Satisfaction</div>
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm">Facility Utilization</span>
-                        <span className="text-sm font-medium">{analyticsData.departmentMetrics.facilityUtilization}%</span>
-                      </div>
-                      <Progress value={analyticsData.departmentMetrics.facilityUtilization} className="h-2" />
-                    </div>
-                    <div>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm">Library Usage</span>
-                        <span className="text-sm font-medium">{analyticsData.departmentMetrics.libraryUsage}%</span>
-                      </div>
-                      <Progress value={analyticsData.departmentMetrics.libraryUsage} className="h-2" />
-                    </div>
-                  </div>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analyticsData.departmentMetrics.industryPartnerships}</div>
+                  <p className="text-xs text-muted-foreground">Active partnerships</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Student Satisfaction</CardTitle>
+                  <Star className="h-4 w-4 text-yellow-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{analyticsData.departmentMetrics.studentSatisfaction}%</div>
+                  <p className="text-xs text-muted-foreground">Satisfaction rate</p>
                 </CardContent>
               </Card>
             </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Department Ranking & Recognition</CardTitle>
-                <CardDescription>External recognition and ranking improvements</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h3 className="font-semibold">Ranking Improvements</h3>
-                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                      <div className="flex items-center space-x-2">
-                        <TrendingUp className="h-5 w-5 text-green-600" />
-                        <span className="font-medium">NIRF Ranking</span>
-                        <Badge className="bg-green-100 text-green-800">{analyticsData.departmentMetrics.rankingImprovement}</Badge>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-2">Improved by 15 positions in national ranking</p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <h3 className="font-semibold">Recent Achievements</h3>
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2 text-sm">
-                        <Award className="h-4 w-4 text-yellow-600" />
-                        <span>Best Department Award 2024</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm">
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                        <span>NAAC A+ Grade Maintained</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm">
-                        <Star className="h-4 w-4 text-blue-600" />
-                        <span>Excellence in Research Award</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
 
-          {/* Trends & Growth */}
+          {/* Trends Tab */}
           <TabsContent value="trends" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Enrollment Trends</CardTitle>
-                  <CardDescription>Student enrollment over the years</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {analyticsData.trends.enrollmentTrend.map((data, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <span className="font-medium">{data.year}</span>
-                          <div className="text-sm text-gray-600">{data.count} students</div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          {data.growth > 0 ? (
-                            <TrendingUp className="h-4 w-4 text-green-600" />
-                          ) : data.growth < 0 ? (
-                            <TrendingDown className="h-4 w-4 text-red-600" />
-                          ) : (
-                            <Target className="h-4 w-4 text-gray-600" />
-                          )}
-                          <span className={`text-sm font-medium ${data.growth > 0 ? 'text-green-600' : data.growth < 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                            {data.growth > 0 ? '+' : ''}{data.growth}%
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Placement Trends</CardTitle>
-                  <CardDescription>Placement rates and package trends</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {analyticsData.trends.placementTrend.map((data, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <span className="font-medium">{data.year}</span>
-                          <div className="text-sm text-gray-600">{data.rate}% placed</div>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-medium text-blue-600">{data.packages}</div>
-                          <div className="text-xs text-gray-500">Avg Package</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
             <Card>
               <CardHeader>
-                <CardTitle>Research Growth</CardTitle>
-                <CardDescription>Research publications and funding trends</CardDescription>
+                <CardTitle>Performance Trends</CardTitle>
+                <CardDescription>Historical data and trend analysis</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {analyticsData.trends.researchTrend.map((data, index) => (
-                    <div key={index} className="grid grid-cols-3 gap-4 p-3 border rounded-lg">
-                      <div className="text-center">
-                        <div className="font-medium">{data.year}</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-blue-600">{data.publications}</div>
-                        <div className="text-xs text-gray-600">Publications</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg font-bold text-green-600">{data.funding}</div>
-                        <div className="text-xs text-gray-600">Funding</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Benchmarking */}
-          <TabsContent value="benchmark" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Performance Benchmarking</CardTitle>
-                <CardDescription>Comparison with industry standards and peer institutions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {comparisonData.benchmarkMetrics.map((metric, index) => (
-                    <div key={index} className="p-4 border rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="font-medium">{metric.metric}</span>
-                        {getStatusIcon(metric.status)}
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4 mb-3">
-                        <div>
-                          <div className="text-sm text-gray-600">Our Performance</div>
-                          <div className="text-lg font-bold text-blue-600">
-                            {metric.metric.includes('Package') ? '₹' : ''}{metric.ourValue}{metric.metric.includes('Rate') || metric.metric.includes('Satisfaction') ? '%' : ''}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-sm text-gray-600">Industry Benchmark</div>
-                          <div className="text-lg font-bold text-gray-600">
-                            {metric.metric.includes('Package') ? '₹' : ''}{metric.benchmark}{metric.metric.includes('Rate') || metric.metric.includes('Satisfaction') ? '%' : ''}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span>Performance vs Benchmark</span>
-                          <span className={`font-medium ${metric.status === 'above' ? 'text-green-600' : 'text-red-600'}`}>
-                            {metric.status === 'above' ? '+' : ''}{((metric.ourValue - metric.benchmark) / metric.benchmark * 100).toFixed(1)}%
-                          </span>
-                        </div>
-                        <Progress 
-                          value={Math.min((metric.ourValue / metric.benchmark) * 100, 100)} 
-                          className="h-2"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Competitive Analysis</CardTitle>
-                <CardDescription>Comparison with top-tier institutions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-600 mb-2">Comprehensive Benchmarking Report</h3>
-                  <p className="text-gray-500 mb-4">
-                    Detailed comparison with IITs, NITs, and premier private institutions
+                <div className="text-center py-12">
+                  <TrendingUp className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Trend Analysis Coming Soon
+                  </h3>
+                  <p className="text-gray-600">
+                    Historical data and trend analysis will be available once sufficient data is collected
                   </p>
-                  <Button>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Detailed Report
-                  </Button>
                 </div>
               </CardContent>
             </Card>

@@ -15,7 +15,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import DashboardLayout from "@/components/layout/DashboardLayout";
-import { mappingService } from "@/services/mappingService";
+import { 
+  getVisibleStudentsForFaculty,
+  getFacultyAssignmentsByFacultyId,
+  FacultyAssignment 
+} from "@/services/facultyAssignmentService";
 import { 
   Users, 
   Search, 
@@ -29,7 +33,8 @@ import {
   CheckCircle,
   MessageSquare,
   Mail,
-  Phone
+  Phone,
+  GraduationCap
 } from "lucide-react";
 
 interface AssignedStudent {
@@ -54,96 +59,115 @@ const FacultyStudents = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStudent, setSelectedStudent] = useState<AssignedStudent | null>(null);
-  const [activeTab, setActiveTab] = useState("coordinator");
+  const [activeTab, setActiveTab] = useState("all");
+  const [facultyAssignments, setFacultyAssignments] = useState<FacultyAssignment[]>([]);
+  const [isCoordinator, setIsCoordinator] = useState(false);
+  const [isCounsellor, setIsCounsellor] = useState(false);
 
   useEffect(() => {
-    loadAssignedStudents();
+    if (user) {
+      loadAssignedStudents();
+    }
   }, [user]);
 
   useEffect(() => {
     filterStudents();
   }, [assignedStudents, searchTerm, activeTab]);
 
-  const loadAssignedStudents = () => {
+  const loadAssignedStudents = async () => {
     if (!user?.id) return;
 
     try {
       setLoading(true);
       
-      // Get mappings for this faculty member
-      const mappings = mappingService.getFacultyStudents(user.id);
+      // Get faculty assignments for current user
+      const assignments = await getFacultyAssignmentsByFacultyId(user.id);
+      setFacultyAssignments(assignments);
       
-      // Get student details from localStorage
-      const storedStudents = localStorage.getItem('students');
-      const students = storedStudents ? JSON.parse(storedStudents) : [];
+      // Determine user's role
+      const coordinatorRole = assignments.find(a => a.role === 'coordinator');
+      const counsellorRole = assignments.find(a => a.role === 'counsellor');
+      
+      setIsCoordinator(!!coordinatorRole);
+      setIsCounsellor(!!counsellorRole);
 
-      // Combine mapping data with student details
-      const assignedStudentsList = mappings.map(mapping => {
-        const student = students.find(s => s.id === mapping.studentId);
-        return {
-          id: student?.id || mapping.studentId,
-          name: student?.name || student?.fullName || 'Unknown Student',
-          hallTicket: student?.hallTicket || '',
-          year: student?.year || '',
-          section: student?.section || '',
-          email: student?.email || '',
-          phone: student?.phone || '',
-          cgpa: student?.cgpa || 0,
-          attendance: student?.attendance || 0,
-          branch: student?.branch || 'AI & DS',
-          mappingType: mapping.mappingType,
-          assignedDate: mapping.assignedDate
-        };
-      });
+      // Get visible students from the new service
+      const visibleStudents = await getVisibleStudentsForFaculty(user.id);
+      
+      // Transform the data to match our interface
+      const assignedStudentsList = visibleStudents.map((student: any) => ({
+        id: student.id || student.student_id || student.ht_no || '',
+        name: student.name || student.student_name || student.full_name || 'Unknown Student',
+        hallTicket: student.hall_ticket || student.ht_no || student.student_id || '',
+        year: student.year || '',
+        section: student.section || '',
+        email: student.email || '',
+        phone: student.phone || '',
+        cgpa: student.cgpa || student.gpa || 0,
+        attendance: student.attendance || 0,
+        branch: student.branch || 'AI & DS',
+        mappingType: (coordinatorRole ? 'coordinator' : 'counsellor') as 'coordinator' | 'counsellor',
+        assignedDate: student.assigned_at || new Date().toISOString(),
+      }));
 
       setAssignedStudents(assignedStudentsList);
     } catch (error) {
-      console.error('Error loading assigned students:', error);
+      console.error("Error loading assigned students:", error);
+      setAssignedStudents([]);
     } finally {
       setLoading(false);
     }
   };
 
   const filterStudents = () => {
-    let filtered = assignedStudents.filter(student => 
-      student.mappingType === activeTab
-    );
-    
+    let filtered = assignedStudents;
+
+    // Apply search filter
     if (searchTerm) {
-      filtered = filtered.filter(student => 
+      filtered = filtered.filter(student =>
         student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.hallTicket.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.email.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
+
+    // Apply tab filter
+    if (activeTab === "coordinator" && isCoordinator) {
+      filtered = filtered.filter(student => student.mappingType === 'coordinator');
+    } else if (activeTab === "counsellor" && isCounsellor) {
+      filtered = filtered.filter(student => student.mappingType === 'counsellor');
+    }
+    // "all" tab shows all students
+
     setFilteredStudents(filtered);
   };
 
-  const handleStudentClick = (student: AssignedStudent) => {
-    setSelectedStudent(student);
+  const getTabContent = () => {
+    if (activeTab === "coordinator" && isCoordinator) {
+      return {
+        title: "Coordinator Students",
+        description: "Students you coordinate for your assigned year",
+        icon: UserCheck,
+        color: "text-indigo-600"
+      };
+    } else if (activeTab === "counsellor" && isCounsellor) {
+      return {
+        title: "Counsellor Students",
+        description: "Students you counsel individually",
+        icon: GraduationCap,
+        color: "text-teal-600"
+      };
+    } else {
+      return {
+        title: "All Assigned Students",
+        description: "All students assigned to you in any capacity",
+        icon: Users,
+        color: "text-blue-600"
+      };
+    }
   };
 
-  const getAttendanceColor = (percentage: number) => {
-    if (percentage >= 85) return "text-green-600 bg-green-50";
-    if (percentage >= 75) return "text-yellow-600 bg-yellow-50";
-    return "text-red-600 bg-red-50";
-  };
-
-  const getCGPAColor = (cgpa: number) => {
-    if (cgpa >= 8.5) return "text-green-600";
-    if (cgpa >= 7.0) return "text-yellow-600";
-    return "text-red-600";
-  };
-
-  const getRoleIcon = (type: 'coordinator' | 'counsellor') => {
-    return type === 'coordinator' ? 
-      <UserCheck className="h-4 w-4" /> : 
-      <Heart className="h-4 w-4" />;
-  };
-
-  const coordinatorStudents = assignedStudents.filter(s => s.mappingType === 'coordinator');
-  const counsellorStudents = assignedStudents.filter(s => s.mappingType === 'counsellor');
+  const tabContent = getTabContent();
 
   if (loading) {
     return (
@@ -164,292 +188,322 @@ const FacultyStudents = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Assigned Students</h1>
-            <p className="text-gray-600">Manage students assigned to you as coordinator or counsellor</p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Badge variant="outline" className="text-lg px-4 py-2">
-              <UserCheck className="h-4 w-4 mr-2" />
-              {coordinatorStudents.length} Coordinator
-            </Badge>
-            <Badge variant="outline" className="text-lg px-4 py-2">
-              <Heart className="h-4 w-4 mr-2" />
-              {counsellorStudents.length} Counsellor
-            </Badge>
+            <h1 className="text-2xl font-bold text-gray-900">My Students</h1>
+            <p className="text-gray-600">Manage and view your assigned students</p>
           </div>
         </div>
 
-        {/* Search */}
+        {/* Role Badges */}
+        <div className="flex gap-2">
+          {isCoordinator && (
+            <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200">
+              <UserCheck className="h-3 w-3 mr-1" />
+              Coordinator
+            </Badge>
+          )}
+          {isCounsellor && (
+            <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-200">
+              <GraduationCap className="h-3 w-3 mr-1" />
+              Counsellor
+            </Badge>
+          )}
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-2">
+                <Users className="h-5 w-5 text-blue-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Total Assigned</p>
+                  <p className="text-2xl font-bold">{assignedStudents.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {isCoordinator && (
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-2">
+                  <UserCheck className="h-5 w-5 text-indigo-600" />
+                  <div>
+                    <p className="text-sm text-gray-600">Coordinator Students</p>
+                    <p className="text-2xl font-bold">
+                      {assignedStudents.filter(s => s.mappingType === 'coordinator').length}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {isCounsellor && (
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-2">
+                  <GraduationCap className="h-5 w-5 text-teal-600" />
+                  <div>
+                    <p className="text-sm text-gray-600">Counsellor Students</p>
+                    <p className="text-2xl font-bold">
+                      {assignedStudents.filter(s => s.mappingType === 'counsellor').length}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Search and Filters */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Search className="h-5 w-5" />
-              <span>Search Students</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search by name, hall ticket, or email"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search students by name, hall ticket, or email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex gap-2">
+                <Button
+                  variant={activeTab === "all" ? "default" : "outline"}
+                  onClick={() => setActiveTab("all")}
+                >
+                  All Students
+                </Button>
+                {isCoordinator && (
+                  <Button
+                    variant={activeTab === "coordinator" ? "default" : "outline"}
+                    onClick={() => setActiveTab("coordinator")}
+                  >
+                    <UserCheck className="h-4 w-4 mr-2" />
+                    Coordinator
+                  </Button>
+                )}
+                {isCounsellor && (
+                  <Button
+                    variant={activeTab === "counsellor" ? "default" : "outline"}
+                    onClick={() => setActiveTab("counsellor")}
+                  >
+                    <GraduationCap className="h-4 w-4 mr-2" />
+                    Counsellor
+                  </Button>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Tabs for Coordinator and Counsellor */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="coordinator" className="flex items-center space-x-2">
-              <UserCheck className="h-4 w-4" />
-              <span>Coordinator ({coordinatorStudents.length})</span>
-            </TabsTrigger>
-            <TabsTrigger value="counsellor" className="flex items-center space-x-2">
-              <Heart className="h-4 w-4" />
-              <span>Counsellor ({counsellorStudents.length})</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="coordinator" className="space-y-6">
-            {coordinatorStudents.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <UserCheck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Students Assigned</h3>
-                  <p className="text-gray-600">You haven't been assigned any students as a coordinator yet.</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredStudents.map((student) => (
-                  <StudentCard 
-                    key={student.id} 
-                    student={student} 
-                    onViewDetails={handleStudentClick}
-                    getAttendanceColor={getAttendanceColor}
-                    getCGPAColor={getCGPAColor}
-                  />
-                ))}
+        {/* Students List */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <tabContent.icon className={`h-5 w-5 ${tabContent.color}`} />
+              <span>{tabContent.title}</span>
+            </CardTitle>
+            <CardDescription>{tabContent.description}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {filteredStudents.length === 0 ? (
+              <div className="text-center py-12">
+                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No students found</h3>
+                <p className="text-gray-600">
+                  {searchTerm 
+                    ? "Try adjusting your search criteria." 
+                    : "No students have been assigned to you yet. Contact the admin for assignments."
+                  }
+                </p>
               </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="counsellor" className="space-y-6">
-            {counsellorStudents.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <Heart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No Students Assigned</h3>
-                  <p className="text-gray-600">You haven't been assigned any students as a counsellor yet.</p>
-                </CardContent>
-              </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="space-y-4">
                 {filteredStudents.map((student) => (
-                  <StudentCard 
-                    key={student.id} 
-                    student={student} 
-                    onViewDetails={handleStudentClick}
-                    getAttendanceColor={getAttendanceColor}
-                    getCGPAColor={getCGPAColor}
-                  />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-
-        {/* No students found message */}
-        {filteredStudents.length === 0 && assignedStudents.length > 0 && (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No students found</h3>
-              <p className="text-gray-600">Try adjusting your search criteria.</p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Student Details Dialog */}
-        {selectedStudent && (
-          <Dialog open={!!selectedStudent} onOpenChange={() => setSelectedStudent(null)}>
-            <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="flex items-center space-x-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src="/api/placeholder/50/50" />
-                    <AvatarFallback>{selectedStudent.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="flex items-center space-x-2">
-                      <span>{selectedStudent.name}</span>
-                      <Badge variant="outline">
-                        {getRoleIcon(selectedStudent.mappingType)}
-                        <span className="ml-1 capitalize">{selectedStudent.mappingType}</span>
-                      </Badge>
+                  <div
+                    key={student.id}
+                    className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src="" />
+                          <AvatarFallback className="bg-blue-100 text-blue-600">
+                            {student.name.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        
+                        <div>
+                          <h3 className="font-medium text-gray-900">{student.name}</h3>
+                          <div className="flex items-center space-x-4 text-sm text-gray-600">
+                            <span>HT: {student.hallTicket}</span>
+                            <span>Year: {student.year}</span>
+                            <span>Section: {student.section}</span>
+                            <span>Branch: {student.branch}</span>
+                          </div>
+                          <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
+                            <span className="flex items-center">
+                              <Mail className="h-3 w-3 mr-1" />
+                              {student.email}
+                            </span>
+                            {student.phone && (
+                              <span className="flex items-center">
+                                <Phone className="h-3 w-3 mr-1" />
+                                {student.phone}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-4">
+                        <div className="text-right">
+                          <div className="flex items-center space-x-2">
+                            <Badge 
+                              variant={student.mappingType === 'coordinator' ? 'default' : 'secondary'}
+                              className={student.mappingType === 'coordinator' ? 'bg-indigo-100 text-indigo-700' : 'bg-teal-100 text-teal-700'}
+                            >
+                              {student.mappingType === 'coordinator' ? (
+                                <>
+                                  <UserCheck className="h-3 w-3 mr-1" />
+                                  Coordinator
+                                </>
+                              ) : (
+                                <>
+                                  <GraduationCap className="h-3 w-3 mr-1" />
+                                  Counsellor
+                                </>
+                              )}
+                            </Badge>
+                          </div>
+                          
+                          {student.cgpa > 0 && (
+                            <div className="text-sm text-gray-600 mt-1">
+                              CGPA: {student.cgpa.toFixed(2)}
+                            </div>
+                          )}
+                          
+                          {student.attendance > 0 && (
+                            <div className="text-sm text-gray-600">
+                              Attendance: {student.attendance}%
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setSelectedStudent(student)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => window.open(`mailto:${student.email}`, '_blank')}
+                          >
+                            <Mail className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-600 font-normal">{selectedStudent.hallTicket}</div>
                   </div>
-                </DialogTitle>
-              </DialogHeader>
-              
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Student Detail Dialog */}
+        <Dialog open={!!selectedStudent} onOpenChange={(open) => !open && setSelectedStudent(null)}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Student Details</DialogTitle>
+              <DialogDescription>
+                Detailed information about {selectedStudent?.name}
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedStudent && (
               <div className="space-y-6">
-                {/* Basic Info */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Basic Information</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      <div><strong>Year:</strong> {selectedStudent.year}</div>
-                      <div><strong>Section:</strong> {selectedStudent.section}</div>
-                      <div><strong>Branch:</strong> {selectedStudent.branch}</div>
-                      <div><strong>Email:</strong> {selectedStudent.email}</div>
-                      {selectedStudent.phone && <div><strong>Phone:</strong> {selectedStudent.phone}</div>}
-                      <div><strong>Assigned as:</strong> 
-                        <Badge className="ml-2" variant="outline">
-                          {getRoleIcon(selectedStudent.mappingType)}
-                          <span className="ml-1 capitalize">{selectedStudent.mappingType}</span>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2">Personal Information</h4>
+                    <div className="space-y-2 text-sm">
+                      <div><span className="font-medium">Name:</span> {selectedStudent.name}</div>
+                      <div><span className="font-medium">Hall Ticket:</span> {selectedStudent.hallTicket}</div>
+                      <div><span className="font-medium">Email:</span> {selectedStudent.email}</div>
+                      {selectedStudent.phone && (
+                        <div><span className="font-medium">Phone:</span> {selectedStudent.phone}</div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2">Academic Information</h4>
+                    <div className="space-y-2 text-sm">
+                      <div><span className="font-medium">Year:</span> {selectedStudent.year}</div>
+                      <div><span className="font-medium">Section:</span> {selectedStudent.section}</div>
+                      <div><span className="font-medium">Branch:</span> {selectedStudent.branch}</div>
+                      <div><span className="font-medium">Role:</span> 
+                        <Badge 
+                          variant="outline" 
+                          className={`ml-2 ${selectedStudent.mappingType === 'coordinator' ? 'bg-indigo-50 text-indigo-700' : 'bg-teal-50 text-teal-700'}`}
+                        >
+                          {selectedStudent.mappingType === 'coordinator' ? 'Coordinator' : 'Counsellor'}
                         </Badge>
                       </div>
-                      <div><strong>Assigned Date:</strong> {new Date(selectedStudent.assignedDate).toLocaleDateString()}</div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Academic Performance</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      <div><strong>CGPA:</strong> 
-                        <span className={`ml-2 font-bold ${getCGPAColor(selectedStudent.cgpa || 0)}`}>
-                          {selectedStudent.cgpa || 'N/A'}
-                        </span>
-                      </div>
-                      <div><strong>Attendance:</strong> 
-                        <span className={`ml-2 font-bold px-2 py-1 rounded ${getAttendanceColor(selectedStudent.attendance || 0)}`}>
-                          {selectedStudent.attendance || 0}%
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 </div>
-
-                {/* Action Buttons */}
-                <div className="flex space-x-4">
-                  <Button className="flex-1">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Send Message
-                  </Button>
-                  <Button variant="outline" className="flex-1">
+                
+                {(selectedStudent.cgpa > 0 || selectedStudent.attendance > 0) && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-2">Performance Metrics</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      {selectedStudent.cgpa > 0 && (
+                        <div className="text-center p-4 bg-blue-50 rounded-lg">
+                          <div className="text-2xl font-bold text-blue-600">{selectedStudent.cgpa.toFixed(2)}</div>
+                          <div className="text-sm text-blue-600">CGPA</div>
+                        </div>
+                      )}
+                      
+                      {selectedStudent.attendance > 0 && (
+                        <div className="text-center p-4 bg-green-50 rounded-lg">
+                          <div className="text-2xl font-bold text-green-600">{selectedStudent.attendance}%</div>
+                          <div className="text-sm text-green-600">Attendance</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => window.open(`mailto:${selectedStudent.email}`, '_blank')}
+                  >
                     <Mail className="h-4 w-4 mr-2" />
                     Send Email
                   </Button>
-                  {selectedStudent.phone && (
-                    <Button variant="outline">
-                      <Phone className="h-4 w-4 mr-2" />
-                      Call
-                    </Button>
-                  )}
+                  <Button onClick={() => setSelectedStudent(null)}>
+                    Close
+                  </Button>
                 </div>
               </div>
-            </DialogContent>
-          </Dialog>
-        )}
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
-  );
-};
-
-// Student Card Component
-interface StudentCardProps {
-  student: AssignedStudent;
-  onViewDetails: (student: AssignedStudent) => void;
-  getAttendanceColor: (percentage: number) => string;
-  getCGPAColor: (cgpa: number) => string;
-}
-
-const StudentCard: React.FC<StudentCardProps> = ({ 
-  student, 
-  onViewDetails, 
-  getAttendanceColor, 
-  getCGPAColor 
-}) => {
-  const getRoleIcon = (type: 'coordinator' | 'counsellor') => {
-    return type === 'coordinator' ? 
-      <UserCheck className="h-4 w-4" /> : 
-      <Heart className="h-4 w-4" />;
-  };
-
-  return (
-    <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-      <CardHeader className="pb-3">
-        <div className="flex items-center space-x-3">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src="/api/placeholder/50/50" />
-            <AvatarFallback>{student.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <h3 className="font-semibold">{student.name}</h3>
-            <p className="text-sm text-gray-600">{student.hallTicket}</p>
-          </div>
-          <Badge variant="outline">
-            {getRoleIcon(student.mappingType)}
-          </Badge>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-3">
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <span className="text-gray-600">Year:</span>
-            <span className="ml-2 font-medium">{student.year}</span>
-          </div>
-          <div>
-            <span className="text-gray-600">Section:</span>
-            <span className="ml-2 font-medium">{student.section}</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <span className="text-gray-600">CGPA:</span>
-            <span className={`ml-2 font-semibold ${getCGPAColor(student.cgpa || 0)}`}>
-              {student.cgpa || 'N/A'}
-            </span>
-          </div>
-          <div>
-            <span className="text-gray-600">Attendance:</span>
-            <span className={`ml-2 font-semibold px-2 py-1 rounded ${getAttendanceColor(student.attendance || 0)}`}>
-              {student.attendance || 0}%
-            </span>
-          </div>
-        </div>
-        
-        <div className="text-sm">
-          <span className="text-gray-600">Email:</span>
-          <span className="ml-2">{student.email}</span>
-        </div>
-        
-        <div className="flex space-x-2 pt-2">
-          <Button 
-            size="sm" 
-            className="flex-1"
-            onClick={() => onViewDetails(student)}
-          >
-            <Eye className="h-4 w-4 mr-2" />
-            View Details
-          </Button>
-          
-          <Button size="sm" variant="outline">
-            <MessageSquare className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
   );
 };
 

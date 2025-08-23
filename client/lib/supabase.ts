@@ -1,23 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
 
-// These environment variables will be set in Vercel
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Supabase configuration with actual database credentials
+const supabaseUrl = "https://plthigkzjkcxunifsptr.supabase.co";
+const supabaseAnonKey = "sb_publishable_Fycw0l0nn80UBgrO75xcZg_kdA5-3Nl";
 
 // Check if Supabase is configured and key is valid
 const isKeyValid = (key: string) => {
   if (!key) return false;
-  try {
-    // Basic JWT format check
-    const parts = key.split(".");
-    if (parts.length !== 3) return false;
-
-    // Try to decode the header to validate format
-    const header = JSON.parse(atob(parts[0]));
-    return header.alg && header.typ;
-  } catch {
-    return false;
-  }
+  // Simple check - if key starts with 'sb_' it's a valid Supabase key
+  return key.startsWith('sb_');
 };
 
 export const isSupabaseConfigured = !!(
@@ -25,6 +16,12 @@ export const isSupabaseConfigured = !!(
   supabaseAnonKey &&
   isKeyValid(supabaseAnonKey)
 );
+
+// Debug logging
+console.log('🔧 Supabase Configuration Debug:');
+console.log('URL:', supabaseUrl);
+console.log('Key valid:', isKeyValid(supabaseAnonKey));
+console.log('Configured:', isSupabaseConfigured);
 
 // Create Supabase client only if environment variables are available
 export const supabase = isSupabaseConfigured
@@ -51,7 +48,7 @@ export const storage = supabase?.storage || null;
 export const tables = {
   userProfiles: () => supabase?.from("user_profiles") || null,
   students: () => supabase?.from("students") || null,
-  studentsList: () => supabase?.from("students_list") || null,
+  studentsList: () => supabase?.from("student_data") || null,
   faculty: () => supabase?.from("faculty") || null,
   courses: () => supabase?.from("courses") || null,
   enrollments: () => supabase?.from("enrollments") || null,
@@ -63,6 +60,11 @@ export const tables = {
   notifications: () => supabase?.from("notifications") || null,
   time_slots: () => supabase?.from("time_slots") || null,
   messages: () => supabase?.from("messages") || null,
+  // New faculty assignment tables
+  facultyAssignments: () => supabase?.from("faculty_assignments") || null,
+  studentCounsellorAssignments: () => supabase?.from("student_counsellor_assignments") || null,
+  // Expose supabase client for RPC calls
+  supabase: () => supabase,
 };
 
 // Storage bucket helpers with null checks

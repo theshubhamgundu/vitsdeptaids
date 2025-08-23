@@ -1,9 +1,11 @@
+import { tables } from "@/lib/supabase";
+
 export interface StudyMaterial {
   id: string;
   title: string;
   description: string;
   subject: string;
-  fileType: 'pdf' | 'doc' | 'ppt' | 'video' | 'image' | 'other';
+  fileType: 'pdf' | 'doc' | 'ppt' | 'video' | 'link';
   fileName: string;
   fileSize: number;
   fileUrl: string;
@@ -17,295 +19,202 @@ export interface StudyMaterial {
   tags: string[];
 }
 
-const MATERIALS_STORAGE_KEY = 'studyMaterials';
-
 class MaterialsService {
   private getMaterials(): StudyMaterial[] {
     try {
-      const materials = localStorage.getItem(MATERIALS_STORAGE_KEY);
+      const materials = localStorage.getItem('studyMaterials');
       return materials ? JSON.parse(materials) : [];
     } catch (error) {
-      console.error('Error loading materials:', error);
+      console.error('Error getting materials from localStorage:', error);
       return [];
     }
   }
 
   private saveMaterials(materials: StudyMaterial[]): void {
     try {
-      localStorage.setItem(MATERIALS_STORAGE_KEY, JSON.stringify(materials));
+      localStorage.setItem('studyMaterials', JSON.stringify(materials));
     } catch (error) {
-      console.error('Error saving materials:', error);
+      console.error('Error saving materials to localStorage:', error);
     }
   }
 
-  private generateId(): string {
-    return 'material_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  // Get all materials
+  getAllMaterials(): StudyMaterial[] {
+    return this.getMaterials().filter(material => material.isActive);
   }
 
-  private getFileType(fileName: string): 'pdf' | 'doc' | 'ppt' | 'video' | 'image' | 'other' {
-    const extension = fileName.toLowerCase().split('.').pop();
-    
-    switch (extension) {
-      case 'pdf':
-        return 'pdf';
-      case 'doc':
-      case 'docx':
-        return 'doc';
-      case 'ppt':
-      case 'pptx':
-        return 'ppt';
-      case 'mp4':
-      case 'avi':
-      case 'mov':
-      case 'wmv':
-        return 'video';
-      case 'jpg':
-      case 'jpeg':
-      case 'png':
-      case 'gif':
-        return 'image';
-      default:
-        return 'other';
-    }
-  }
-
-  uploadMaterial(
-    title: string,
-    description: string,
-    subject: string,
-    year: string,
-    semester: string,
-    file: File,
-    uploadedBy: string,
-    uploadedByName: string,
-    tags: string[] = []
-  ): StudyMaterial {
+  // Get materials by subject
+  getMaterialsBySubject(subject: string): StudyMaterial[] {
     const materials = this.getMaterials();
+    return materials.filter(material => 
+      material.subject.toLowerCase() === subject.toLowerCase() && 
+      material.isActive
+    );
+  }
 
-    // In a real app, you would upload the file to a server/cloud storage
-    // For this demo, we'll create a mock file URL
-    const fileUrl = `https://demo-storage.com/materials/${file.name}`;
+  // Get materials by year
+  getMaterialsByYear(year: string): StudyMaterial[] {
+    const materials = this.getMaterials();
+    return materials.filter(material => 
+      material.year === year && 
+      material.isActive
+    );
+  }
 
+  // Get materials by semester
+  getMaterialsBySemester(semester: string): StudyMaterial[] {
+    const materials = this.getMaterials();
+    return materials.filter(material => 
+      material.semester === semester && 
+      material.isActive
+    );
+  }
+
+  // Get materials by faculty
+  getMaterialsByFaculty(facultyId: string): StudyMaterial[] {
+    const materials = this.getMaterials();
+    return materials.filter(material => 
+      material.uploadedBy === facultyId && 
+      material.isActive
+    );
+  }
+
+  // Add new material
+  addMaterial(material: Omit<StudyMaterial, 'id' | 'uploadDate' | 'downloadCount'>): StudyMaterial {
+    const materials = this.getMaterials();
     const newMaterial: StudyMaterial = {
-      id: this.generateId(),
-      title,
-      description,
-      subject,
-      fileType: this.getFileType(file.name),
-      fileName: file.name,
-      fileSize: file.size,
-      fileUrl,
-      uploadedBy,
-      uploadedByName,
+      ...material,
+      id: crypto.randomUUID(),
       uploadDate: new Date().toISOString(),
-      year,
-      semester,
-      isActive: true,
-      downloadCount: 0,
-      tags
+      downloadCount: 0
     };
-
+    
     materials.push(newMaterial);
     this.saveMaterials(materials);
-    
     return newMaterial;
   }
 
-  getAllMaterials(): StudyMaterial[] {
-    return this.getMaterials().filter(m => m.isActive);
-  }
-
-  getMaterialsBySubject(subject: string): StudyMaterial[] {
-    return this.getMaterials().filter(m => 
-      m.subject.toLowerCase() === subject.toLowerCase() && m.isActive
-    );
-  }
-
-  getMaterialsByYear(year: string): StudyMaterial[] {
-    return this.getMaterials().filter(m => 
-      m.year === year && m.isActive
-    );
-  }
-
-  getMaterialsByUploader(uploadedBy: string): StudyMaterial[] {
-    return this.getMaterials().filter(m => 
-      m.uploadedBy === uploadedBy && m.isActive
-    );
-  }
-
-  getMaterialById(id: string): StudyMaterial | null {
-    return this.getMaterials().find(m => m.id === id && m.isActive) || null;
-  }
-
-  updateMaterial(id: string, updates: Partial<StudyMaterial>): boolean {
+  // Update material
+  updateMaterial(id: string, updates: Partial<StudyMaterial>): StudyMaterial | null {
     const materials = this.getMaterials();
-    const index = materials.findIndex(m => m.id === id);
+    const index = materials.findIndex(material => material.id === id);
     
-    if (index !== -1) {
-      materials[index] = { ...materials[index], ...updates };
-      this.saveMaterials(materials);
-      return true;
-    }
-    return false;
+    if (index === -1) return null;
+    
+    materials[index] = { ...materials[index], ...updates };
+    this.saveMaterials(materials);
+    return materials[index];
   }
 
+  // Delete material (soft delete)
   deleteMaterial(id: string): boolean {
-    const materials = this.getMaterials();
-    const index = materials.findIndex(m => m.id === id);
-    
-    if (index !== -1) {
-      materials[index].isActive = false;
-      this.saveMaterials(materials);
-      return true;
-    }
-    return false;
+    const material = this.updateMaterial(id, { isActive: false });
+    return material !== null;
   }
 
-  incrementDownloadCount(id: string): void {
-    const materials = this.getMaterials();
-    const material = materials.find(m => m.id === id);
+  // Increment download count
+  incrementDownloadCount(id: string): boolean {
+    const material = this.getMaterials().find(m => m.id === id);
+    if (!material) return false;
     
-    if (material) {
-      material.downloadCount += 1;
-      this.saveMaterials(materials);
-    }
+    material.downloadCount += 1;
+    this.saveMaterials(this.getMaterials());
+    return true;
   }
 
-  searchMaterials(
-    query: string,
-    filters: {
-      subject?: string;
-      year?: string;
-      semester?: string;
-      fileType?: string;
-      uploadedBy?: string;
-    } = {}
-  ): StudyMaterial[] {
-    let materials = this.getAllMaterials();
-
-    // Apply text search
-    if (query) {
-      const searchTerm = query.toLowerCase();
-      materials = materials.filter(m =>
-        m.title.toLowerCase().includes(searchTerm) ||
-        m.description.toLowerCase().includes(searchTerm) ||
-        m.subject.toLowerCase().includes(searchTerm) ||
-        m.uploadedByName.toLowerCase().includes(searchTerm) ||
-        m.tags.some(tag => tag.toLowerCase().includes(searchTerm))
-      );
-    }
-
-    // Apply filters
-    if (filters.subject) {
-      materials = materials.filter(m => 
-        m.subject.toLowerCase() === filters.subject!.toLowerCase()
-      );
-    }
-
-    if (filters.year) {
-      materials = materials.filter(m => m.year === filters.year);
-    }
-
-    if (filters.semester) {
-      materials = materials.filter(m => m.semester === filters.semester);
-    }
-
-    if (filters.fileType) {
-      materials = materials.filter(m => m.fileType === filters.fileType);
-    }
-
-    if (filters.uploadedBy) {
-      materials = materials.filter(m => m.uploadedBy === filters.uploadedBy);
-    }
-
-    // Sort by upload date (newest first)
-    return materials.sort((a, b) => 
-      new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()
+  // Search materials
+  searchMaterials(query: string): StudyMaterial[] {
+    const materials = this.getMaterials();
+    const searchTerm = query.toLowerCase();
+    
+    return materials.filter(material => 
+      material.title.toLowerCase().includes(searchTerm) ||
+      material.description.toLowerCase().includes(searchTerm) ||
+      material.subject.toLowerCase().includes(searchTerm) ||
+      material.tags.some(tag => tag.toLowerCase().includes(searchTerm))
     );
   }
 
+  // Get available subjects
   getSubjects(): string[] {
-    const materials = this.getAllMaterials();
-    const subjects = Array.from(new Set(materials.map(m => m.subject)));
-    return subjects.sort();
-  }
-
-  getYears(): string[] {
-    const materials = this.getAllMaterials();
-    const years = Array.from(new Set(materials.map(m => m.year)));
-    return years.sort();
-  }
-
-  getSemesters(): string[] {
-    const materials = this.getAllMaterials();
-    const semesters = Array.from(new Set(materials.map(m => m.semester)));
-    return semesters.sort();
-  }
-
-  // Initialize with some demo data
-  initializeDemoData(): void {
-    const existingMaterials = this.getMaterials();
-    if (existingMaterials.length === 0) {
-      const demoMaterials: StudyMaterial[] = [
-        {
-          id: 'demo_1',
-          title: 'Introduction to Machine Learning',
-          description: 'Comprehensive guide to ML fundamentals and algorithms',
-          subject: 'Machine Learning',
-          fileType: 'pdf',
-          fileName: 'ML_Introduction.pdf',
-          fileSize: 2048000,
-          fileUrl: 'https://demo-storage.com/ml-intro.pdf',
-          uploadedBy: 'faculty_1',
-          uploadedByName: 'Dr. Smith',
-          uploadDate: '2024-01-15T10:00:00Z',
-          year: '3rd Year',
-          semester: '6th Semester',
-          isActive: true,
-          downloadCount: 25,
-          tags: ['machine learning', 'algorithms', 'fundamentals']
-        },
-        {
-          id: 'demo_2',
-          title: 'Data Structures and Algorithms',
-          description: 'Complete notes on DSA with examples',
-          subject: 'Data Structures',
-          fileType: 'pdf',
-          fileName: 'DSA_Notes.pdf',
-          fileSize: 1536000,
-          fileUrl: 'https://demo-storage.com/dsa-notes.pdf',
-          uploadedBy: 'faculty_2',
-          uploadedByName: 'Prof. Johnson',
-          uploadDate: '2024-01-20T14:30:00Z',
-          year: '2nd Year',
-          semester: '4th Semester',
-          isActive: true,
-          downloadCount: 42,
-          tags: ['data structures', 'algorithms', 'programming']
-        },
-        {
-          id: 'demo_3',
-          title: 'Neural Networks Lecture',
-          description: 'Video lecture on neural network architectures',
-          subject: 'Deep Learning',
-          fileType: 'video',
-          fileName: 'Neural_Networks.mp4',
-          fileSize: 15728640,
-          fileUrl: 'https://demo-storage.com/neural-networks.mp4',
-          uploadedBy: 'faculty_1',
-          uploadedByName: 'Dr. Smith',
-          uploadDate: '2024-01-25T09:15:00Z',
-          year: '4th Year',
-          semester: '8th Semester',
-          isActive: true,
-          downloadCount: 18,
-          tags: ['neural networks', 'deep learning', 'video lecture']
-        }
+    const materials = this.getMaterials();
+    if (materials.length === 0) {
+      return [
+        "Machine Learning",
+        "Deep Learning", 
+        "Data Structures",
+        "Algorithms",
+        "Database Systems",
+        "Computer Networks",
+        "Operating Systems",
+        "Software Engineering"
       ];
-
-      this.saveMaterials(demoMaterials);
     }
+    const subjects = new Set(materials.map(material => material.subject));
+    return Array.from(subjects).sort();
+  }
+
+  // Get available years
+  getYears(): string[] {
+    const materials = this.getMaterials();
+    if (materials.length === 0) {
+      return ["1st Year", "2nd Year", "3rd Year", "4th Year"];
+    }
+    const years = new Set(materials.map(material => material.year));
+    return Array.from(years).sort();
+  }
+
+  // Get available semesters
+  getSemesters(): string[] {
+    const materials = this.getMaterials();
+    const semesters = new Set(materials.map(material => material.semester));
+    return Array.from(semesters).sort();
+  }
+
+  // Get material statistics
+  getMaterialStats(): {
+    total: number;
+    bySubject: Record<string, number>;
+    byYear: Record<string, number>;
+    byFileType: Record<string, number>;
+    totalDownloads: number;
+  } {
+    const materials = this.getMaterials();
+    
+    const stats = {
+      total: materials.length,
+      bySubject: {} as Record<string, number>,
+      byYear: {} as Record<string, number>,
+      byFileType: {} as Record<string, number>,
+      totalDownloads: 0
+    };
+    
+    materials.forEach(material => {
+      stats.bySubject[material.subject] = (stats.bySubject[material.subject] || 0) + 1;
+      stats.byYear[material.year] = (stats.byYear[material.year] || 0) + 1;
+      stats.byFileType[material.fileType] = (stats.byFileType[material.fileType] || 0) + 1;
+      stats.totalDownloads += material.downloadCount;
+    });
+    
+    return stats;
+  }
+
+  // Get popular materials (by download count)
+  getPopularMaterials(limit: number = 10): StudyMaterial[] {
+    const materials = this.getMaterials();
+    return materials
+      .sort((a, b) => b.downloadCount - a.downloadCount)
+      .slice(0, limit);
+  }
+
+  // Get recent materials
+  getRecentMaterials(limit: number = 10): StudyMaterial[] {
+    const materials = this.getMaterials();
+    return materials
+      .sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime())
+      .slice(0, limit);
   }
 }
 
 export const materialsService = new MaterialsService();
+export default materialsService;

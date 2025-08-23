@@ -38,6 +38,7 @@ import {
   GraduationCap,
   CreditCard,
   Wrench,
+  UserCheck,
 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -144,6 +145,11 @@ const DashboardLayout = ({
         { name: "Profile", href: "/dashboard/admin/profile", icon: User },
         { name: "Students", href: "/dashboard/admin/students", icon: Users },
         { name: "Faculty", href: "/dashboard/admin/faculty", icon: Users },
+        {
+          name: "Faculty Assignments",
+          href: "/dashboard/admin/faculty-assignments",
+          icon: UserCheck,
+        },
         {
           name: "Timetable Creator",
           href: "/dashboard/admin/timetable-creator",
