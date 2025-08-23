@@ -149,21 +149,7 @@ export const authenticateStudent = async (
       }
     }
 
-    // Fallback to hardcoded demo student
-    if (
-      hallTicket === "20AI001" &&
-      (password === "student123" || password === "20AI001")
-    ) {
-      console.log("✅ Demo student authenticated");
-      return {
-        id: "demo-student",
-        name: "Demo Student",
-        hallTicket: "20AI001",
-        email: "demo@vignan.ac.in",
-        year: "3rd Year",
-        section: "A",
-      };
-    }
+    // No demo fallback - use real authentication only
 
     console.log("❌ Student authentication failed");
     return null;
