@@ -136,7 +136,7 @@ const LoginPage = () => {
           const route = dashboardRoutes[faculty.role] || "/dashboard/faculty";
 
           // Use auth context to store user data
-          await login({
+          login({
             id: faculty.id,
             name: faculty.name,
             role: faculty.role.toLowerCase(),
