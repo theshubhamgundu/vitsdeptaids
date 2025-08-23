@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,99 +55,52 @@ const HODFacultyLeaves = () => {
   const [approvalAction, setApprovalAction] = useState("");
   const [approvalComments, setApprovalComments] = useState("");
 
-  const [leaveApplications, setLeaveApplications] = useState([
-    {
-      id: 1,
-      facultyName: "Dr. Anita Verma",
-      employeeId: "VIT-CSE-005",
-      designation: "Assistant Professor",
-      leaveType: "Conference Attendance",
-      startDate: "2024-12-25",
-      endDate: "2024-12-27",
-      days: 3,
-      reason: "Attending International Conference on Machine Learning at IIT Bombay",
-      appliedDate: "2024-12-18",
-      status: "Pending",
-      priority: "medium",
-      documents: ["conference_invitation.pdf", "travel_itinerary.pdf"],
-      substituteArrangement: "Dr. Rajesh Kumar will handle ML classes",
-      contactDuringLeave: "+91 9876543210",
-      previousLeaves: 5,
-      remainingLeaves: 10
-    },
-    {
-      id: 2,
-      facultyName: "Dr. Rajesh Kumar",
-      employeeId: "VIT-CSE-003",
-      designation: "Associate Professor",
-      leaveType: "Medical Leave",
-      startDate: "2024-12-20",
-      endDate: "2024-12-22",
-      days: 3,
-      reason: "Medical treatment for back pain - doctor's recommendation for rest",
-      appliedDate: "2024-12-19",
-      status: "Pending",
-      priority: "high",
-      documents: ["medical_certificate.pdf"],
-      substituteArrangement: "Dr. Suresh Reddy will cover Data Mining classes",
-      contactDuringLeave: "+91 9876543211",
-      previousLeaves: 3,
-      remainingLeaves: 12
-    },
-    {
-      id: 3,
-      facultyName: "Dr. Suresh Reddy",
-      employeeId: "VIT-CSE-008",
-      designation: "Assistant Professor",
-      leaveType: "Personal Leave",
-      startDate: "2024-11-15",
-      endDate: "2024-11-17",
-      days: 3,
-      reason: "Family wedding ceremony in hometown",
-      appliedDate: "2024-11-10",
-      status: "Approved",
-      priority: "low",
-      documents: [],
-      substituteArrangement: "Dr. Anita Verma covered NLP classes",
-      contactDuringLeave: "+91 9876543212",
-      previousLeaves: 8,
-      remainingLeaves: 7,
-      approvedDate: "2024-11-11",
-      approvedBy: "Dr. Priya Sharma",
-      hodComments: "Approved for family occasion. Ensure proper handover of classes."
-    },
-    {
-      id: 4,
-      facultyName: "Dr. Kavitha Rao",
-      employeeId: "VIT-MATH-002",
-      designation: "Associate Professor",
-      leaveType: "Academic Leave",
-      startDate: "2024-10-28",
-      endDate: "2024-10-30",
-      days: 3,
-      reason: "Research collaboration with IISc Bangalore",
-      appliedDate: "2024-10-25",
-      status: "Approved",
-      priority: "medium",
-      documents: ["collaboration_letter.pdf"],
-      substituteArrangement: "Guest faculty arranged for Statistics classes",
-      contactDuringLeave: "+91 9876543213",
-      previousLeaves: 2,
-      remainingLeaves: 13,
-      approvedDate: "2024-10-26",
-      approvedBy: "Dr. Priya Sharma",
-      hodComments: "Research collaboration approved. Will benefit department research."
-    },
-    {
-      id: 5,
-      facultyName: "Dr. Anita Verma",
-      employeeId: "VIT-CSE-005",
-      designation: "Assistant Professor",
-      leaveType: "Casual Leave",
-      startDate: "2024-09-05",
-      endDate: "2024-09-06",
-      days: 2,
-      reason: "Personal work",
+  const [leaveApplications, setLeaveApplications] = useState([]);
+  const [facultyLeaveStats, setFacultyLeaveStats] = useState({
+    totalApplications: 0,
+    pendingApprovals: 0,
+    approvedThisMonth: 0,
+    averageResponseTime: "2.5 days",
+    mostCommonLeaveType: "Medical Leave"
+  });
+
+  // Load leave data on component mount
+  useEffect(() => {
+    loadLeaveData();
+  }, []);
+
+  const loadLeaveData = () => {
+    try {
+      // Load faculty leave applications from localStorage (placeholder for database)
+      const savedLeaves = JSON.parse(localStorage.getItem('hod_faculty_leaves') || '[]');
+      setLeaveApplications(savedLeaves);
+      
+      // Calculate stats from real data
+      const totalApplications = savedLeaves.length;
+      const pendingApprovals = savedLeaves.filter(leave => leave.status === 'Pending').length;
+      const approvedThisMonth = savedLeaves.filter(leave => 
+        leave.status === 'Approved' && 
+        new Date(leave.appliedDate).getMonth() === new Date().getMonth()
+      ).length;
+      
+      const leaveTypes = savedLeaves.map(leave => leave.leaveType);
+      const mostCommonLeaveType = leaveTypes.length > 0 
+        ? leaveTypes.sort((a,b) => 
+            leaveTypes.filter(v => v === a).length - leaveTypes.filter(v => v === b).length
+          ).pop() || "Medical Leave"
+        : "Medical Leave";
+
+      setFacultyLeaveStats({
+        totalApplications,
+        pendingApprovals,
+        approvedThisMonth,
+        averageResponseTime: "2.5 days",
+        mostCommonLeaveType
+      });
+    } catch (error) {
+      console.error('Error loading leave data:', error);
+    }
+  };
       appliedDate: "2024-09-03",
       status: "Rejected",
       priority: "low",
@@ -236,6 +189,13 @@ const HODFacultyLeaves = () => {
     });
 
     setLeaveApplications(updatedApplications);
+    
+    // Save to localStorage (placeholder for database)
+    localStorage.setItem('hod_faculty_leaves', JSON.stringify(updatedApplications));
+    
+    // Recalculate stats
+    loadLeaveData();
+    
     setShowApprovalDialog(false);
     setSelectedLeave(null);
     setApprovalComments("");
