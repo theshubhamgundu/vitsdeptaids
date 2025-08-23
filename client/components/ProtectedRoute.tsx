@@ -16,9 +16,24 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
 
-  // Show loading state while checking authentication (with timeout)
-  if (isLoading) {
+  // Set a timeout for loading state to prevent infinite loading
+  useEffect(() => {
+    if (isLoading) {
+      const timer = setTimeout(() => {
+        console.warn("⚠️ Loading timeout reached in ProtectedRoute");
+        setLoadingTimeout(true);
+      }, 2000); // 2 second timeout
+
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading]);
+
+  console.log("🔍 ProtectedRoute state:", { isLoading, isAuthenticated, user: user?.name });
+
+  // Show loading state only briefly
+  if (isLoading && !loadingTimeout) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -32,11 +47,13 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Redirect to login if not authenticated
   if (!isAuthenticated || !user) {
+    console.log("🔄 Redirecting to login - not authenticated");
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
   // Check role permissions if specified
   if (allowedRoles && !allowedRoles.includes(user.role)) {
+    console.log("🔄 Redirecting due to role mismatch:", user.role, "not in", allowedRoles);
     // Redirect to appropriate dashboard based on user role
     const roleDashboardMap: Record<string, string> = {
       student: '/dashboard/student',
@@ -49,6 +66,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to={userDashboard} replace />;
   }
 
+  console.log("✅ ProtectedRoute allowing access for:", user.name, user.role);
   return <ProfileWrapper>{children}</ProfileWrapper>;
 };
 
