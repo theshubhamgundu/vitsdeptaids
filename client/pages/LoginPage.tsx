@@ -171,7 +171,7 @@ const LoginPage = () => {
           });
 
           // Use auth context to store user data
-          await login({
+          login({
             id: student.id,
             name: student.name,
             role: "student",
