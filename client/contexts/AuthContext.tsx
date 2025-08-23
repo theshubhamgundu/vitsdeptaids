@@ -30,16 +30,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const isMountedRef = useRef(true);
+  const initializationCompleteRef = useRef(false);
 
   // Safe state setter that checks if component is still mounted
   const safeSetUser = (userData: User | null) => {
     if (isMountedRef.current) {
+      console.log("🔧 Setting user:", userData ? `${userData.name} (${userData.role})` : "null");
       setUser(userData);
     }
   };
 
   const safeSetLoading = (loading: boolean) => {
     if (isMountedRef.current) {
+      console.log("🔧 Setting loading:", loading);
       setIsLoading(loading);
     }
   };
