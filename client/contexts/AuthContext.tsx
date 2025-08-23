@@ -26,11 +26,35 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+// Global state to persist across HMR
+if (typeof window !== "undefined") {
+  // @ts-ignore
+  window.__AUTH_STATE__ = window.__AUTH_STATE__ || {
+    user: null,
+    isLoading: true,
+    initializationComplete: false,
+  };
+}
+
+const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  // Initialize from global state to survive HMR
+  const globalState = typeof window !== "undefined" ? (window as any).__AUTH_STATE__ : { user: null, isLoading: true, initializationComplete: false };
+  
+  const [user, setUser] = useState<User | null>(globalState.user);
+  const [isLoading, setIsLoading] = useState(globalState.isLoading);
   const isMountedRef = useRef(true);
-  const initializationCompleteRef = useRef(false);
+  const initializationCompleteRef = useRef(globalState.initializationComplete);
+
+  // Update global state when local state changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      (window as any).__AUTH_STATE__ = {
+        user,
+        isLoading,
+        initializationComplete: initializationCompleteRef.current,
+      };
+    }
+  }, [user, isLoading]);
 
   // Safe state setter that checks if component is still mounted
   const safeSetUser = (userData: User | null) => {
@@ -54,20 +78,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, []);
 
-  // Check for existing session on app load
+  // Check for existing session on app load (only run once)
   useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+    // Skip if already initialized (prevents HMR re-runs)
+    if (initializationCompleteRef.current) {
+      console.log("🔄 Auth already initialized, skipping...");
+      return;
+    }
+
     let loadingTimeoutId: NodeJS.Timeout;
 
     const checkExistingSession = async () => {
+      console.log("🔍 Checking existing session...");
+      
       try {
-        const currentSessionToken =
-          databaseSessionService.getCurrentSessionToken();
+        const currentSessionToken = databaseSessionService.getCurrentSessionToken();
 
         if (currentSessionToken && isMountedRef.current) {
           // Validate session with database
-          const validation =
-            await databaseSessionService.validateSession(currentSessionToken);
+          const validation = await databaseSessionService.validateSession(currentSessionToken);
 
           if (isMountedRef.current) {
             if (validation.isValid && validation.user) {
@@ -98,8 +127,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (isMountedRef.current) {
           // Clear any corrupted local data
-          const currentSessionToken =
-            databaseSessionService.getCurrentSessionToken();
+          const currentSessionToken = databaseSessionService.getCurrentSessionToken();
           if (currentSessionToken) {
             await databaseSessionService.removeSession(currentSessionToken);
           }
@@ -118,10 +146,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         }
       } finally {
-        // Only set loading to false if initialization hasn't been completed by login
-        if (isMountedRef.current && !initializationCompleteRef.current) {
-          safeSetLoading(false);
+        // Mark initialization as complete and set loading to false
+        if (isMountedRef.current) {
           initializationCompleteRef.current = true;
+          safeSetLoading(false);
+          console.log("✅ Auth initialization complete");
         }
       }
     };
@@ -129,9 +158,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Set a maximum timeout for loading state (fallback safety)
     loadingTimeoutId = setTimeout(() => {
       if (isMountedRef.current && !initializationCompleteRef.current) {
-        console.warn("⚠️ Loading timeout reached, forcing loading state to false");
-        safeSetLoading(false);
+        console.warn("⚠️ Loading timeout reached, forcing initialization complete");
         initializationCompleteRef.current = true;
+        safeSetLoading(false);
       }
     }, 3000); // 3 second maximum loading time
 
@@ -143,44 +172,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkExistingSession();
 
     return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
       if (loadingTimeoutId) {
         clearTimeout(loadingTimeoutId);
       }
     };
-  }, []);
+  }, []); // Empty dependency array to run only once
 
   const login = async (userData: User) => {
     console.log("🔐 Starting login process for:", userData.name);
-
+    
     try {
       // Mark initialization as complete to prevent conflicts
       initializationCompleteRef.current = true;
-
+      
       // Always set user data immediately for better UX
       safeSetUser(userData);
       localStorage.setItem("currentUser", JSON.stringify(userData));
-
+      
       // Ensure loading is set to false after login
       safeSetLoading(false);
-
+      
       console.log("✅ User authenticated and loading state cleared");
 
       // Try to create a database session (but don't fail if it doesn't work)
       try {
-        const sessionToken =
-          await databaseSessionService.createSession(userData);
-        console.log(
-          `✅ Login successful. Session token created: ${sessionToken.slice(0, 20)}...`,
-        );
+        const sessionToken = await databaseSessionService.createSession(userData);
+        console.log(`✅ Login successful. Session token created: ${sessionToken.slice(0, 20)}...`);
       } catch (sessionError) {
-        console.warn(
-          "Database session creation failed, using localStorage fallback:",
-          sessionError,
-        );
-        // Session creation failed, but user is still logged in via localStorage
+        console.warn("Database session creation failed, using localStorage fallback:", sessionError);
       }
     } catch (error) {
       console.error("Error during login:", error);
@@ -197,10 +216,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     console.log("🔐 Starting logout process");
-
+    
     try {
-      const currentSessionToken =
-        databaseSessionService.getCurrentSessionToken();
+      const currentSessionToken = databaseSessionService.getCurrentSessionToken();
       if (currentSessionToken) {
         await databaseSessionService.removeSession(currentSessionToken);
       }
@@ -215,6 +233,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
     localStorage.removeItem("currentUser");
     localStorage.removeItem("currentSessionToken");
+    
+    // Clear global state
+    if (typeof window !== "undefined") {
+      (window as any).__AUTH_STATE__ = {
+        user: null,
+        isLoading: true,
+        initializationComplete: false,
+      };
+    }
+    
     console.log("🔄 Logged out successfully");
   };
 
@@ -234,6 +262,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
     localStorage.removeItem("currentUser");
     localStorage.removeItem("currentSessionToken");
+    
+    // Clear global state
+    if (typeof window !== "undefined") {
+      (window as any).__AUTH_STATE__ = {
+        user: null,
+        isLoading: true,
+        initializationComplete: false,
+      };
+    }
+    
     console.log("🔄 Logged out from all devices");
   };
 
@@ -259,10 +297,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = (): AuthContextType => {
+// Export named function to be HMR-compatible
+const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
+
+// Named exports for better HMR compatibility
+export { AuthProvider, useAuth };
+export type { AuthContextType };
