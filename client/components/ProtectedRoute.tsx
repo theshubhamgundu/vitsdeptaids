@@ -66,7 +66,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   console.log("✅ ProtectedRoute allowing access for:", user.name, user.role);
-  return <ProfileWrapper>{children}</ProfileWrapper>;
+  return <>{children}</>;
 };
 
 // Helper component for role-specific routes
