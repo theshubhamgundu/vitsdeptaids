@@ -166,7 +166,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Ensure loading is set to false after login
       safeSetLoading(false);
 
-      console.log("✅ User authenticated and loading state cleared");
+      console.log("��� User authenticated and loading state cleared");
 
       // Try to create a database session (but don't fail if it doesn't work)
       try {
@@ -196,6 +196,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = async () => {
+    console.log("🔐 Starting logout process");
+
     try {
       const currentSessionToken =
         databaseSessionService.getCurrentSessionToken();
@@ -209,6 +211,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Always clear local state regardless of database operations
     if (isMountedRef.current) {
       safeSetUser(null);
+      initializationCompleteRef.current = false; // Reset initialization state
     }
     localStorage.removeItem("currentUser");
     localStorage.removeItem("currentSessionToken");
