@@ -52,97 +52,11 @@ import {
 
 const FacultyLeave = () => {
   const { user } = useAuth();
-  // Personal leave applications
-  const [leaveApplications, setLeaveApplications] = useState([
-    {
-      id: 1,
-      type: "Medical Leave",
-      fromDate: "2025-03-15",
-      toDate: "2025-03-17",
-      days: 3,
-      reason: "Medical treatment for flu symptoms",
-      description: "Need to visit doctor and take rest for recovery",
-      status: "Approved",
-      appliedDate: "2025-03-10",
-      approvedBy: "Dr. Head of Department",
-      approvedDate: "2025-03-11",
-      documents: ["medical_certificate.pdf"],
-      emergencyContact: "+91 9876543210"
-    },
-    {
-      id: 2,
-      type: "Personal Leave",
-      fromDate: "2025-03-22",
-      toDate: "2025-03-23",
-      days: 2,
-      reason: "Family function attendance",
-      description: "Sister's wedding ceremony",
-      status: "Pending",
-      appliedDate: "2025-03-12",
-      approvedBy: null,
-      approvedDate: null,
-      documents: [],
-      emergencyContact: "+91 9876543210"
-    }
-  ]);
+  // Personal leave applications - will be loaded from database/localStorage
+  const [leaveApplications, setLeaveApplications] = useState<any[]>([]);
 
-  // Student leave applications that need faculty approval
-  const [studentLeaveRequests, setStudentLeaveRequests] = useState([
-    {
-      id: 1,
-      studentName: "Rahul Sharma",
-      hallTicket: "20AI001",
-      year: "3rd Year",
-      semester: "6th Semester",
-      type: "Medical Leave",
-      fromDate: "2025-03-16",
-      toDate: "2025-03-18",
-      days: 3,
-      reason: "Fever and cold",
-      description: "Doctor advised rest for 3 days",
-      status: "Pending",
-      appliedDate: "2025-03-14",
-      documents: ["medical_certificate.pdf"],
-      parentContact: "+91 9876543200",
-      studentContact: "+91 9876543201"
-    },
-    {
-      id: 2,
-      studentName: "Priya Reddy", 
-      hallTicket: "20AI002",
-      year: "3rd Year",
-      semester: "6th Semester",
-      type: "Personal Leave",
-      fromDate: "2025-03-20",
-      toDate: "2025-03-21",
-      days: 2,
-      reason: "Family emergency",
-      description: "Grandmother hospitalized",
-      status: "Pending",
-      appliedDate: "2025-03-15",
-      documents: [],
-      parentContact: "+91 9876543202",
-      studentContact: "+91 9876543203"
-    },
-    {
-      id: 3,
-      studentName: "Amit Kumar",
-      hallTicket: "20AI003",
-      year: "3rd Year",
-      semester: "6th Semester",
-      type: "Conference Leave",
-      fromDate: "2025-03-25",
-      toDate: "2025-03-27",
-      days: 3,
-      reason: "Technical conference participation",
-      description: "Presenting paper at IEEE conference",
-      status: "Approved",
-      appliedDate: "2025-03-10",
-      documents: ["conference_invitation.pdf"],
-      parentContact: "+91 9876543204",
-      studentContact: "+91 9876543205"
-    }
-  ]);
+  // Student leave applications that need faculty approval - will be loaded from database/localStorage
+  const [studentLeaveRequests, setStudentLeaveRequests] = useState<any[]>([]);
 
   const [showApplyDialog, setShowApplyDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
@@ -162,6 +76,27 @@ const FacultyLeave = () => {
     emergencyContact: "",
     documents: []
   });
+
+  // Load leave data on component mount
+  useEffect(() => {
+    if (user) {
+      loadLeaveData();
+    }
+  }, [user]);
+
+  const loadLeaveData = () => {
+    try {
+      // Load personal leave applications from localStorage (placeholder for database)
+      const personalLeaves = JSON.parse(localStorage.getItem(`faculty_leaves_${user?.id}`) || "[]");
+      setLeaveApplications(personalLeaves);
+
+      // Load student leave requests from localStorage (placeholder for database)
+      const studentLeaves = JSON.parse(localStorage.getItem(`student_leaves_pending`) || "[]");
+      setStudentLeaveRequests(studentLeaves);
+    } catch (error) {
+      console.error('Error loading leave data:', error);
+    }
+  };
 
   const leaveTypes = [
     "Medical Leave",
@@ -196,7 +131,12 @@ const FacultyLeave = () => {
       approvedDate: null
     };
 
-    setLeaveApplications(prev => [application, ...prev]);
+    const updatedApplications = [application, ...leaveApplications];
+    setLeaveApplications(updatedApplications);
+    
+    // Save to localStorage (placeholder for database)
+    localStorage.setItem(`faculty_leaves_${user?.id}`, JSON.stringify(updatedApplications));
+    
     setShowApplyDialog(false);
     setNewApplication({
       type: "Medical Leave",
@@ -210,15 +150,23 @@ const FacultyLeave = () => {
   };
 
   const handleApproveStudentLeave = (id) => {
-    setStudentLeaveRequests(prev => prev.map(request =>
+    const updatedRequests = studentLeaveRequests.map(request =>
       request.id === id ? { ...request, status: "Approved", approvedBy: user?.name || "Faculty", approvedDate: new Date().toISOString().split('T')[0] } : request
-    ));
+    );
+    setStudentLeaveRequests(updatedRequests);
+    
+    // Save to localStorage (placeholder for database)
+    localStorage.setItem(`student_leaves_pending`, JSON.stringify(updatedRequests));
   };
 
   const handleRejectStudentLeave = (id) => {
-    setStudentLeaveRequests(prev => prev.map(request =>
+    const updatedRequests = studentLeaveRequests.map(request =>
       request.id === id ? { ...request, status: "Rejected", approvedBy: user?.name || "Faculty", approvedDate: new Date().toISOString().split('T')[0] } : request
-    ));
+    );
+    setStudentLeaveRequests(updatedRequests);
+    
+    // Save to localStorage (placeholder for database)
+    localStorage.setItem(`student_leaves_pending`, JSON.stringify(updatedRequests));
   };
 
   const handleCancelApplication = (id) => {

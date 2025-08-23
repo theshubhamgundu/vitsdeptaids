@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,78 +50,9 @@ import {
 } from "lucide-react";
 
 const HODTimetables = () => {
-  const [timetables, setTimetables] = useState([
-    {
-      id: 1,
-      title: "1st Year AI & DS Timetable",
-      year: "1st Year",
-      semester: "2nd Semester",
-      status: "Active",
-      effectiveFrom: "2025-01-15",
-      createdBy: "Dr. Priya Sharma",
-      createdDate: "2025-01-10",
-      lastModified: "2025-03-15",
-      studentsCount: 60,
-      type: "Generated",
-      subjects: ["Mathematics", "Programming", "Physics", "English"],
-      facultyAssigned: true
-    },
-    {
-      id: 2,
-      title: "2nd Year AI & DS Timetable",
-      year: "2nd Year",
-      semester: "4th Semester",
-      status: "Active",
-      effectiveFrom: "2025-01-15",
-      createdBy: "Admin",
-      createdDate: "2025-01-08",
-      lastModified: "2025-03-10",
-      studentsCount: 55,
-      type: "Uploaded",
-      subjects: ["Data Structures", "Database", "Statistics", "Machine Learning Basics"],
-      facultyAssigned: true
-    },
-    {
-      id: 3,
-      title: "3rd Year AI & DS Timetable",
-      year: "3rd Year",
-      semester: "6th Semester",
-      status: "Active",
-      effectiveFrom: "2025-01-15",
-      createdBy: "Dr. Priya Sharma",
-      createdDate: "2025-01-12",
-      lastModified: "2025-03-20",
-      studentsCount: 50,
-      type: "Generated",
-      subjects: ["Machine Learning", "Deep Learning", "Data Science", "AI Ethics"],
-      facultyAssigned: true
-    },
-    {
-      id: 4,
-      title: "4th Year AI & DS Timetable",
-      year: "4th Year",
-      semester: "8th Semester",
-      status: "Draft",
-      effectiveFrom: "2025-07-15",
-      createdBy: "Dr. Priya Sharma",
-      createdDate: "2025-03-18",
-      lastModified: "2025-03-20",
-      studentsCount: 45,
-      type: "Generated",
-      subjects: ["Advanced AI", "Capstone Project", "Industry Training", "Research Methodology"],
-      facultyAssigned: false
-    }
-  ]);
+  const [timetables, setTimetables] = useState<any[]>([]);
 
-  const [facultyAssignments, setFacultyAssignments] = useState(getAllFaculty().map((faculty, index) => ({
-    id: faculty.id,
-    facultyName: faculty.name,
-    subjects: faculty.specialization.split(", ").slice(0, 2), // Use first 2 specializations as subjects
-    year: ["1st Year", "2nd Year", "3rd Year", "4th Year"][index % 4],
-    hoursPerWeek: Math.floor(Math.random() * 10) + 10, // Random between 10-20
-    classrooms: [`Room-${300 + parseInt(faculty.id)}`, `Lab-${faculty.id}`],
-    status: "Assigned"
-  })));
+  const [facultyAssignments, setFacultyAssignments] = useState<any[]>([]);
 
   const [conflicts, setConflicts] = useState([]);
 
@@ -145,6 +76,25 @@ const HODTimetables = () => {
   const timeSlots = ["9:00-10:00", "10:00-11:00", "11:15-12:15", "12:15-1:15", "2:00-3:00", "3:00-4:00", "4:15-5:15"];
   const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
+  // Load timetable data on component mount
+  useEffect(() => {
+    loadTimetableData();
+  }, []);
+
+  const loadTimetableData = () => {
+    try {
+      // Load timetables from localStorage (placeholder for database)
+      const savedTimetables = JSON.parse(localStorage.getItem('hod_timetables') || '[]');
+      setTimetables(savedTimetables);
+
+      // Load faculty assignments from localStorage (placeholder for database)
+      const savedAssignments = JSON.parse(localStorage.getItem('hod_faculty_assignments') || '[]');
+      setFacultyAssignments(savedAssignments);
+    } catch (error) {
+      console.error('Error loading timetable data:', error);
+    }
+  };
+
   const handleCreateTimetable = () => {
     if (!newTimetable.year || !newTimetable.semester) return;
 
@@ -164,7 +114,12 @@ const HODTimetables = () => {
       facultyAssigned: false
     };
 
-    setTimetables(prev => [timetable, ...prev]);
+    const updatedTimetables = [timetable, ...timetables];
+    setTimetables(updatedTimetables);
+    
+    // Save to localStorage (placeholder for database)
+    localStorage.setItem('hod_timetables', JSON.stringify(updatedTimetables));
+    
     setShowTimetableDialog(false);
     setNewTimetable({ title: "", year: "", semester: "", effectiveFrom: "", type: "Generated" });
   };

@@ -56,8 +56,6 @@ const StudentResults = () => {
 
   useEffect(() => {
     loadResults();
-    // Initialize demo data
-    resultsService.initializeDemoData();
   }, [user]);
 
   useEffect(() => {

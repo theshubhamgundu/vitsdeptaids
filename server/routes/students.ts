@@ -94,54 +94,27 @@ export const handleGetStudentAnalysis: RequestHandler = (req, res) => {
       });
     }
 
-    // Mock analysis data
+    // TODO: Replace with real database queries
     const analysisData = {
       studentId: id,
       academicPerformance: {
         cgpa: student.cgpa,
-        semesterWise: [
-          { semester: 1, cgpa: 8.2 },
-          { semester: 2, cgpa: 8.1 },
-          { semester: 3, cgpa: 8.3 },
-          { semester: 4, cgpa: 8.5 },
-          { semester: 5, cgpa: 8.6 },
-          { semester: 6, cgpa: 8.45 },
-        ],
-        subjectWise: [
-          { subject: "Machine Learning", marks: 85, grade: "A" },
-          { subject: "Data Structures", marks: 88, grade: "A" },
-          { subject: "Database Systems", marks: 82, grade: "A" },
-          { subject: "Computer Networks", marks: 78, grade: "B+" },
-        ],
+        semesterWise: [], // TODO: Fetch from database
+        subjectWise: [], // TODO: Fetch from database
       },
       attendance: {
         overall: student.attendance,
-        subjectWise: [
-          { subject: "Machine Learning", percentage: 90 },
-          { subject: "Data Structures", percentage: 85 },
-          { subject: "Database Systems", percentage: 88 },
-          { subject: "Computer Networks", percentage: 82 },
-        ],
-        monthlyTrend: [85, 87, 88, 90, 88, 87],
+        subjectWise: [], // TODO: Fetch from database
+        monthlyTrend: [], // TODO: Fetch from database
       },
       certificates: {
-        approved: 3,
-        pending: 1,
+        approved: 0,
+        pending: 0,
         rejected: 0,
-        list: [
-          { title: "AWS Cloud Practitioner", status: "approved" },
-          { title: "Google Data Analytics", status: "approved" },
-          { title: "Machine Learning Certification", status: "pending" },
-        ],
+        list: [], // TODO: Fetch from database
       },
-      achievements: [
-        { title: "Best Project Award", year: "2024" },
-        { title: "Hackathon Winner", year: "2023" },
-      ],
-      leaveHistory: [
-        { type: "Medical", days: 2, status: "approved", date: "2024-01-15" },
-        { type: "Personal", days: 1, status: "approved", date: "2024-02-20" },
-      ],
+      achievements: [], // TODO: Fetch from database
+      leaveHistory: [], // TODO: Fetch from database
       riskFactors: [
         ...(student.attendance < 75
           ? [

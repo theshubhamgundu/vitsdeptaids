@@ -71,8 +71,6 @@ const StudentMaterials = () => {
 
   useEffect(() => {
     loadMaterials();
-    // Initialize demo data
-    materialsService.initializeDemoData();
   }, []);
 
   useEffect(() => {
