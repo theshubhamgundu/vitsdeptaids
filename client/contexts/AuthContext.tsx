@@ -29,7 +29,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Simple initialization - check localStorage for existing user
   useEffect(() => {
     console.log("🔍 Checking for existing user...");
-    
+
     try {
       const existingUser = localStorage.getItem("currentUser");
       if (existingUser) {
@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.warn("Failed to parse existing user data:", error);
       localStorage.removeItem("currentUser");
     }
-    
+
     // Always set loading to false after check
     setIsLoading(false);
     console.log("✅ Auth initialization complete");
@@ -51,26 +51,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = (userData: User) => {
     console.log("🔐 Logging in user:", userData.name);
-    
+
     // Set user immediately
     setUser(userData);
-    
+
     // Save to localStorage
     localStorage.setItem("currentUser", JSON.stringify(userData));
-    
+
     // Ensure loading is false
     setIsLoading(false);
-    
+
     console.log("✅ Login complete - user set and loading disabled");
   };
 
   const logout = () => {
     console.log("🔐 Logging out user");
-    
+
     setUser(null);
     localStorage.removeItem("currentUser");
     localStorage.removeItem("currentSessionToken");
-    
+
     console.log("✅ Logout complete");
   };
 

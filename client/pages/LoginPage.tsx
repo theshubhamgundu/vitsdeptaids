@@ -147,7 +147,9 @@ const LoginPage = () => {
 
           return; // Exit early on success
         } else {
-          setError("Invalid credentials. Please check your Faculty/Employee ID and password.");
+          setError(
+            "Invalid credentials. Please check your Faculty/Employee ID and password.",
+          );
         }
       } catch (err) {
         console.error("Authentication error:", err);
@@ -188,7 +190,9 @@ const LoginPage = () => {
 
           return; // Exit early on success
         } else {
-          setError("Invalid credentials. Please check your Hall Ticket Number and password.");
+          setError(
+            "Invalid credentials. Please check your Hall Ticket Number and password.",
+          );
         }
       } catch (err) {
         console.error("Authentication error:", err);

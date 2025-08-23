@@ -369,7 +369,9 @@ const DashboardLayout = ({
                       className="cursor-pointer"
                     >
                       <LogOut className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                      <span className="text-xs sm:text-sm">Log out all devices</span>
+                      <span className="text-xs sm:text-sm">
+                        Log out all devices
+                      </span>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem
@@ -377,7 +379,9 @@ const DashboardLayout = ({
                     className="cursor-pointer"
                   >
                     <LogOut className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="text-xs sm:text-sm">Log out this device</span>
+                    <span className="text-xs sm:text-sm">
+                      Log out this device
+                    </span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -386,9 +390,7 @@ const DashboardLayout = ({
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-3 sm:p-6 overflow-auto">
-          {children}
-        </main>
+        <main className="flex-1 p-3 sm:p-6 overflow-auto">{children}</main>
       </div>
     </div>
   );

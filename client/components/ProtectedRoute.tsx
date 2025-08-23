@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useEffect, useState } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,7 +11,7 @@ interface ProtectedRouteProps {
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   allowedRoles,
-  redirectTo = '/login/student'
+  redirectTo = "/login/student",
 }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
@@ -29,7 +29,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }, [isLoading]);
 
-  console.log("🔍 ProtectedRoute state:", { isLoading, isAuthenticated, user: user?.name });
+  console.log("🔍 ProtectedRoute state:", {
+    isLoading,
+    isAuthenticated,
+    user: user?.name,
+  });
 
   // Show loading state only briefly
   if (isLoading && !loadingTimeout) {
@@ -38,7 +42,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
-          <p className="text-xs text-gray-400 mt-2">Checking authentication...</p>
+          <p className="text-xs text-gray-400 mt-2">
+            Checking authentication...
+          </p>
         </div>
       </div>
     );
@@ -52,16 +58,21 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Check role permissions if specified
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    console.log("🔄 Redirecting due to role mismatch:", user.role, "not in", allowedRoles);
+    console.log(
+      "🔄 Redirecting due to role mismatch:",
+      user.role,
+      "not in",
+      allowedRoles,
+    );
     // Redirect to appropriate dashboard based on user role
     const roleDashboardMap: Record<string, string> = {
-      student: '/dashboard/student',
-      faculty: '/dashboard/faculty',
-      admin: '/dashboard/admin',
-      hod: '/dashboard/hod',
+      student: "/dashboard/student",
+      faculty: "/dashboard/faculty",
+      admin: "/dashboard/admin",
+      hod: "/dashboard/hod",
     };
 
-    const userDashboard = roleDashboardMap[user.role] || '/';
+    const userDashboard = roleDashboardMap[user.role] || "/";
     return <Navigate to={userDashboard} replace />;
   }
 
@@ -70,33 +81,43 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 };
 
 // Helper component for role-specific routes
-export const StudentRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ProtectedRoute allowedRoles={['student']} redirectTo="/login/student">
+export const StudentRoute: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <ProtectedRoute allowedRoles={["student"]} redirectTo="/login/student">
     {children}
   </ProtectedRoute>
 );
 
-export const FacultyRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ProtectedRoute allowedRoles={['faculty']} redirectTo="/login/faculty">
+export const FacultyRoute: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <ProtectedRoute allowedRoles={["faculty"]} redirectTo="/login/faculty">
     {children}
   </ProtectedRoute>
 );
 
-export const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ProtectedRoute allowedRoles={['admin']} redirectTo="/login/admin">
+export const AdminRoute: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <ProtectedRoute allowedRoles={["admin"]} redirectTo="/login/admin">
     {children}
   </ProtectedRoute>
 );
 
-export const HODRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ProtectedRoute allowedRoles={['hod']} redirectTo="/login/faculty">
+export const HODRoute: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <ProtectedRoute allowedRoles={["hod"]} redirectTo="/login/faculty">
     {children}
   </ProtectedRoute>
 );
 
 // Combined route for faculty and HOD
-export const FacultyHODRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <ProtectedRoute allowedRoles={['faculty', 'hod']} redirectTo="/login/faculty">
+export const FacultyHODRoute: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <ProtectedRoute allowedRoles={["faculty", "hod"]} redirectTo="/login/faculty">
     {children}
   </ProtectedRoute>
 );
