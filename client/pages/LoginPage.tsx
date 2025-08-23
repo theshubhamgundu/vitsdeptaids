@@ -104,8 +104,8 @@ const LoginPage = () => {
     setError("");
     console.log("🔐 Starting login attempt for:", formData.identifier);
 
-    try {
-      if (type === "faculty" || type === "admin") {
+    if (type === "faculty" || type === "admin") {
+      try {
         // Use faculty database for authentication
         const faculty = await authenticateFaculty(
           formData.identifier,
@@ -115,7 +115,7 @@ const LoginPage = () => {
         if (faculty) {
           console.log("✅ Faculty authentication successful");
 
-          // Show success toast only once
+          // Show success toast
           toast({
             title: "Login Successful",
             description: `Welcome back, ${faculty.name}!`,
@@ -130,7 +130,7 @@ const LoginPage = () => {
 
           const route = dashboardRoutes[faculty.role] || "/dashboard/faculty";
 
-          // Use auth context to store user data
+          // Login user immediately
           login({
             id: faculty.id,
             name: faculty.name,
@@ -140,20 +140,21 @@ const LoginPage = () => {
             designation: faculty.designation,
           });
 
-          // Navigate immediately after login
+          // Navigate immediately
           const from = location.state?.from?.pathname || route;
           console.log("🔄 Navigating immediately to:", from);
+          navigate(from, { replace: true });
 
-          // Use setTimeout to ensure state is updated before navigation
-          setTimeout(() => {
-            navigate(from, { replace: true });
-          }, 0);
+          return; // Exit early on success
         } else {
-          setError(
-            "Invalid credentials. Please check your Faculty/Employee ID and password.",
-          );
+          setError("Invalid credentials. Please check your Faculty/Employee ID and password.");
         }
-      } else if (type === "student") {
+      } catch (err) {
+        console.error("Authentication error:", err);
+        setError("Authentication failed. Please try again.");
+      }
+    } else if (type === "student") {
+      try {
         // Use student authentication service
         const student = await authenticateStudent(
           formData.identifier,
@@ -163,13 +164,13 @@ const LoginPage = () => {
         if (student) {
           console.log("✅ Student authentication successful");
 
-          // Show success toast only once
+          // Show success toast
           toast({
             title: "Login Successful",
             description: `Welcome back, ${student.name}!`,
           });
 
-          // Use auth context to store user data
+          // Login user immediately
           login({
             id: student.id,
             name: student.name,
@@ -180,26 +181,22 @@ const LoginPage = () => {
             section: student.section,
           });
 
-          // Navigate immediately after login
+          // Navigate immediately
           const from = location.state?.from?.pathname || "/dashboard/student";
           console.log("🔄 Navigating immediately to:", from);
+          navigate(from, { replace: true });
 
-          // Use setTimeout to ensure state is updated before navigation
-          setTimeout(() => {
-            navigate(from, { replace: true });
-          }, 0);
+          return; // Exit early on success
         } else {
-          setError(
-            "Invalid credentials. Please check your Hall Ticket Number and password.",
-          );
+          setError("Invalid credentials. Please check your Hall Ticket Number and password.");
         }
+      } catch (err) {
+        console.error("Authentication error:", err);
+        setError("Authentication failed. Please try again.");
       }
-    } catch (err) {
-      console.error("Authentication error:", err);
-      setError("Authentication failed. Please try again.");
-    } finally {
-      setLoading(false);
     }
+
+    setLoading(false);
   };
 
   // Show loading while determining whether to show login form
