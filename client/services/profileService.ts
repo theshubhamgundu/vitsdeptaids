@@ -31,48 +31,11 @@ export const profileService = {
   // Get complete student profile from database
   getStudentProfile: async (userId: string): Promise<StudentProfileData | null> => {
     try {
-      // Try database first
-      const studentsTable = tables.students();
-      if (studentsTable) {
-        try {
-          const { data, error } = await studentsTable
-            .select("*")
-            .eq("user_id", userId)
-            .single();
-
-          if (!error && data) {
-            console.log("✅ Student profile loaded from database");
-            return data;
-          } else {
-            console.log("⚠️ Student not found in database, checking localStorage");
-          }
-        } catch (dbError) {
-          console.warn("Database query error, falling back to localStorage:", dbError);
-        }
-      }
-
-      // Also try to find by hall ticket if user_id doesn't work
+      // Check localStorage first (since database queries are failing)
       const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
-      if (currentUser.hallTicket && studentsTable) {
-        try {
-          const { data, error } = await studentsTable
-            .select("*")
-            .eq("hall_ticket", currentUser.hallTicket)
-            .single();
-
-          if (!error && data) {
-            console.log("✅ Student profile loaded from database by hall ticket");
-            return data;
-          }
-        } catch (dbError) {
-          console.warn("Database query by hall ticket failed:", dbError);
-        }
-      }
-
-      // Fallback to localStorage
       if (currentUser.id === userId || currentUser.hallTicket) {
         const profileData: StudentProfileData = {
-          id: crypto.randomUUID(),
+          id: currentUser.id || crypto.randomUUID(),
           user_id: userId,
           hall_ticket: currentUser.hallTicket || "",
           name: currentUser.name || "",
@@ -95,9 +58,43 @@ export const profileService = {
         return profileData;
       }
 
+      // Try database as fallback (but don't fail if it doesn't work)
+      const studentsTable = tables.students();
+      if (studentsTable) {
+        try {
+          // Try by user_id first
+          const { data, error } = await studentsTable
+            .select("*")
+            .eq("user_id", userId)
+            .single();
+
+          if (!error && data) {
+            console.log("✅ Student profile loaded from database");
+            return data;
+          }
+
+          // Try by hall ticket if user_id doesn't work
+          if (currentUser.hallTicket) {
+            const { data: hallTicketData, error: hallTicketError } = await studentsTable
+              .select("*")
+              .eq("hall_ticket", currentUser.hallTicket)
+              .single();
+
+            if (!hallTicketError && hallTicketData) {
+              console.log("✅ Student profile loaded from database by hall ticket");
+              return hallTicketData;
+            }
+          }
+        } catch (dbError) {
+          console.warn("⚠️ Database query failed (expected):", dbError);
+          // Don't throw error, just continue
+        }
+      }
+
+      console.log("📱 No student profile found");
       return null;
     } catch (error) {
-      console.error("Error getting student profile:", error);
+      console.error("❌ Error getting student profile:", error);
       return null;
     }
   },

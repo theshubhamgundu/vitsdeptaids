@@ -1,4 +1,5 @@
-import { supabase, buckets, fileHelpers } from "@/lib/supabase";
+import { supabase, tables, buckets, fileHelpers } from "@/lib/supabase";
+import { imageUtils } from "@/utils/imageUtils";
 
 export interface ProfilePhotoUploadResult {
   success: boolean;
@@ -144,10 +145,15 @@ export const profilePhotoService = {
             // Check if it's a bucket not found error
             if (uploadResult.error.message?.includes('bucket') || uploadResult.error.message?.includes('not found')) {
               console.log("🔄 Storage bucket not configured, using localStorage fallback");
-              // Store in localStorage as fallback
-              const photoKey = `profile_photo_${userId}`;
-              const photoUrl = URL.createObjectURL(file);
-              localStorage.setItem(photoKey, photoUrl);
+              // Store in localStorage as fallback using base64
+              const photoUrl = await imageUtils.saveImageToLocalStorage(userId, processedFile);
+              
+              // Also save to user profile
+              await profilePhotoService.savePhotoUrlToProfile(
+                userId,
+                photoUrl,
+                userRole,
+              );
               
               return { 
                 success: true, 
@@ -172,9 +178,14 @@ export const profilePhotoService = {
           
           // For any storage error, try localStorage fallback
           console.log("🔄 Attempting to use localStorage fallback for profile photo");
-          const photoKey = `profile_photo_${userId}`;
-          const photoUrl = URL.createObjectURL(file);
-          localStorage.setItem(photoKey, photoUrl);
+          const photoUrl = await imageUtils.saveImageToLocalStorage(userId, processedFile);
+          
+          // Also save to user profile
+          await profilePhotoService.savePhotoUrlToProfile(
+            userId,
+            photoUrl,
+            userRole,
+          );
           
           return { 
             success: true, 
@@ -185,10 +196,15 @@ export const profilePhotoService = {
         }
       } else {
         console.warn("⚠️ Supabase not configured, using localStorage");
-        // Store in localStorage as fallback
-        const photoKey = `profile_photo_${userId}`;
-        const photoUrl = URL.createObjectURL(file);
-        localStorage.setItem(photoKey, photoUrl);
+        // Store in localStorage as fallback using base64
+        const photoUrl = await imageUtils.saveImageToLocalStorage(userId, processedFile);
+        
+        // Also save to user profile
+        await profilePhotoService.savePhotoUrlToProfile(
+          userId,
+          photoUrl,
+          userRole,
+        );
         
         return { 
           success: true, 
@@ -255,39 +271,10 @@ export const profilePhotoService = {
     userRole: string = "student",
   ): Promise<string | null> => {
     try {
-      // Query database first (prioritize Supabase storage)
-      if (supabase) {
-        try {
-          let photoUrl = null;
-
-          if (userRole === "student") {
-            const { data } = await supabase
-              .from("students")
-              .select("profile_photo_url")
-              .eq("id", userId)
-              .single();
-            photoUrl = data?.profile_photo_url;
-          } else {
-            const { data } = await supabase
-              .from("faculty")
-              .select("profile_photo_url")
-              .eq("id", userId)
-              .single();
-            photoUrl = data?.profile_photo_url;
-          }
-
-          if (photoUrl) {
-            return photoUrl;
-          }
-        } catch (dbError) {
-          console.warn("Database query for profile photo failed:", dbError);
-        }
-      }
-
-      // Fallback to localStorage only if database fails
-      const photoKey = `profile_photo_${userId}`;
-      const localPhoto = localStorage.getItem(photoKey);
+      // Check localStorage first (since storage buckets are not configured)
+      const localPhoto = imageUtils.getImageFromLocalStorage(userId);
       if (localPhoto) {
+        console.log("📱 Profile photo loaded from localStorage");
         return localPhoto;
       }
 
@@ -296,20 +283,58 @@ export const profilePhotoService = {
       if (currentUser) {
         const userData = JSON.parse(currentUser);
         if (userData.id === userId && userData.profilePhotoUrl) {
+          console.log("📱 Profile photo loaded from current user data");
           return userData.profilePhotoUrl;
         }
       }
 
-      // Check localUsers
+      // Check localUsers array
       const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
-      const localUser = localUsers.find((u: any) => u.id === userId);
-      if (localUser && localUser.profilePhotoUrl) {
-        return localUser.profilePhotoUrl;
+      const user = localUsers.find((u: any) => u.id === userId);
+      if (user && user.profilePhotoUrl) {
+        console.log("📱 Profile photo loaded from localUsers");
+        return user.profilePhotoUrl;
       }
 
+      // Try database as last resort (but don't fail if it doesn't work)
+      if (supabase) {
+        try {
+          let photoUrl = null;
+
+          if (userRole === "student") {
+            const studentsTable = tables.students();
+            if (studentsTable) {
+              const { data } = await studentsTable
+                .select("profile_photo_url")
+                .eq("id", userId)
+                .single();
+              photoUrl = data?.profile_photo_url;
+            }
+          } else {
+            const facultyTable = tables.faculty();
+            if (facultyTable) {
+              const { data } = await facultyTable
+                .select("profile_photo_url")
+                .eq("id", userId)
+                .single();
+              photoUrl = data?.profile_photo_url;
+            }
+          }
+
+          if (photoUrl) {
+            console.log("✅ Profile photo loaded from database");
+            return photoUrl;
+          }
+        } catch (dbError) {
+          console.warn("⚠️ Database query for profile photo failed (expected):", dbError);
+          // Don't throw error, just return null
+        }
+      }
+
+      console.log("📱 No profile photo found");
       return null;
     } catch (error) {
-      console.error("Error getting profile photo URL:", error);
+      console.error("❌ Error getting profile photo URL:", error);
       return null;
     }
   },
