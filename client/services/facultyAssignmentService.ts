@@ -537,111 +537,79 @@ export const getCounsellorForStudent = async (studentHtNo: string): Promise<any>
   try {
     console.log("🔍 Fetching counsellor for student:", studentHtNo);
     
-    const studentCounsellorAssignmentsTable = tables.studentCounsellorAssignments();
-    const facultyTable = tables.faculty();
+    // Check localStorage first for assignments
+    const localAssignments = JSON.parse(localStorage.getItem("student_counsellor_assignments") || "[]");
+    const localAssignment = localAssignments.find((assignment: any) => assignment.student_ht_no === studentHtNo);
     
-    if (!studentCounsellorAssignmentsTable || !facultyTable) {
-      console.warn("Supabase not configured - required tables unavailable");
-      return null;
-    }
-
-    // First, get the assignment with error handling
-    let assignment = null;
-    try {
-      const { data, error } = await studentCounsellorAssignmentsTable
-        .select("*")
-        .eq("student_ht_no", studentHtNo)
-        .single();
-
-      if (error) {
-        console.warn("Assignment query error (student might not be assigned):", error);
-        // Return a default counsellor assignment
+    if (localAssignment) {
+      console.log("📱 Counsellor assignment found in localStorage");
+      
+      // Get faculty info from localStorage
+      const localFaculty = JSON.parse(localStorage.getItem("localFaculty") || "[]");
+      const faculty = localFaculty.find((f: any) => f.faculty_id === localAssignment.counsellor_id);
+      
+      if (faculty) {
         return {
-          student_ht_no: studentHtNo,
-          counsellor_id: "AIDS-PGL1", // Default counsellor
-          assigned_date: new Date().toISOString(),
+          ...localAssignment,
           faculty: {
-            id: "AIDS-PGL1",
-            name: "Dr. Default Counsellor",
-            email: "default@college.com",
-            designation: "Assistant Professor",
-            specialization: "Computer Science"
+            id: faculty.faculty_id,
+            name: faculty.name,
+            email: faculty.email,
+            designation: faculty.designation,
+            specialization: faculty.specialization || "Computer Science"
           }
         };
       }
-      
-      assignment = data;
-    } catch (assignmentError) {
-      console.warn("Assignment query failed:", assignmentError);
-      // Return default assignment
-      return {
-        student_ht_no: studentHtNo,
-        counsellor_id: "AIDS-PGL1",
-        assigned_date: new Date().toISOString(),
-        faculty: {
-          id: "AIDS-PGL1",
-          name: "Dr. Default Counsellor",
-          email: "default@college.com",
-          designation: "Assistant Professor",
-          specialization: "Computer Science"
-        }
-      };
     }
+    
+    // Try database as fallback (but don't fail if it doesn't work)
+    const studentCounsellorAssignmentsTable = tables.studentCounsellorAssignments();
+    const facultyTable = tables.faculty();
+    
+    if (studentCounsellorAssignmentsTable && facultyTable) {
+      try {
+        // First, get the assignment
+        const { data: assignment, error: assignmentError } = await studentCounsellorAssignmentsTable
+          .select("*")
+          .eq("student_ht_no", studentHtNo)
+          .single();
 
-    if (!assignment) {
-      console.log("No assignment found for student, returning default");
-      return {
-        student_ht_no: studentHtNo,
-        counsellor_id: "AIDS-PGL1",
-        assigned_date: new Date().toISOString(),
-        faculty: {
-          id: "AIDS-PGL1",
-          name: "Dr. Default Counsellor",
-          email: "default@college.com",
-          designation: "Assistant Professor",
-          specialization: "Computer Science"
+        if (!assignmentError && assignment) {
+          // Then, get the faculty information
+          const { data: faculty, error: facultyError } = await facultyTable
+            .select("id, name, email, designation, specialization")
+            .eq("id", assignment.counsellor_id)
+            .single();
+
+          if (!facultyError && faculty) {
+            console.log("✅ Counsellor data retrieved from database");
+            return {
+              ...assignment,
+              faculty
+            };
+          }
         }
-      };
-    }
-
-    // Then, get the faculty information with error handling
-    let faculty = null;
-    try {
-      const { data: facultyData, error: facultyError } = await facultyTable
-        .select("id, name, email, designation, specialization")
-        .eq("id", assignment.counsellor_id)
-        .single();
-
-      if (facultyError) {
-        console.warn("Faculty query error:", facultyError);
-        faculty = {
-          id: assignment.counsellor_id,
-          name: "Dr. Unknown Faculty",
-          email: "unknown@college.com",
-          designation: "Assistant Professor",
-          specialization: "Computer Science"
-        };
-      } else {
-        faculty = facultyData;
+      } catch (dbError) {
+        console.warn("⚠️ Database query failed (expected):", dbError);
       }
-    } catch (facultyError) {
-      console.warn("Faculty query failed:", facultyError);
-      faculty = {
-        id: assignment.counsellor_id,
-        name: "Dr. Unknown Faculty",
-        email: "unknown@college.com",
+    }
+
+    // Return default counsellor assignment
+    console.log("📱 Using default counsellor assignment");
+    return {
+      student_ht_no: studentHtNo,
+      counsellor_id: "AIDS-PGL1",
+      assigned_date: new Date().toISOString(),
+      faculty: {
+        id: "AIDS-PGL1",
+        name: "Dr. Default Counsellor",
+        email: "default@college.com",
         designation: "Assistant Professor",
         specialization: "Computer Science"
-      };
-    }
-
-    console.log("✅ Counsellor data retrieved successfully");
-    return {
-      ...assignment,
-      faculty
+      }
     };
   } catch (error) {
-    console.error("Error in getCounsellorForStudent:", error);
+    console.error("❌ Error in getCounsellorForStudent:", error);
     // Return default data instead of null
     return {
       student_ht_no: studentHtNo,

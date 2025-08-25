@@ -230,22 +230,7 @@ export const profilePhotoService = {
     userRole: string,
   ): Promise<void> => {
     try {
-      // Update in Supabase if available
-      if (supabase) {
-        if (userRole === "student") {
-          const studentsTable = supabase.from("students");
-          await studentsTable
-            .update({ profile_photo_url: photoUrl })
-            .eq("id", userId);
-        } else {
-          const facultyTable = supabase.from("faculty");
-          await facultyTable
-            .update({ profile_photo_url: photoUrl })
-            .eq("id", userId);
-        }
-      }
-
-      // Always update localStorage for quick access
+      // Always update localStorage for quick access (prioritize localStorage)
       const currentUser = localStorage.getItem("currentUser");
       if (currentUser) {
         const userData = JSON.parse(currentUser);
@@ -260,6 +245,30 @@ export const profilePhotoService = {
         localUsers[userIndex].profilePhotoUrl = photoUrl;
         localStorage.setItem("localUsers", JSON.stringify(localUsers));
       }
+
+      // Try to update database as well (but don't fail if it doesn't work)
+      if (supabase) {
+        try {
+          if (userRole === "student") {
+            const studentsTable = tables.students();
+            if (studentsTable) {
+              await studentsTable
+                .update({ profile_photo_url: photoUrl })
+                .eq("id", userId);
+            }
+          } else {
+            const facultyTable = tables.faculty();
+            if (facultyTable) {
+              await facultyTable
+                .update({ profile_photo_url: photoUrl })
+                .eq("id", userId);
+            }
+          }
+        } catch (dbError) {
+          console.warn("⚠️ Database update failed (expected):", dbError);
+          // Don't throw error, just continue
+        }
+      }
     } catch (error) {
       console.error("Error saving photo URL to profile:", error);
     }
@@ -271,7 +280,7 @@ export const profilePhotoService = {
     userRole: string = "student",
   ): Promise<string | null> => {
     try {
-      // Check localStorage first (since storage buckets are not configured)
+      // Check localStorage first (prioritize localStorage)
       const localPhoto = imageUtils.getImageFromLocalStorage(userId);
       if (localPhoto) {
         console.log("📱 Profile photo loaded from localStorage");
@@ -294,41 +303,6 @@ export const profilePhotoService = {
       if (user && user.profilePhotoUrl) {
         console.log("📱 Profile photo loaded from localUsers");
         return user.profilePhotoUrl;
-      }
-
-      // Try database as last resort (but don't fail if it doesn't work)
-      if (supabase) {
-        try {
-          let photoUrl = null;
-
-          if (userRole === "student") {
-            const studentsTable = tables.students();
-            if (studentsTable) {
-              const { data } = await studentsTable
-                .select("profile_photo_url")
-                .eq("id", userId)
-                .single();
-              photoUrl = data?.profile_photo_url;
-            }
-          } else {
-            const facultyTable = tables.faculty();
-            if (facultyTable) {
-              const { data } = await facultyTable
-                .select("profile_photo_url")
-                .eq("id", userId)
-                .single();
-              photoUrl = data?.profile_photo_url;
-            }
-          }
-
-          if (photoUrl) {
-            console.log("✅ Profile photo loaded from database");
-            return photoUrl;
-          }
-        } catch (dbError) {
-          console.warn("⚠️ Database query for profile photo failed (expected):", dbError);
-          // Don't throw error, just return null
-        }
       }
 
       console.log("📱 No profile photo found");
