@@ -18,6 +18,7 @@ import { profilePhotoService } from "@/services/profilePhotoService";
 import { getCounsellorForStudent } from "@/services/facultyAssignmentService";
 import { profileService } from "@/services/profileService";
 import { Camera, Edit, Save, X, User, Loader2 } from "lucide-react";
+import PasswordChangeDialog from "@/components/PasswordChangeDialog";
 
 interface StudentData {
   id: string;
@@ -317,10 +318,17 @@ const StudentProfile = () => {
               </div>
               <div className="flex space-x-2">
                 {!isEditing ? (
-                  <Button onClick={() => setIsEditing(true)}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit Profile
-                  </Button>
+                  <>
+                    <Button onClick={() => setIsEditing(true)}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Profile
+                    </Button>
+                    <PasswordChangeDialog
+                      userRole="student"
+                      userId={studentData?.id || ""}
+                      userIdentifier={studentData?.hallTicket || ""}
+                    />
+                  </>
                 ) : (
                   <>
                     <Button

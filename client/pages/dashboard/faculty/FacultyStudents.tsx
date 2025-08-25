@@ -91,11 +91,9 @@ const FacultyStudents = () => {
       setIsCoordinator(!!coordinatorRole);
       setIsCounsellor(!!counsellorRole);
 
-      // Get visible students from the new service; try user.id then fallback to user.facultyId
-      let visibleStudents = await getVisibleStudentsForFaculty(user.id);
-      if ((!visibleStudents || visibleStudents.length === 0) && (user as any)?.facultyId) {
-        visibleStudents = await getVisibleStudentsForFaculty((user as any).facultyId);
-      }
+      // Get visible students from the new service; use facultyId if available, otherwise use id
+      const facultyIdentifier = user.facultyId || user.id;
+      let visibleStudents = await getVisibleStudentsForFaculty(facultyIdentifier);
       
       // Transform the data to match our interface
       const assignedStudentsList = visibleStudents.map((student: any) => ({
@@ -113,6 +111,7 @@ const FacultyStudents = () => {
       }));
 
       setAssignedStudents(assignedStudentsList);
+      console.log(`🔍 Loaded ${assignedStudentsList.length} students for faculty ${facultyIdentifier}`);
     } catch (error) {
       console.error("Error loading assigned students:", error);
       setAssignedStudents([]);
@@ -301,8 +300,6 @@ const FacultyStudents = () => {
                           <div className="flex items-center space-x-4 text-sm text-gray-600">
                             <span>HT: {student.hallTicket}</span>
                             <span>Year: {student.year}</span>
-            
-                            <span>Branch: {student.branch}</span>
                           </div>
                           <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
                             <span className="flex items-center">
@@ -321,27 +318,8 @@ const FacultyStudents = () => {
                       
                       <div className="flex items-center space-x-4">
                         <div className="text-right">
-                          <div className="flex items-center space-x-2">
-                            <Badge 
-                              variant={student.mappingType === 'coordinator' ? 'default' : 'secondary'}
-                              className={student.mappingType === 'coordinator' ? 'bg-indigo-100 text-indigo-700' : 'bg-teal-100 text-teal-700'}
-                            >
-                              {student.mappingType === 'coordinator' ? (
-                                <>
-                                  <UserCheck className="h-3 w-3 mr-1" />
-                                  Coordinator
-                                </>
-                              ) : (
-                                <>
-                                  <GraduationCap className="h-3 w-3 mr-1" />
-                                  Counsellor
-                                </>
-                              )}
-                            </Badge>
-                          </div>
-                          
                           {student.cgpa > 0 && (
-                            <div className="text-sm text-gray-600 mt-1">
+                            <div className="text-sm text-gray-600">
                               CGPA: {student.cgpa.toFixed(2)}
                             </div>
                           )}
@@ -351,6 +329,10 @@ const FacultyStudents = () => {
                               Attendance: {student.attendance}%
                             </div>
                           )}
+                          
+                          <div className="text-xs text-gray-500 mt-1">
+                            Assigned: {student.assignedDate ? new Date(student.assignedDate).toLocaleDateString() : 'Recently'}
+                          </div>
                         </div>
                         
                         <div className="flex space-x-2">
@@ -408,14 +390,10 @@ const FacultyStudents = () => {
                     <h4 className="font-medium text-gray-900 mb-2">Academic Information</h4>
                     <div className="space-y-2 text-sm">
                       <div><span className="font-medium">Year:</span> {selectedStudent.year}</div>
-        
-                      <div><span className="font-medium">Branch:</span> {selectedStudent.branch}</div>
-                      <div><span className="font-medium">Role:</span> 
-                        <Badge 
-                          variant="outline" 
-                          className={`ml-2 ${selectedStudent.mappingType === 'coordinator' ? 'bg-indigo-50 text-indigo-700' : 'bg-teal-50 text-teal-700'}`}
-                        >
-                          {selectedStudent.mappingType === 'coordinator' ? 'Coordinator' : 'Counsellor'}
+                      <div><span className="font-medium">Assigned Date:</span> {selectedStudent.assignedDate ? new Date(selectedStudent.assignedDate).toLocaleDateString() : 'Recently'}</div>
+                      <div><span className="font-medium">Status:</span> 
+                        <Badge variant="outline" className="ml-2 bg-green-50 text-green-700">
+                          Active
                         </Badge>
                       </div>
                     </div>

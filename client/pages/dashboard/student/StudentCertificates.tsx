@@ -123,34 +123,17 @@ const StudentCertificates = () => {
   };
 
   const handleUpload = async () => {
-    if (!selectedFile || !uploadData.title || !currentUser?.id) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields and select a file",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!selectedFile || !currentUser?.id) return;
 
     try {
-      // Upload to documents bucket first to get a public URL
-      let fileUrl: string | undefined = undefined;
-      try {
-        const upload = await fileHelpers.uploadDocument(currentUser.id, selectedFile, "certificates");
-        if (upload.data?.publicUrl) {
-          fileUrl = upload.data.publicUrl;
-        }
-      } catch (e) {
-        console.warn("Document upload failed, will save locally", e);
-      }
+      setLoading(true);
 
       const success = await addStudentCertificate(currentUser.id, {
         title: uploadData.title,
         description: uploadData.description,
         organization: uploadData.organization,
         issueDate: uploadData.issueDate,
-        fileUrl,
-      });
+      }, selectedFile);
 
       if (success) {
         toast({
@@ -179,6 +162,8 @@ const StudentCertificates = () => {
           "There was an error uploading your certificate. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 

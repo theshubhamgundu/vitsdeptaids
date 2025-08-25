@@ -293,37 +293,53 @@ export const getStudentCertificates = async (
 export const addStudentCertificate = async (
   studentId: string,
   certificate: Omit<Certificate, "id" | "studentId" | "uploadDate" | "status">,
+  file?: File
 ): Promise<boolean> => {
   try {
     // Upload file to documents bucket and save record if Supabase available
     const supabaseClient = tables.supabase();
-    if (supabaseClient) {
-      // Expect caller to pass a fileUrl temporarily as File name; improve signature by allowing File
-      let uploadedUrl: string | undefined = certificate.fileUrl;
-      // If fileUrl is a File-like path we cannot detect here; rely on UI to upload via fileHelpers
-      if (!uploadedUrl) {
-        // nothing to upload; reject
-        return false;
-      }
+    if (supabaseClient && file) {
+      try {
+        // Upload file to Supabase storage
+        const fileName = `${studentId}/${Date.now()}_${file.name}`;
+        const { data: uploadData, error: uploadError } = await supabaseClient.storage
+          .from('documents')
+          .upload(fileName, file);
 
-      const { data: inserted, error } = await supabaseClient
-        .from("student_certificates")
-        .insert({
-          student_id: studentId,
-          title: certificate.title,
-          description: certificate.description,
-          organization: certificate.organization,
-          issue_date: certificate.issueDate,
-          upload_date: new Date().toISOString(),
-          status: "pending",
-          file_url: uploadedUrl,
-        })
-        .select("id");
+        if (uploadError) {
+          console.warn("File upload failed, falling back to local storage:", uploadError);
+        } else {
+          // Get the public URL
+          const { data: urlData } = supabaseClient.storage
+            .from('documents')
+            .getPublicUrl(fileName);
 
-      if (error) {
-        console.warn("Supabase insert failed, falling back to local:", error);
-      } else if (inserted && inserted.length > 0) {
-        return true;
+          const fileUrl = urlData?.publicUrl;
+
+          // Insert certificate record
+          const { data: inserted, error } = await supabaseClient
+            .from("student_certificates")
+            .insert({
+              student_id: studentId,
+              title: certificate.title,
+              description: certificate.description,
+              organization: certificate.organization,
+              issue_date: certificate.issueDate,
+              upload_date: new Date().toISOString(),
+              status: "pending",
+              file_url: fileUrl,
+            })
+            .select("id");
+
+          if (!error && inserted && inserted.length > 0) {
+            console.log("✅ Certificate uploaded to Supabase storage and database");
+            return true;
+          } else {
+            console.warn("Database insert failed, falling back to local storage:", error);
+          }
+        }
+      } catch (uploadError) {
+        console.warn("Supabase upload failed, falling back to local storage:", uploadError);
       }
     }
 

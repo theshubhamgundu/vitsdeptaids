@@ -51,9 +51,26 @@ export const profileService = {
         }
       }
 
-      // Fallback to localStorage
+      // Also try to find by hall ticket if user_id doesn't work
       const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
-      if (currentUser.id === userId) {
+      if (currentUser.hallTicket && studentsTable) {
+        try {
+          const { data, error } = await studentsTable
+            .select("*")
+            .eq("hall_ticket", currentUser.hallTicket)
+            .single();
+
+          if (!error && data) {
+            console.log("✅ Student profile loaded from database by hall ticket");
+            return data;
+          }
+        } catch (dbError) {
+          console.warn("Database query by hall ticket failed:", dbError);
+        }
+      }
+
+      // Fallback to localStorage
+      if (currentUser.id === userId || currentUser.hallTicket) {
         const profileData: StudentProfileData = {
           id: crypto.randomUUID(),
           user_id: userId,

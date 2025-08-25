@@ -35,6 +35,7 @@ const StudentRegistration = () => {
   const [formData, setFormData] = useState({
     hallTicket: "",
     fullName: "",
+    email: "",
     year: "",
   });
 
@@ -44,8 +45,15 @@ const StudentRegistration = () => {
   };
 
   const validateForm = () => {
-    if (!formData.hallTicket || !formData.fullName || !formData.year) {
+    if (!formData.hallTicket || !formData.fullName || !formData.email || !formData.year) {
       setError("Please fill in all required fields");
+      return false;
+    }
+
+    // Validate email format
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(formData.email)) {
+      setError("Please enter a valid email address");
       return false;
     }
 
@@ -157,7 +165,7 @@ const StudentRegistration = () => {
         name: formData.fullName,
         role: "student",
         hallTicket: formData.hallTicket,
-        email: `${formData.hallTicket}@vignan.ac.in`,
+        email: formData.email,
         phone: "",
         year: formData.year,
         section: "A",
@@ -176,7 +184,7 @@ const StudentRegistration = () => {
           await tables.userProfiles().insert([
             {
               id: userProfileId,
-              email: newUser.email,
+              email: formData.email,
               role: "student",
               hall_ticket: formData.hallTicket,
               name: formData.fullName,
@@ -309,6 +317,23 @@ const StudentRegistration = () => {
                 />
                 <p className="text-xs text-gray-500">
                   Enter your name exactly as it appears in college records
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    handleInputChange("email", e.target.value.toLowerCase())
+                  }
+                  placeholder="your.email@example.com"
+                  required
+                />
+                <p className="text-xs text-gray-500">
+                  Enter your personal email address
                 </p>
               </div>
 

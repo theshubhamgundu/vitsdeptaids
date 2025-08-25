@@ -24,6 +24,7 @@ import {
   Calendar,
   UserCheck,
 } from "lucide-react";
+import PasswordChangeDialog from "@/components/PasswordChangeDialog";
 
 const AdminProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -96,13 +97,20 @@ const AdminProfile = () => {
             <p className="text-gray-600">Manage your personal information</p>
           </div>
           {!isEditing ? (
-            <Button
-              onClick={handleEdit}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Profile
-            </Button>
+            <div className="flex space-x-2">
+              <Button
+                onClick={handleEdit}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Profile
+              </Button>
+              <PasswordChangeDialog
+                userRole="admin"
+                userId="admin-user-id"
+                userIdentifier="admin-identifier"
+              />
+            </div>
           ) : (
             <div className="flex space-x-2">
               <Button

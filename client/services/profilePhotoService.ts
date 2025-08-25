@@ -139,49 +139,12 @@ export const profilePhotoService = {
         } catch (supabaseError) {
           console.warn("⚠️ Supabase storage error:", supabaseError);
           
-          // Check if it's a bucket not found error
-          if (supabaseError.message?.includes('bucket') || supabaseError.message?.includes('not found')) {
-            console.log("🔄 Attempting to use localStorage fallback for profile photo");
-            // Store in localStorage as fallback
-            const photoKey = `profile_photo_${userId}`;
-            const photoUrl = URL.createObjectURL(file);
-            localStorage.setItem(photoKey, photoUrl);
-            
-            return { 
-              success: true, 
-              photoUrl: photoUrl,
-              isLocalStorage: true,
-              error: null
-            };
-          }
-          
-          // Check if it's a permission error
-          if (supabaseError.message?.includes('permission') || supabaseError.message?.includes('unauthorized')) {
-            console.log("🔄 Attempting to use localStorage fallback for profile photo");
-            // Store in localStorage as fallback
-            const photoKey = `profile_photo_${userId}`;
-            const photoUrl = URL.createObjectURL(file);
-            localStorage.setItem(photoKey, photoUrl);
-            
-            return { 
-              success: true, 
-              photoUrl: photoUrl,
-              isLocalStorage: true,
-              error: null
-            };
-          }
-          
-          // For any other error, try localStorage fallback
-          console.log("🔄 Attempting to use localStorage fallback for profile photo");
-          const photoKey = `profile_photo_${userId}`;
-          const photoUrl = URL.createObjectURL(file);
-          localStorage.setItem(photoKey, photoUrl);
-          
+          // For any storage error, return error instead of localStorage fallback
+          console.error("❌ Supabase storage error:", supabaseError);
           return { 
-            success: true, 
-            photoUrl: photoUrl,
-            isLocalStorage: true,
-            error: null
+            success: false, 
+            error: "Storage upload failed. Please try again or contact administrator.",
+            isLocalStorage: false
           };
         }
       } else {
@@ -246,30 +209,7 @@ export const profilePhotoService = {
     userRole: string = "student",
   ): Promise<string | null> => {
     try {
-      // Check localStorage first for quick access
-      const photoKey = `profile_photo_${userId}`;
-      const localPhoto = localStorage.getItem(photoKey);
-      if (localPhoto) {
-        return localPhoto;
-      }
-
-      // Check current user data
-      const currentUser = localStorage.getItem("currentUser");
-      if (currentUser) {
-        const userData = JSON.parse(currentUser);
-        if (userData.id === userId && userData.profilePhotoUrl) {
-          return userData.profilePhotoUrl;
-        }
-      }
-
-      // Check localUsers
-      const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
-      const localUser = localUsers.find((u: any) => u.id === userId);
-      if (localUser && localUser.profilePhotoUrl) {
-        return localUser.profilePhotoUrl;
-      }
-
-      // Query database if available
+      // Query database first (prioritize Supabase storage)
       if (supabase) {
         try {
           let photoUrl = null;
@@ -290,10 +230,35 @@ export const profilePhotoService = {
             photoUrl = data?.profile_photo_url;
           }
 
-          return photoUrl;
+          if (photoUrl) {
+            return photoUrl;
+          }
         } catch (dbError) {
           console.warn("Database query for profile photo failed:", dbError);
         }
+      }
+
+      // Fallback to localStorage only if database fails
+      const photoKey = `profile_photo_${userId}`;
+      const localPhoto = localStorage.getItem(photoKey);
+      if (localPhoto) {
+        return localPhoto;
+      }
+
+      // Check current user data
+      const currentUser = localStorage.getItem("currentUser");
+      if (currentUser) {
+        const userData = JSON.parse(currentUser);
+        if (userData.id === userId && userData.profilePhotoUrl) {
+          return userData.profilePhotoUrl;
+        }
+      }
+
+      // Check localUsers
+      const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
+      const localUser = localUsers.find((u: any) => u.id === userId);
+      if (localUser && localUser.profilePhotoUrl) {
+        return localUser.profilePhotoUrl;
       }
 
       return null;

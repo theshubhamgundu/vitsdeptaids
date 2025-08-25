@@ -51,6 +51,7 @@ import {
   Linkedin,
   Github,
 } from "lucide-react";
+import PasswordChangeDialog from "@/components/PasswordChangeDialog";
 
 const FacultyProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -134,13 +135,20 @@ const FacultyProfile = () => {
           </div>
           <div className="flex space-x-2">
             {!isEditing ? (
-              <Button
-                onClick={() => setIsEditing(true)}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Profile
-              </Button>
+              <>
+                <Button
+                  onClick={() => setIsEditing(true)}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </Button>
+                <PasswordChangeDialog
+                  userRole="faculty"
+                  userId={currentUser.id || ""}
+                  userIdentifier={currentUser.facultyId || ""}
+                />
+              </>
             ) : (
               <div className="flex space-x-2">
                 <Button

@@ -25,6 +25,7 @@ import {
   MapPin,
   Crown,
 } from "lucide-react";
+import PasswordChangeDialog from "@/components/PasswordChangeDialog";
 
 const HODProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -102,13 +103,20 @@ const HODProfile = () => {
             <p className="text-gray-600">Manage your personal information</p>
           </div>
           {!isEditing ? (
-            <Button
-              onClick={handleEdit}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Profile
-            </Button>
+            <div className="flex space-x-2">
+              <Button
+                onClick={handleEdit}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Profile
+              </Button>
+              <PasswordChangeDialog
+                userRole="hod"
+                userId={currentUser.id || ""}
+                userIdentifier={currentUser.facultyId || ""}
+              />
+            </div>
           ) : (
             <div className="flex space-x-2">
               <Button
