@@ -127,11 +127,25 @@ export const authenticateStudent = async (
     const studentsTable = tables.students();
     if (studentsTable) {
       try {
-        const { data: student, error } = await studentsTable
+        // First try with the provided password
+        let { data: student, error } = await studentsTable
           .select("*")
           .eq("hall_ticket", hallTicket)
-          .or(`password.eq.${password},password.eq.${hallTicket}`) // Allow hall ticket as password
+          .eq("password", password)
           .single();
+
+        // If that fails, try with hall ticket as password (default case)
+        if (error && password !== hallTicket) {
+          console.log("Trying with hall ticket as password...");
+          const result = await studentsTable
+            .select("*")
+            .eq("hall_ticket", hallTicket)
+            .eq("password", hallTicket)
+            .single();
+          
+          student = result.data;
+          error = result.error;
+        }
 
         if (!error && student) {
           console.log("✅ Student authenticated from database");
@@ -148,8 +162,6 @@ export const authenticateStudent = async (
         console.warn("Database authentication failed:", dbError);
       }
     }
-
-    // No demo fallback - use real authentication only
 
     console.log("❌ Student authentication failed");
     return null;

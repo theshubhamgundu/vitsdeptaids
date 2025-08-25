@@ -44,35 +44,175 @@ export const supabase = isSupabaseConfigured
 export const auth = supabase?.auth || null;
 export const storage = supabase?.storage || null;
 
-// Database table helpers with null checks
+// Database table helpers with null checks and error handling
 export const tables = {
-  userProfiles: () => supabase?.from("user_profiles") || null,
-  students: () => supabase?.from("students") || null,
-  studentsList: () => supabase?.from("student_data") || null,
-  faculty: () => supabase?.from("faculty") || null,
-  courses: () => supabase?.from("courses") || null,
-  enrollments: () => supabase?.from("enrollments") || null,
-  results: () => supabase?.from("results") || null,
-  attendance: () => supabase?.from("attendance") || null,
-  leaveApplications: () => supabase?.from("leave_applications") || null,
-  studyMaterials: () => supabase?.from("study_materials") || null,
-  timetables: () => supabase?.from("timetables") || null,
-  notifications: () => supabase?.from("notifications") || null,
-  time_slots: () => supabase?.from("time_slots") || null,
-  messages: () => supabase?.from("messages") || null,
+  userProfiles: () => {
+    try {
+      return supabase?.from("user_profiles") || null;
+    } catch (error) {
+      console.warn("user_profiles table not available:", error);
+      return null;
+    }
+  },
+  students: () => {
+    try {
+      return supabase?.from("students") || null;
+    } catch (error) {
+      console.warn("students table not available:", error);
+      return null;
+    }
+  },
+  studentsList: () => {
+    try {
+      return supabase?.from("student_data") || null;
+    } catch (error) {
+      console.warn("student_data table not available:", error);
+      return null;
+    }
+  },
+  faculty: () => {
+    try {
+      return supabase?.from("faculty") || null;
+    } catch (error) {
+      console.warn("faculty table not available:", error);
+      return null;
+    }
+  },
+  courses: () => {
+    try {
+      return supabase?.from("courses") || null;
+    } catch (error) {
+      console.warn("courses table not available:", error);
+      return null;
+    }
+  },
+  enrollments: () => {
+    try {
+      return supabase?.from("enrollments") || null;
+    } catch (error) {
+      console.warn("enrollments table not available:", error);
+      return null;
+    }
+  },
+  results: () => {
+    try {
+      return supabase?.from("results") || null;
+    } catch (error) {
+      console.warn("results table not available:", error);
+      return null;
+    }
+  },
+  attendance: () => {
+    try {
+      return supabase?.from("attendance") || null;
+    } catch (error) {
+      console.warn("attendance table not available:", error);
+      return null;
+    }
+  },
+  leaveApplications: () => {
+    try {
+      return supabase?.from("leave_applications") || null;
+    } catch (error) {
+      console.warn("leave_applications table not available:", error);
+      return null;
+    }
+  },
+  studyMaterials: () => {
+    try {
+      return supabase?.from("study_materials") || null;
+    } catch (error) {
+      console.warn("study_materials table not available:", error);
+      return null;
+    }
+  },
+  timetables: () => {
+    try {
+      return supabase?.from("timetables") || null;
+    } catch (error) {
+      console.warn("timetables table not available:", error);
+      return null;
+    }
+  },
+  notifications: () => {
+    try {
+      return supabase?.from("notifications") || null;
+    } catch (error) {
+      console.warn("notifications table not available:", error);
+      return null;
+    }
+  },
+  time_slots: () => {
+    try {
+      return supabase?.from("time_slots") || null;
+    } catch (error) {
+      console.warn("time_slots table not available:", error);
+      return null;
+    }
+  },
+  messages: () => {
+    try {
+      return supabase?.from("messages") || null;
+    } catch (error) {
+      console.warn("messages table not available:", error);
+      return null;
+    }
+  },
   // New faculty assignment tables
-  facultyAssignments: () => supabase?.from("faculty_assignments") || null,
-  studentCounsellorAssignments: () => supabase?.from("student_counsellor_assignments") || null,
+  facultyAssignments: () => {
+    try {
+      return supabase?.from("faculty_assignments") || null;
+    } catch (error) {
+      console.warn("faculty_assignments table not available:", error);
+      return null;
+    }
+  },
+  studentCounsellorAssignments: () => {
+    try {
+      return supabase?.from("student_counsellor_assignments") || null;
+    } catch (error) {
+      console.warn("student_counsellor_assignments table not available:", error);
+      return null;
+    }
+  },
   // Expose supabase client for RPC calls
   supabase: () => supabase,
 };
 
-// Storage bucket helpers with null checks
+// Storage bucket helpers with null checks and error handling
 export const buckets = {
-  profiles: () => storage?.from("profiles") || null,
-  documents: () => storage?.from("documents") || null,
-  materials: () => storage?.from("materials") || null,
-  timetables: () => storage?.from("timetables") || null,
+  profiles: () => {
+    try {
+      return storage?.from("profiles") || null;
+    } catch (error) {
+      console.warn("profiles bucket not available:", error);
+      return null;
+    }
+  },
+  documents: () => {
+    try {
+      return storage?.from("documents") || null;
+    } catch (error) {
+      console.warn("documents bucket not available:", error);
+      return null;
+    }
+  },
+  materials: () => {
+    try {
+      return storage?.from("materials") || null;
+    } catch (error) {
+      console.warn("materials bucket not available:", error);
+      return null;
+    }
+  },
+  timetables: () => {
+    try {
+      return storage?.from("timetables") || null;
+    } catch (error) {
+      console.warn("timetables bucket not available:", error);
+      return null;
+    }
+  },
 };
 
 // Authentication helpers with null checks
@@ -145,22 +285,40 @@ export const fileHelpers = {
       
       console.log("📁 Upload path:", fileName);
 
-      // Check if bucket exists and is accessible
-      try {
-        const { data: bucketData, error: bucketError } = await supabase.storage.getBucket('profiles');
-        if (bucketError) {
-          console.error("❌ Bucket check failed:", bucketError);
-          // Continue anyway - the bucket might exist but the check failed
-        } else {
-          console.log("✅ Bucket check successful");
-        }
-      } catch (bucketCheckError) {
-        console.warn("⚠️ Bucket check error (continuing anyway):", bucketCheckError);
+      // Check if storage is available
+      if (!storage) {
+        console.warn("⚠️ Supabase storage not available");
+        return { data: null, error: { message: "Storage not configured" } };
       }
 
-      console.log("✅ Bucket accessible, uploading file...");
+      // Check if profiles bucket exists
+      const profilesBucket = buckets.profiles();
+      if (!profilesBucket) {
+        console.warn("⚠️ Profiles bucket not available, trying to create or use fallback");
+        
+        // Try to create the bucket or use a different approach
+        try {
+          const { data: bucketData, error: bucketError } = await storage.getBucket('profiles');
+          if (bucketError) {
+            console.warn("⚠️ Cannot access profiles bucket:", bucketError);
+            // Return error but don't crash
+            return { 
+              data: null, 
+              error: { message: "Storage bucket not configured. Please contact administrator." } 
+            };
+          }
+        } catch (bucketCheckError) {
+          console.warn("⚠️ Bucket check failed:", bucketCheckError);
+          return { 
+            data: null, 
+            error: { message: "Storage not accessible. Please contact administrator." } 
+          };
+        }
+      }
 
-      const { data, error } = await buckets.profiles().upload(fileName, file, {
+      console.log("✅ Storage accessible, uploading file...");
+
+      const { data, error } = await profilesBucket.upload(fileName, file, {
         cacheControl: "3600",
         upsert: true,
       });
@@ -175,7 +333,7 @@ export const fileHelpers = {
       // Get public URL
       const {
         data: { publicUrl },
-      } = buckets.profiles().getPublicUrl(fileName);
+      } = profilesBucket.getPublicUrl(fileName);
 
       console.log("✅ Public URL generated:", publicUrl);
 
