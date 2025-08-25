@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { sessionService } from "@/services/sessionService";
@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { profilePhotoService } from "@/services/profilePhotoService";
 import {
   Menu,
   X,
@@ -60,6 +61,25 @@ const DashboardLayout = ({
   // Use real user data from AuthContext, fallback to prop
   const displayName = user?.name || userName || "User";
   const displayEmail = user?.email || "";
+
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const loadAvatar = async () => {
+      try {
+        if (user?.id) {
+          const url = await profilePhotoService.getProfilePhotoUrl(
+            user.id,
+            userType,
+          );
+          if (url) setAvatarUrl(url);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    loadAvatar();
+  }, [user?.id, userType]);
 
   const navigationConfig = {
     student: {
@@ -262,7 +282,7 @@ const DashboardLayout = ({
           <div className="p-2 sm:p-3 bg-gray-50 rounded-lg">
             <div className="flex items-center space-x-2 sm:space-x-3">
               <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
-                <AvatarImage src="/api/placeholder/40/40" />
+                <AvatarImage src={avatarUrl} />
                 <AvatarFallback className="text-xs sm:text-sm">
                   {displayName
                     .split(" ")
@@ -329,9 +349,9 @@ const DashboardLayout = ({
                     className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0"
                   >
                     <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
-                      <AvatarImage src="/api/placeholder/40/40" />
+                      <AvatarImage src={avatarUrl} />
                       <AvatarFallback className="text-xs sm:text-sm">
-                        {userName
+                        {(displayName)
                           .split(" ")
                           .map((n) => n[0])
                           .join("")}

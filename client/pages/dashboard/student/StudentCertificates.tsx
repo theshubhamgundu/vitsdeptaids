@@ -20,6 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { fileHelpers } from "@/lib/supabase";
 import {
   getStudentCertificates,
   addStudentCertificate,
@@ -132,12 +133,23 @@ const StudentCertificates = () => {
     }
 
     try {
+      // Upload to documents bucket first to get a public URL
+      let fileUrl: string | undefined = undefined;
+      try {
+        const upload = await fileHelpers.uploadDocument(currentUser.id, selectedFile, "certificates");
+        if (upload.data?.publicUrl) {
+          fileUrl = upload.data.publicUrl;
+        }
+      } catch (e) {
+        console.warn("Document upload failed, will save locally", e);
+      }
+
       const success = await addStudentCertificate(currentUser.id, {
         title: uploadData.title,
         description: uploadData.description,
         organization: uploadData.organization,
         issueDate: uploadData.issueDate,
-        fileUrl: `/certificates/${selectedFile.name}`, // In real app, this would be the uploaded file URL
+        fileUrl,
       });
 
       if (success) {
@@ -429,12 +441,30 @@ const StudentCertificates = () => {
                       </div>
 
                       <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (cert.fileUrl) window.open(cert.fileUrl, "_blank");
+                          }}
+                          disabled={!cert.fileUrl}
+                        >
                           <Eye className="h-4 w-4 mr-1" />
                           View
                         </Button>
-                        {cert.status === "approved" && (
-                          <Button variant="outline" size="sm">
+                        {cert.fileUrl && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const a = document.createElement("a");
+                              a.href = cert.fileUrl!;
+                              a.download = `${cert.title}.pdf`;
+                              document.body.appendChild(a);
+                              a.click();
+                              document.body.removeChild(a);
+                            }}
+                          >
                             <Download className="h-4 w-4 mr-1" />
                             Download
                           </Button>

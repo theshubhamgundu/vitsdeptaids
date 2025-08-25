@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { profilePhotoService } from "@/services/profilePhotoService";
+import { getCounsellorForStudent } from "@/services/facultyAssignmentService";
 import { profileService } from "@/services/profileService";
 import { Camera, Edit, Save, X, User, Loader2 } from "lucide-react";
 
@@ -99,7 +100,7 @@ const StudentProfile = () => {
           dateOfBirth: profile.date_of_birth || "",
           bloodGroup: profile.blood_group || "",
           admissionDate: profile.created_at ? new Date(profile.created_at).toISOString().split("T")[0] : "",
-          counsellor: "Dr. Academic Counselor",
+          counsellor: "",
           status: profile.is_active ? "Active" : "Inactive",
           profilePhoto: profile.profile_photo_url || null,
         });
@@ -129,6 +130,19 @@ const StudentProfile = () => {
         }
       } catch (photoError) {
         console.warn("Profile photo loading failed:", photoError);
+      }
+
+      // Load counsellor info based on hall ticket/year
+      try {
+        const ht = profile?.hall_ticket || currentUser.hallTicket;
+        if (ht) {
+          const counsellor = await getCounsellorForStudent(ht);
+          if (counsellor?.faculty?.name) {
+            setProfileData(prev => ({ ...prev, counsellor: counsellor.faculty.name }));
+          }
+        }
+      } catch (e) {
+        // ignore
       }
     } catch (error) {
       console.error("Error loading student data:", error);

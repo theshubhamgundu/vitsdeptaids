@@ -92,7 +92,12 @@ const FacultyLeave = () => {
 
       // Load student leave requests from localStorage (placeholder for database)
       const studentLeaves = JSON.parse(localStorage.getItem(`student_leaves_pending`) || "[]");
-      setStudentLeaveRequests(studentLeaves);
+      // Filter to those assigned to this faculty (assigned_to matches id) or visible by coordinator for their year(s)
+      const myRequests = studentLeaves.filter((req: any) => {
+        if (req.assigned_to && user?.id && req.assigned_to === user.id) return true;
+        return false;
+      });
+      setStudentLeaveRequests(myRequests);
     } catch (error) {
       console.error('Error loading leave data:', error);
     }

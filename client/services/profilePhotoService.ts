@@ -17,16 +17,18 @@ const fileToBase64 = (file: File): Promise<string> => {
   });
 };
 
-// Compress image if it's too large
-const compressImage = (file: File, maxSizeKB: number = 500): Promise<File> => {
+// Compress image; ensure output is < maxSizeBytes (default 1MB)
+const compressImage = (
+  file: File,
+  maxSizeBytes: number = 1024 * 1024,
+): Promise<File> => {
   return new Promise((resolve) => {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     const img = new Image();
 
     img.onload = () => {
-      // Calculate new dimensions (max 400x400)
-      const maxDimension = 400;
+      const maxDimension = 600; // allow a bit larger, we will adapt quality too
       let { width, height } = img;
 
       if (width > height) {
@@ -43,25 +45,36 @@ const compressImage = (file: File, maxSizeKB: number = 500): Promise<File> => {
 
       canvas.width = width;
       canvas.height = height;
-
-      // Draw and compress
       ctx?.drawImage(img, 0, 0, width, height);
 
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            const compressedFile = new File([blob], file.name, {
-              type: "image/jpeg",
-              lastModified: Date.now(),
-            });
-            resolve(compressedFile);
-          } else {
-            resolve(file);
-          }
-        },
-        "image/jpeg",
-        0.8,
-      );
+      // Iteratively decrease quality until under size or min quality reached
+      let quality = 0.85;
+      const minQuality = 0.5;
+
+      const tryExport = () => {
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              resolve(file);
+              return;
+            }
+            if (blob.size <= maxSizeBytes || quality <= minQuality) {
+              const compressedFile = new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), {
+                type: "image/jpeg",
+                lastModified: Date.now(),
+              });
+              resolve(compressedFile);
+            } else {
+              quality -= 0.1;
+              tryExport();
+            }
+          },
+          "image/jpeg",
+          quality,
+        );
+      };
+
+      tryExport();
     };
 
     img.src = URL.createObjectURL(file);
@@ -69,7 +82,7 @@ const compressImage = (file: File, maxSizeKB: number = 500): Promise<File> => {
 };
 
 export const profilePhotoService = {
-  // Upload profile photo with Supabase storage and localStorage fallback
+  // Upload profile photo to Supabase storage (no localStorage fallback)
   uploadProfilePhoto: async (
     userId: string,
     file: File,
@@ -86,15 +99,9 @@ export const profilePhotoService = {
         return { success: false, error: "Please upload an image file" };
       }
 
-      // Check file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        return { success: false, error: "Image size must be less than 5MB" };
-      }
+      // Compress image to ensure < 1MB
+      const processedFile = await compressImage(file, 1024 * 1024);
 
-      // Compress image if needed
-      const processedFile = await compressImage(file);
-
-      // Try Supabase storage first
       if (supabase && buckets.profiles()) {
         try {
           console.log("📤 Attempting Supabase storage upload...");
@@ -119,47 +126,17 @@ export const profilePhotoService = {
               isLocalStorage: false,
             };
           } else {
-            console.warn(
-              "⚠️ Supabase upload failed, falling back to localStorage",
-            );
             throw new Error("Supabase upload failed");
           }
         } catch (supabaseError) {
           console.warn("⚠️ Supabase storage error:", supabaseError);
-          // Fall through to localStorage fallback
+          return { success: false, error: "Upload failed. Please try again." };
         }
       } else {
-        console.warn("⚠️ Supabase not configured, using localStorage");
+        console.warn("⚠️ Supabase not configured");
+        return { success: false, error: "Storage not configured" };
       }
-
-      // Fallback to localStorage (base64)
-      try {
-        const base64 = await fileToBase64(processedFile);
-
-        // Store in localStorage with user-specific key
-        const photoKey = `profile_photo_${userId}`;
-        localStorage.setItem(photoKey, base64);
-
-        // Update user profile with local reference
-        await profilePhotoService.savePhotoUrlToProfile(
-          userId,
-          base64,
-          userRole,
-        );
-
-        console.log("✅ Photo saved to localStorage successfully");
-        return {
-          success: true,
-          photoUrl: base64,
-          isLocalStorage: true,
-        };
-      } catch (localError) {
-        console.error("❌ localStorage fallback failed:", localError);
-        return {
-          success: false,
-          error: "Failed to save photo. Please try again.",
-        };
-      }
+      
     } catch (error) {
       console.error("❌ Profile photo upload error:", error);
       return {

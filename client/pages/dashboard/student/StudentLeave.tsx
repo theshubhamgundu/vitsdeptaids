@@ -48,6 +48,7 @@ import {
   Calendar,
   MapPin,
 } from "lucide-react";
+import { getCounsellorForStudent, getFacultyAssignmentsByYear } from "@/services/facultyAssignmentService";
 
 const StudentLeave = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -112,7 +113,7 @@ const StudentLeave = () => {
     }
   };
 
-  const handleSubmitApplication = () => {
+  const handleSubmitApplication = async () => {
     if (
       !newApplication.type ||
       !newApplication.startDate ||
@@ -136,6 +137,8 @@ const StudentLeave = () => {
       approvedBy: null,
       approvedDate: null,
       comments: null,
+      studentId: currentUser.id,
+      hallTicket: currentUser.hallTicket,
     };
 
     setLeaveApplications([...leaveApplications, application]);
@@ -147,6 +150,36 @@ const StudentLeave = () => {
       documents: [],
     });
     setShowApplicationDialog(false);
+
+    try {
+      // Route to assigned counsellor, else coordinator for the year
+      let assignedFacultyId: string | null = null;
+      try {
+        if (currentUser.hallTicket) {
+          const counsellor = await getCounsellorForStudent(currentUser.hallTicket);
+          if (counsellor?.counsellor_id) assignedFacultyId = counsellor.counsellor_id;
+        }
+      } catch {}
+
+      if (!assignedFacultyId && currentUser.year) {
+        try {
+          const assignments = await getFacultyAssignmentsByYear(currentUser.year);
+          const coordinator = assignments.find(a => a.role === 'coordinator');
+          if (coordinator) assignedFacultyId = coordinator.faculty_id;
+        } catch {}
+      }
+
+      const pendingKey = `student_leaves_pending`;
+      const existing = JSON.parse(localStorage.getItem(pendingKey) || "[]");
+      existing.unshift({
+        ...application,
+        assigned_to: assignedFacultyId,
+      });
+      localStorage.setItem(pendingKey, JSON.stringify(existing));
+    } catch (e) {
+      // ignore
+    }
+
     alert("Leave application submitted successfully!");
   };
 

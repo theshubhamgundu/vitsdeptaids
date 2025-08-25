@@ -168,7 +168,13 @@ export const fileHelpers = {
       cacheControl: "3600",
     });
 
-    return { data, error };
+    if (error) return { data: null, error };
+
+    const {
+      data: { publicUrl },
+    } = buckets.documents().getPublicUrl(fileName);
+
+    return { data: { ...data, publicUrl }, error: null };
   },
 
   // Upload study material

@@ -1,4 +1,4 @@
-import { tables } from "@/lib/supabase";
+import { tables, fileHelpers } from "@/lib/supabase";
 
 export interface StudentRecord {
   id: string;
@@ -247,13 +247,41 @@ export const getStudentCertificates = async (
   studentId: string,
 ): Promise<Certificate[]> => {
   try {
-    // Get from localStorage first
+    // Prefer Supabase table if present
+    const supabaseClient = tables.supabase();
+    if (supabaseClient) {
+      try {
+        const { data, error } = await supabaseClient
+          .from("student_certificates")
+          .select("*")
+          .eq("student_id", studentId)
+          .order("upload_date", { ascending: false });
+
+        if (!error && data) {
+          return data.map((row: any) => ({
+            id: row.id,
+            studentId: row.student_id,
+            title: row.title,
+            description: row.description || "",
+            organization: row.organization || "",
+            issueDate: row.issue_date,
+            uploadDate: row.upload_date,
+            status: row.status || "pending",
+            fileUrl: row.file_url || undefined,
+            approvedBy: row.approved_by || undefined,
+            approvedAt: row.approved_at || undefined,
+            rejectionReason: row.rejection_reason || undefined,
+          }));
+        }
+      } catch (e) {
+        // fall back to local
+      }
+    }
+
+    // Fallback: localStorage
     const localCertificates = JSON.parse(
       localStorage.getItem(`certificates_${studentId}`) || "[]",
     );
-
-    // TODO: Add Supabase integration for certificates
-
     return localCertificates;
   } catch (error) {
     console.error("Error fetching certificates:", error);
@@ -267,6 +295,39 @@ export const addStudentCertificate = async (
   certificate: Omit<Certificate, "id" | "studentId" | "uploadDate" | "status">,
 ): Promise<boolean> => {
   try {
+    // Upload file to documents bucket and save record if Supabase available
+    const supabaseClient = tables.supabase();
+    if (supabaseClient) {
+      // Expect caller to pass a fileUrl temporarily as File name; improve signature by allowing File
+      let uploadedUrl: string | undefined = certificate.fileUrl;
+      // If fileUrl is a File-like path we cannot detect here; rely on UI to upload via fileHelpers
+      if (!uploadedUrl) {
+        // nothing to upload; reject
+        return false;
+      }
+
+      const { data: inserted, error } = await supabaseClient
+        .from("student_certificates")
+        .insert({
+          student_id: studentId,
+          title: certificate.title,
+          description: certificate.description,
+          organization: certificate.organization,
+          issue_date: certificate.issueDate,
+          upload_date: new Date().toISOString(),
+          status: "pending",
+          file_url: uploadedUrl,
+        })
+        .select("id");
+
+      if (error) {
+        console.warn("Supabase insert failed, falling back to local:", error);
+      } else if (inserted && inserted.length > 0) {
+        return true;
+      }
+    }
+
+    // Fallback local storage
     const newCertificate: Certificate = {
       id: crypto.randomUUID(),
       studentId,
@@ -277,20 +338,16 @@ export const addStudentCertificate = async (
 
     const existingCertificates = await getStudentCertificates(studentId);
     const updatedCertificates = [...existingCertificates, newCertificate];
-
     localStorage.setItem(
       `certificates_${studentId}`,
       JSON.stringify(updatedCertificates),
     );
-
-    // Trigger storage event for real-time updates
     window.dispatchEvent(
       new StorageEvent("storage", {
         key: `certificates_${studentId}`,
         newValue: JSON.stringify(updatedCertificates),
       }),
     );
-
     return true;
   } catch (error) {
     console.error("Error adding certificate:", error);
