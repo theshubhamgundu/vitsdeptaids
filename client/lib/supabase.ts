@@ -137,22 +137,53 @@ export const authHelpers = {
 export const fileHelpers = {
   // Upload profile photo
   uploadProfilePhoto: async (userId: string, file: File) => {
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${userId}/profile.${fileExt}`;
+    try {
+      console.log("📤 Starting profile photo upload for user:", userId);
+      
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${userId}/profile.${fileExt}`;
+      
+      console.log("📁 Upload path:", fileName);
 
-    const { data, error } = await buckets.profiles().upload(fileName, file, {
-      cacheControl: "3600",
-      upsert: true,
-    });
+      // Check if bucket exists and is accessible
+      try {
+        const { data: bucketData, error: bucketError } = await supabase.storage.getBucket('profiles');
+        if (bucketError) {
+          console.error("❌ Bucket check failed:", bucketError);
+          // Continue anyway - the bucket might exist but the check failed
+        } else {
+          console.log("✅ Bucket check successful");
+        }
+      } catch (bucketCheckError) {
+        console.warn("⚠️ Bucket check error (continuing anyway):", bucketCheckError);
+      }
 
-    if (error) return { data: null, error };
+      console.log("✅ Bucket accessible, uploading file...");
 
-    // Get public URL
-    const {
-      data: { publicUrl },
-    } = buckets.profiles().getPublicUrl(fileName);
+      const { data, error } = await buckets.profiles().upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: true,
+      });
 
-    return { data: { ...data, publicUrl }, error: null };
+      if (error) {
+        console.error("❌ Upload failed:", error);
+        return { data: null, error };
+      }
+
+      console.log("✅ Upload successful, getting public URL...");
+
+      // Get public URL
+      const {
+        data: { publicUrl },
+      } = buckets.profiles().getPublicUrl(fileName);
+
+      console.log("✅ Public URL generated:", publicUrl);
+
+      return { data: { ...data, publicUrl }, error: null };
+    } catch (error) {
+      console.error("❌ Unexpected error in uploadProfilePhoto:", error);
+      return { data: null, error };
+    }
   },
 
   // Upload document

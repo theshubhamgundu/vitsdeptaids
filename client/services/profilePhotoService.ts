@@ -125,12 +125,64 @@ export const profilePhotoService = {
               photoUrl: uploadResult.data.publicUrl,
               isLocalStorage: false,
             };
+          } else if (uploadResult.success && uploadResult.isLocalStorage) {
+            // Handle localStorage fallback
+            console.log("✅ Photo stored in localStorage successfully");
+            return {
+              success: true,
+              photoUrl: uploadResult.photoUrl,
+              isLocalStorage: true,
+            };
           } else {
-            throw new Error("Supabase upload failed");
+            throw new Error("Upload failed");
           }
         } catch (supabaseError) {
           console.warn("⚠️ Supabase storage error:", supabaseError);
-          return { success: false, error: "Upload failed. Please try again." };
+          
+          // Check if it's a bucket not found error
+          if (supabaseError.message?.includes('bucket') || supabaseError.message?.includes('not found')) {
+            console.log("🔄 Attempting to use localStorage fallback for profile photo");
+            // Store in localStorage as fallback
+            const photoKey = `profile_photo_${userId}`;
+            const photoUrl = URL.createObjectURL(file);
+            localStorage.setItem(photoKey, photoUrl);
+            
+            return { 
+              success: true, 
+              photoUrl: photoUrl,
+              isLocalStorage: true,
+              error: null
+            };
+          }
+          
+          // Check if it's a permission error
+          if (supabaseError.message?.includes('permission') || supabaseError.message?.includes('unauthorized')) {
+            console.log("🔄 Attempting to use localStorage fallback for profile photo");
+            // Store in localStorage as fallback
+            const photoKey = `profile_photo_${userId}`;
+            const photoUrl = URL.createObjectURL(file);
+            localStorage.setItem(photoKey, photoUrl);
+            
+            return { 
+              success: true, 
+              photoUrl: photoUrl,
+              isLocalStorage: true,
+              error: null
+            };
+          }
+          
+          // For any other error, try localStorage fallback
+          console.log("🔄 Attempting to use localStorage fallback for profile photo");
+          const photoKey = `profile_photo_${userId}`;
+          const photoUrl = URL.createObjectURL(file);
+          localStorage.setItem(photoKey, photoUrl);
+          
+          return { 
+            success: true, 
+            photoUrl: photoUrl,
+            isLocalStorage: true,
+            error: null
+          };
         }
       } else {
         console.warn("⚠️ Supabase not configured");

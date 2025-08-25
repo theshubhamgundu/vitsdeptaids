@@ -82,8 +82,14 @@ export const getAllStudentsFromData = async (): Promise<MappedStudentRecord[]> =
       return [];
     }
 
+    console.log("🔍 Raw student data from database:", data?.slice(0, 3)); // Debug first 3 records
+
     // Map the data to expected format
-    return (data || []).map(mapStudentDataRecord);
+    const mappedData = (data || []).map(mapStudentDataRecord);
+    
+    console.log("🔍 Mapped student data:", mappedData?.slice(0, 3)); // Debug first 3 mapped records
+    
+    return mappedData;
   } catch (error) {
     console.error("Error in getAllStudentsFromData:", error);
     return [];

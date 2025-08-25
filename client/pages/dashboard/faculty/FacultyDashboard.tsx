@@ -21,6 +21,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Users,
+  User,
   Upload,
   BarChart3,
   MessageSquare,
@@ -51,7 +52,7 @@ const FacultyDashboard = () => {
 
   useEffect(() => {
     if (user) {
-      initializeFacultyData();
+    initializeFacultyData();
     }
   }, [user]);
 
@@ -264,17 +265,17 @@ const FacultyDashboard = () => {
       console.error("Error initializing faculty data:", error);
       
       // Set error state
-      setFacultyData({
+        setFacultyData({
         name: "Error Loading",
         employeeId: "N/A",
-        designation: "Faculty",
-        department: "AI & DS",
-        specialization: "Data Science and Artificial Intelligence",
-        totalStudents: 0,
-        pendingResults: 0,
-        materialsUploaded: 0,
-        messagesCount: 0,
-      });
+          designation: "Faculty",
+          department: "AI & DS",
+          specialization: "Data Science and Artificial Intelligence",
+          totalStudents: 0,
+          pendingResults: 0,
+          materialsUploaded: 0,
+          messagesCount: 0,
+        });
       setStudentCount(0);
       setRecentActivities([]);
       setUpcomingTasks([]);
@@ -300,43 +301,43 @@ const FacultyDashboard = () => {
   // Role-based quick stats
   const getQuickStats = () => {
     const baseStats = [
-      {
+    {
         title: "Assigned Students",
-        value: studentCount.toString(),
+      value: studentCount.toString(),
         description: studentCount > 0 ? "Students under your guidance" : "No students assigned yet",
-        icon: Users,
-        color: studentCount > 0 ? "text-blue-600" : "text-gray-500",
-        bgColor: studentCount > 0 ? "bg-blue-50" : "bg-gray-50",
-        link: "/dashboard/faculty/students",
-      },
-      {
-        title: "Pending Results",
+      icon: Users,
+      color: studentCount > 0 ? "text-blue-600" : "text-gray-500",
+      bgColor: studentCount > 0 ? "bg-blue-50" : "bg-gray-50",
+      link: "/dashboard/faculty/students",
+    },
+    {
+      title: "Pending Results",
         value: facultyData.pendingResults.toString(),
         description: facultyData.pendingResults > 0 ? `${facultyData.pendingResults} results pending` : "No pending entries",
-        icon: BarChart3,
+      icon: BarChart3,
         color: facultyData.pendingResults > 0 ? "text-orange-600" : "text-gray-500",
         bgColor: facultyData.pendingResults > 0 ? "bg-orange-50" : "bg-gray-50",
-        link: "/dashboard/faculty/results",
-      },
-      {
-        title: "Study Materials",
+      link: "/dashboard/faculty/results",
+    },
+    {
+      title: "Study Materials",
         value: facultyData.materialsUploaded.toString(),
         description: facultyData.materialsUploaded > 0 ? `${facultyData.materialsUploaded} materials uploaded` : "No materials uploaded",
-        icon: Upload,
+      icon: Upload,
         color: facultyData.materialsUploaded > 0 ? "text-green-600" : "text-gray-500",
         bgColor: facultyData.materialsUploaded > 0 ? "bg-green-50" : "bg-gray-50",
-        link: "/dashboard/faculty/materials",
-      },
-      {
-        title: "Messages",
+      link: "/dashboard/faculty/materials",
+    },
+    {
+      title: "Messages",
         value: facultyData.messagesCount.toString(),
         description: facultyData.messagesCount > 0 ? `${facultyData.messagesCount} unread notifications` : "No unread notifications",
-        icon: MessageSquare,
+      icon: MessageSquare,
         color: facultyData.messagesCount > 0 ? "text-purple-600" : "text-gray-500",
         bgColor: facultyData.messagesCount > 0 ? "bg-purple-50" : "bg-gray-50",
-        link: "/dashboard/faculty/messages",
-      },
-    ];
+      link: "/dashboard/faculty/messages",
+    },
+  ];
 
     // Add role-specific stats
     if (isCoordinator) {
@@ -612,39 +613,39 @@ const FacultyDashboard = () => {
                 {recentActivities.map((activity) => {
                   const IconComponent = activity.icon;
                   return (
+                  <div
+                    key={activity.id}
+                    className="flex items-center space-x-4 p-3 border rounded-lg"
+                  >
                     <div
-                      key={activity.id}
-                      className="flex items-center space-x-4 p-3 border rounded-lg"
+                      className={`p-2 rounded-full ${
+                        activity.status === "success"
+                          ? "bg-green-50"
+                          : activity.status === "warning"
+                            ? "bg-orange-50"
+                            : "bg-blue-50"
+                      }`}
                     >
-                      <div
-                        className={`p-2 rounded-full ${
-                          activity.status === "success"
-                            ? "bg-green-50"
-                            : activity.status === "warning"
-                              ? "bg-orange-50"
-                              : "bg-blue-50"
-                        }`}
-                      >
                         <IconComponent
-                          className={`h-5 w-5 ${
-                            activity.status === "success"
-                              ? "text-green-600"
-                              : activity.status === "warning"
-                                ? "text-orange-600"
-                                : "text-blue-600"
-                          }`}
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium">{activity.title}</h3>
-                        <p className="text-sm text-gray-600">
-                          {activity.description}
-                        </p>
-                      </div>
-                      <span className="text-xs text-gray-500">
-                        {activity.time}
-                      </span>
+                        className={`h-5 w-5 ${
+                          activity.status === "success"
+                            ? "text-green-600"
+                            : activity.status === "warning"
+                              ? "text-orange-600"
+                              : "text-blue-600"
+                        }`}
+                      />
                     </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium">{activity.title}</h3>
+                      <p className="text-sm text-gray-600">
+                        {activity.description}
+                      </p>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {activity.time}
+                    </span>
+                  </div>
                   );
                 })}
               </div>

@@ -10,6 +10,7 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import { getAllStudents } from "@/services/studentDataService";
 import { resultsService } from "@/services/resultsService";
 import { materialsService } from "@/services/materialsService";
+import { storageSetupService } from "@/services/storageSetupService";
 import {
   Users,
   BarChart3,
@@ -59,6 +60,13 @@ const AdminTools = () => {
     }
   });
 
+  // Storage setup
+  const [storageStatus, setStorageStatus] = useState({
+    exists: false,
+    buckets: [],
+    message: ""
+  });
+
   useEffect(() => {
     loadData();
   }, []);
@@ -77,6 +85,9 @@ const AdminTools = () => {
       // Load materials
       const allMaterials = materialsService.getAllMaterials();
       setMaterials(allMaterials);
+      
+      // Check storage status
+      checkStorageStatus();
       
     } catch (error) {
       console.error("Error loading data:", error);
@@ -158,6 +169,63 @@ const AdminTools = () => {
       title: "Settings Saved",
       description: "System settings updated successfully",
     });
+  };
+
+  const checkStorageStatus = async () => {
+    try {
+      const status = await storageSetupService.checkStorageBuckets();
+      setStorageStatus(status);
+    } catch (error) {
+      console.error("Error checking storage status:", error);
+    }
+  };
+
+  const handleCheckStorage = async () => {
+    try {
+      setLoading(true);
+      await checkStorageStatus();
+      toast({
+        title: "Storage Status",
+        description: storageStatus.exists ? "All storage buckets are configured" : "Storage buckets need setup",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to check storage status",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSetupStorage = async () => {
+    try {
+      setLoading(true);
+      const result = await storageSetupService.initializeStorageBuckets();
+      
+      if (result.success) {
+        toast({
+          title: "Storage Setup",
+          description: "Storage buckets created successfully",
+        });
+        await checkStorageStatus();
+      } else {
+        toast({
+          title: "Storage Setup Failed",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to setup storage buckets",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -398,7 +466,46 @@ const AdminTools = () => {
                 <Button onClick={handleSaveSettings} className="w-full">
                   <Save className="h-4 w-4 mr-2" />
                   Save Settings
-                              </Button>
+                </Button>
+
+                {/* Storage Setup */}
+                <div className="border-t pt-6 mt-6">
+                  <h3 className="font-medium mb-4">Storage Setup</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <h4 className="font-medium">Storage Buckets</h4>
+                        <p className="text-sm text-gray-600">
+                          {storageStatus.exists ? 
+                            `✅ All buckets configured (${storageStatus.buckets.length}/3)` :
+                            "❌ Storage buckets not configured"
+                          }
+                        </p>
+                        {storageStatus.message && (
+                          <p className="text-sm text-blue-600 mt-1">{storageStatus.message}</p>
+                        )}
+                      </div>
+                      <div className="space-x-2">
+                        <Button
+                          onClick={handleCheckStorage}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Check Status
+                        </Button>
+                        <Button
+                          onClick={handleSetupStorage}
+                          variant="default"
+                          size="sm"
+                        >
+                          <Database className="h-4 w-4 mr-2" />
+                          Setup Storage
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

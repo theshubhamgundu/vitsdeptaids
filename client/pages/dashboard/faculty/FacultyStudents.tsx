@@ -42,7 +42,7 @@ interface AssignedStudent {
   name: string;
   hallTicket: string;
   year: string;
-  section: string;
+
   email: string;
   phone?: string;
   cgpa?: number;
@@ -91,8 +91,11 @@ const FacultyStudents = () => {
       setIsCoordinator(!!coordinatorRole);
       setIsCounsellor(!!counsellorRole);
 
-      // Get visible students from the new service
-      const visibleStudents = await getVisibleStudentsForFaculty(user.id);
+      // Get visible students from the new service; try user.id then fallback to user.facultyId
+      let visibleStudents = await getVisibleStudentsForFaculty(user.id);
+      if ((!visibleStudents || visibleStudents.length === 0) && (user as any)?.facultyId) {
+        visibleStudents = await getVisibleStudentsForFaculty((user as any).facultyId);
+      }
       
       // Transform the data to match our interface
       const assignedStudentsList = visibleStudents.map((student: any) => ({
@@ -100,7 +103,6 @@ const FacultyStudents = () => {
         name: student.name || student.student_name || student.full_name || 'Unknown Student',
         hallTicket: student.hall_ticket || student.ht_no || student.student_id || '',
         year: student.year || '',
-        section: student.section || '',
         email: student.email || '',
         phone: student.phone || '',
         cgpa: student.cgpa || student.gpa || 0,
@@ -209,52 +211,7 @@ const FacultyStudents = () => {
           )}
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Users className="h-5 w-5 text-blue-600" />
-                <div>
-                  <p className="text-sm text-gray-600">Total Assigned</p>
-                  <p className="text-2xl font-bold">{assignedStudents.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          {isCoordinator && (
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-2">
-                  <UserCheck className="h-5 w-5 text-indigo-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">Coordinator Students</p>
-                    <p className="text-2xl font-bold">
-                      {assignedStudents.filter(s => s.mappingType === 'coordinator').length}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-          
-          {isCounsellor && (
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-2">
-                  <GraduationCap className="h-5 w-5 text-teal-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">Counsellor Students</p>
-                    <p className="text-2xl font-bold">
-                      {assignedStudents.filter(s => s.mappingType === 'counsellor').length}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        {/* Students grid only; summary cards removed as requested */}
 
         {/* Search and Filters */}
         <Card>
@@ -344,7 +301,7 @@ const FacultyStudents = () => {
                           <div className="flex items-center space-x-4 text-sm text-gray-600">
                             <span>HT: {student.hallTicket}</span>
                             <span>Year: {student.year}</span>
-                            <span>Section: {student.section}</span>
+            
                             <span>Branch: {student.branch}</span>
                           </div>
                           <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
@@ -451,7 +408,7 @@ const FacultyStudents = () => {
                     <h4 className="font-medium text-gray-900 mb-2">Academic Information</h4>
                     <div className="space-y-2 text-sm">
                       <div><span className="font-medium">Year:</span> {selectedStudent.year}</div>
-                      <div><span className="font-medium">Section:</span> {selectedStudent.section}</div>
+        
                       <div><span className="font-medium">Branch:</span> {selectedStudent.branch}</div>
                       <div><span className="font-medium">Role:</span> 
                         <Badge 

@@ -181,7 +181,9 @@ export const getAllFaculty = async (): Promise<FacultyMember[]> => {
       return getFallbackFaculty();
     }
 
-    return facultyList.map((faculty) => ({
+    return facultyList
+      .filter((f) => (f.name || '').toLowerCase() !== 'k. somesh' && (f.name || '').toLowerCase() !== 'k somesh')
+      .map((faculty) => ({
       id: faculty.id,
       name: faculty.name,
       designation: faculty.designation,

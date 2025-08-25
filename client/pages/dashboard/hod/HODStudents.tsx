@@ -312,7 +312,7 @@ const HODStudents = () => {
 
   if (loading) {
     return (
-      <DashboardLayout userType="hod" userName="Dr. Raj Kumar">
+      <DashboardLayout userType="hod" userName={(JSON.parse(localStorage.getItem("currentUser") || "{}")?.name || "HOD")}>
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
@@ -324,7 +324,7 @@ const HODStudents = () => {
   }
 
   return (
-    <DashboardLayout userType="hod" userName="Dr. Raj Kumar">
+    <DashboardLayout userType="hod" userName={(JSON.parse(localStorage.getItem("currentUser") || "{}")?.name || "HOD")}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

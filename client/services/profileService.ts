@@ -34,16 +34,20 @@ export const profileService = {
       // Try database first
       const studentsTable = tables.students();
       if (studentsTable) {
-        const { data, error } = await studentsTable
-          .select("*")
-          .eq("user_id", userId)
-          .single();
+        try {
+          const { data, error } = await studentsTable
+            .select("*")
+            .eq("user_id", userId)
+            .single();
 
-        if (!error && data) {
-          console.log("✅ Student profile loaded from database");
-          return data;
-        } else {
-          console.log("⚠️ Student not found in database, checking localStorage");
+          if (!error && data) {
+            console.log("✅ Student profile loaded from database");
+            return data;
+          } else {
+            console.log("⚠️ Student not found in database, checking localStorage");
+          }
+        } catch (dbError) {
+          console.warn("Database query error, falling back to localStorage:", dbError);
         }
       }
 

@@ -19,6 +19,12 @@ export interface StudentResult {
   published: boolean;
 }
 
+export interface StudentPerformance {
+  overallCGPA: number;
+  currentSemester: string;
+  results: StudentResult[];
+}
+
 class ResultsService {
   private getResults(): StudentResult[] {
     try {
@@ -47,6 +53,44 @@ class ResultsService {
   getResultsByStudent(studentId: string): StudentResult[] {
     const results = this.getResults();
     return results.filter(result => result.studentId === studentId);
+  }
+
+  // Compute performance view for a student
+  getStudentPerformance(studentId: string): StudentPerformance {
+    const results = this.getResultsByStudent(studentId);
+
+    // Basic aggregates from available results
+    const overallCGPA = results.length > 0
+      ? this.calculateCGPA(results)
+      : 0;
+
+    const currentSemester = results.length > 0
+      ? (results[results.length - 1].semester || "1st Semester")
+      : "1st Semester";
+
+    return {
+      overallCGPA: parseFloat(overallCGPA.toFixed(2)),
+      currentSemester,
+      results,
+    };
+  }
+
+  private calculateCGPA(results: StudentResult[]): number {
+    // Simple mapping by grade or percentage
+    const gradePoints = (r: StudentResult) => {
+      const pct = (r.marks / r.maxMarks) * 100;
+      if (pct >= 90) return 10;
+      if (pct >= 80) return 9;
+      if (pct >= 70) return 8;
+      if (pct >= 60) return 7;
+      if (pct >= 50) return 6;
+      if (pct >= 40) return 5;
+      return 4;
+    };
+
+    if (results.length === 0) return 0;
+    const total = results.reduce((sum, r) => sum + gradePoints(r), 0);
+    return total / results.length;
   }
 
   // Get results by subject

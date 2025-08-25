@@ -160,7 +160,7 @@ const HODFacultyLeaves = () => {
           ...app,
           status: approvalAction === "approve" ? "Approved" : "Rejected",
           [`${approvalAction === "approve" ? "approved" : "rejected"}Date`]: new Date().toISOString().split('T')[0],
-          [`${approvalAction === "approve" ? "approved" : "rejected"}By`]: "Dr. Priya Sharma",
+          [`${approvalAction === "approve" ? "approved" : "rejected"}By`]: (JSON.parse(localStorage.getItem("currentUser") || "{}")?.name || "HOD"),
           hodComments: approvalComments
         };
       }

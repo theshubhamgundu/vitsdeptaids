@@ -79,6 +79,15 @@ const FacultyAssignments = () => {
         getAllStudentsFromData()
       ]);
       
+      console.log("🔍 FacultyAssignments - Loaded data:", {
+        assignments: assignments?.length,
+        summaries: summaries?.length,
+        facultyData: facultyData?.length,
+        studentsData: studentsData?.length
+      });
+      
+      console.log("🔍 FacultyAssignments - Sample students data:", studentsData?.slice(0, 3));
+      
       setFacultyAssignments(assignments);
       setYearSummaries(summaries);
       setFaculty(facultyData);
@@ -271,15 +280,15 @@ const FacultyAssignments = () => {
     // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(s => 
-        s.student_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.ht_no?.toLowerCase().includes(searchTerm.toLowerCase())
+        s.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.hallTicket?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
     // Filter by HT range if in range mode
     if (studentSelectionMode === 'range' && htRangeStart && htRangeEnd) {
       filtered = filtered.filter(s => {
-        const htNo = s.ht_no;
+        const htNo = s.hallTicket;
         return htNo >= htRangeStart && htNo <= htRangeEnd;
       });
     }
@@ -297,7 +306,7 @@ const FacultyAssignments = () => {
 
   const handleSelectAllInYear = (year: string) => {
     const yearStudents = students.filter(s => s.year === year);
-    const yearStudentHtNos = yearStudents.map(s => s.ht_no);
+    const yearStudentHtNos = yearStudents.map(s => s.hallTicket);
     setSelectedStudents(yearStudentHtNos);
     setSelectedYear(year);
   };
@@ -313,9 +322,9 @@ const FacultyAssignments = () => {
     }
 
     const rangeStudents = students.filter(s => 
-      s.ht_no >= htRangeStart && s.ht_no <= htRangeEnd
+      s.hallTicket >= htRangeStart && s.hallTicket <= htRangeEnd
     );
-    const rangeStudentHtNos = rangeStudents.map(s => s.ht_no);
+    const rangeStudentHtNos = rangeStudents.map(s => s.hallTicket);
     setSelectedStudents(rangeStudentHtNos);
     
     toast({
@@ -333,6 +342,15 @@ const FacultyAssignments = () => {
   };
 
   const filteredStudents = getFilteredStudents();
+  
+  // Debug logging
+  console.log("🔍 FacultyAssignments - Filtered students:", {
+    totalStudents: students.length,
+    filteredStudents: filteredStudents.length,
+    selectedYear,
+    searchTerm,
+    sampleFiltered: filteredStudents.slice(0, 3)
+  });
 
   if (loading) {
     return (
@@ -819,17 +837,17 @@ const FacultyAssignments = () => {
                       </TableHeader>
                       <TableBody>
                         {filteredStudents.map((student) => (
-                          <TableRow key={student.ht_no}>
+                          <TableRow key={student.hallTicket}>
                             <TableCell>
                               <Checkbox
-                                checked={selectedStudents.includes(student.ht_no)}
+                                checked={selectedStudents.includes(student.hallTicket)}
                                 onCheckedChange={(checked) => 
-                                  handleStudentSelection(student.ht_no, checked as boolean)
+                                  handleStudentSelection(student.hallTicket, checked as boolean)
                                 }
                               />
                             </TableCell>
-                            <TableCell className="font-mono">{student.ht_no}</TableCell>
-                            <TableCell className="font-medium">{student.student_name}</TableCell>
+                            <TableCell className="font-mono">{student.hallTicket}</TableCell>
+                            <TableCell className="font-medium">{student.fullName}</TableCell>
                             <TableCell>
                               <Badge variant="outline">{student.year}</Badge>
                             </TableCell>

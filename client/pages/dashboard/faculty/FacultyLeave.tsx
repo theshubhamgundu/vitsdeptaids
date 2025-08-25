@@ -185,20 +185,28 @@ const FacultyLeave = () => {
   };
 
   const filteredApplications = leaveApplications.filter(app => {
-    const matchesSearch = app.reason.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         app.type.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === "all" || app.status === filterStatus;
-    const matchesType = filterType === "all" || app.type === filterType;
+    const reason = (app?.reason || "").toString();
+    const type = (app?.type || "").toString();
+    const status = (app?.status || "").toString();
+    const matchesSearch = reason.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         type.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === "all" || status === filterStatus;
+    const matchesType = filterType === "all" || type === filterType;
     
     return matchesSearch && matchesStatus && matchesType;
   });
 
   const filteredStudentRequests = studentLeaveRequests.filter(request => {
-    const matchesSearch = request.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         request.hallTicket.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         request.reason.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === "all" || request.status === filterStatus;
-    const matchesType = filterType === "all" || request.type === filterType;
+    const studentName = (request?.studentName || "").toString();
+    const hallTicket = (request?.hallTicket || "").toString();
+    const reason = (request?.reason || "").toString();
+    const status = (request?.status || "").toString();
+    const type = (request?.type || "").toString();
+    const matchesSearch = studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         hallTicket.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         reason.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === "all" || status === filterStatus;
+    const matchesType = filterType === "all" || type === filterType;
     
     return matchesSearch && matchesStatus && matchesType;
   });
@@ -219,7 +227,7 @@ const FacultyLeave = () => {
   };
 
   const getStatusIcon = (status) => {
-    switch (status.toLowerCase()) {
+    switch ((status || '').toLowerCase()) {
       case 'approved':
         return CheckCircle;
       case 'pending':

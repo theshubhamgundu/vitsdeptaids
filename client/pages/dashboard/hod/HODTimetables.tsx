@@ -105,7 +105,7 @@ const HODTimetables = () => {
       semester: newTimetable.semester,
       status: "Draft",
       effectiveFrom: newTimetable.effectiveFrom || new Date().toISOString().split('T')[0],
-      createdBy: "Dr. Priya Sharma",
+      createdBy: (JSON.parse(localStorage.getItem("currentUser") || "{}")?.name || "HOD"),
       createdDate: new Date().toISOString().split('T')[0],
       lastModified: new Date().toISOString().split('T')[0],
       studentsCount: 50,
