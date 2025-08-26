@@ -14,6 +14,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (userData: User) => void;
   logout: () => void;
+  logoutAllDevices: () => void;
   updateUser: (userData: Partial<User>) => void;
 }
 
@@ -94,6 +95,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     console.log("✅ Logout complete - session cleared");
   };
 
+  const logoutAllDevices = () => {
+    console.log("🔐 Logging out all devices for user:", user?.name);
+    if (user) {
+      sessionService.logoutAllDevices(user.id);
+      setUser(null); // Clear user after logout
+      sessionService.clearSession(); // Clear session
+      console.log("✅ All devices logged out for user:", user.name);
+    } else {
+      console.warn("No user logged in to log out all devices.");
+    }
+  };
+
   const updateUser = (userData: Partial<User>) => {
     if (user) {
       const updatedUser = { ...user, ...userData };
@@ -110,6 +123,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading,
     login,
     logout,
+    logoutAllDevices,
     updateUser,
   };
 

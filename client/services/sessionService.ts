@@ -16,6 +16,9 @@ export interface SessionManager {
   refreshSession: () => void;
   getLastRoute: () => string | null;
   setLastRoute: (route: string) => void;
+  hasMultipleSessions: (userId: string) => boolean;
+  logoutAllDevices: (userId: string) => void;
+  setupAutoRefresh: () => (() => void) | undefined;
 }
 
 class SessionService implements SessionManager {
@@ -166,6 +169,22 @@ class SessionService implements SessionManager {
     }
   }
 
+  hasMultipleSessions(userId: string): boolean {
+    // This is a placeholder implementation.
+    // In a real application, you would query your backend or local storage
+    // to check if there are multiple sessions for the given user.
+    // For now, we'll just return false as a default.
+    console.warn("hasMultipleSessions is a placeholder and always returns false.");
+    return false;
+  }
+
+  logoutAllDevices(userId: string): void {
+    // This is a placeholder implementation.
+    // In a real application, you would send a request to your backend
+    // to invalidate all sessions for the given user.
+    console.warn("logoutAllDevices is a placeholder and does nothing.");
+  }
+
   private generateSessionId(): string {
     return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
@@ -180,7 +199,7 @@ class SessionService implements SessionManager {
   }
 
   // Auto-refresh session on user activity
-  setupAutoRefresh(): void {
+  setupAutoRefresh(): (() => void) | undefined {
     const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
     
     const refreshSession = () => {
