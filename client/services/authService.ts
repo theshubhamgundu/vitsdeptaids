@@ -511,5 +511,4 @@ export default {
   addTimeSlot,
   getCourses,
   getDepartmentEvents,
-  resetStudentPassword,
 };
