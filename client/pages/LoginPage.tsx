@@ -17,6 +17,7 @@ import { sessionService } from "@/services/sessionService";
 import {
   authenticateFaculty,
   authenticateStudent,
+  migrateAllLocalStudentAccounts,
 } from "@/services/authService";
 import {
   User,
@@ -44,6 +45,24 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [forceShowLogin, setForceShowLogin] = useState(false);
+
+  // Migrate localStorage accounts to database on page load
+  useEffect(() => {
+    const migrateAccounts = async () => {
+      try {
+        console.log("🔄 Login page: Starting account migration...");
+        await migrateAllLocalStudentAccounts();
+        console.log("✅ Login page: Account migration completed");
+      } catch (error) {
+        console.warn("⚠️ Login page: Account migration failed:", error);
+      }
+    };
+    
+    // Only migrate if this is a student login page
+    if (type === "student") {
+      migrateAccounts();
+    }
+  }, [type]);
 
   // Simple authentication handling
   useEffect(() => {
@@ -359,6 +378,41 @@ const LoginPage = () => {
                   </p>
                   <p className="text-xs text-yellow-700">
                     Hall Ticket: 20AI001 | Password: student123
+                  </p>
+                </div>
+
+                <div className="border rounded-lg p-3 bg-green-50 border-green-200">
+                  <p className="text-xs font-medium text-green-800 mb-2">
+                    Multi-Device Access:
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="w-full text-xs"
+                    onClick={async () => {
+                      try {
+                        setLoading(true);
+                        await migrateAllLocalStudentAccounts();
+                        toast({ 
+                          title: "Migration Complete", 
+                          description: "All local accounts migrated to database for multi-device access." 
+                        });
+                      } catch (error) {
+                        toast({ 
+                          title: "Migration Failed", 
+                          description: "Check console for details.",
+                          variant: "destructive"
+                        });
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                    disabled={loading}
+                  >
+                    {loading ? "Migrating..." : "Migrate Local Accounts to Database"}
+                  </Button>
+                  <p className="text-xs text-green-700 mt-1">
+                    Click to migrate localStorage accounts for multi-device login
                   </p>
                 </div>
               </div>

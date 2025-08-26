@@ -96,6 +96,106 @@ export const authenticateFaculty = async (
   }
 };
 
+// Migrate all localStorage student accounts to database for multi-device access
+export const migrateAllLocalStudentAccounts = async (): Promise<void> => {
+  try {
+    console.log("🔄 Starting migration of all local student accounts...");
+    
+    const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
+    const studentAccounts = localUsers.filter((user: any) => user.role === "student");
+    
+    if (studentAccounts.length === 0) {
+      console.log("ℹ️ No local student accounts to migrate");
+      return;
+    }
+    
+    console.log(`📦 Found ${studentAccounts.length} local student accounts to migrate`);
+    
+    const userProfiles = tables.userProfiles?.();
+    const students = tables.students?.();
+    
+    if (!userProfiles || !students) {
+      console.warn("❌ Database tables not available for migration");
+      return;
+    }
+    
+    for (const localStudent of studentAccounts) {
+      try {
+        console.log(`🔄 Migrating student: ${localStudent.hallTicket} (${localStudent.name})`);
+        
+        // Check if account already exists in database
+        const { data: existingStudent, error: checkError } = await students
+          .select("id")
+          .eq("hall_ticket", localStudent.hallTicket)
+          .single();
+        
+        if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+          console.warn(`⚠️ Error checking existing student ${localStudent.hallTicket}:`, checkError);
+        }
+        
+        if (existingStudent) {
+          console.log(`✅ Student ${localStudent.hallTicket} already exists in database`);
+          continue;
+        }
+        
+        // Create user profile first
+        const profileData = {
+          id: localStudent.id,
+          email: localStudent.email,
+          role: "student",
+          name: localStudent.name,
+          profile_completed: !!localStudent.profileCompleted,
+        };
+        
+        console.log("📝 Creating user profile:", profileData);
+        const { error: profileError } = await userProfiles.insert([profileData] as any);
+        
+        if (profileError) {
+          console.warn(`⚠️ Failed to create user profile for ${localStudent.hallTicket}:`, profileError);
+          // Try upsert instead
+          const { error: upsertError } = await userProfiles.upsert([profileData] as any);
+          if (upsertError) {
+            console.error(`❌ Failed to upsert user profile for ${localStudent.hallTicket}:`, upsertError);
+            continue;
+          }
+        }
+        
+        // Create student record
+        const studentData = {
+          user_id: localStudent.id,
+          hall_ticket: localStudent.hallTicket,
+          name: localStudent.name,
+          email: localStudent.email,
+          year: localStudent.year,
+          section: localStudent.section || "A",
+          is_active: true,
+        };
+        
+        console.log("📝 Creating student record:", studentData);
+        const { error: studentError } = await students.insert([studentData] as any);
+        
+        if (studentError) {
+          console.warn(`⚠️ Failed to create student record for ${localStudent.hallTicket}:`, studentError);
+          // Try upsert instead
+          const { error: upsertError } = await students.upsert([studentData] as any, { onConflict: "hall_ticket" } as any);
+          if (upsertError) {
+            console.error(`❌ Failed to upsert student record for ${localStudent.hallTicket}:`, upsertError);
+            continue;
+          }
+        }
+        
+        console.log(`✅ Successfully migrated student ${localStudent.hallTicket} to database`);
+      } catch (migrateErr) {
+        console.error(`❌ Failed to migrate student ${localStudent.hallTicket}:`, migrateErr);
+      }
+    }
+    
+    console.log("🎉 Student account migration completed");
+  } catch (error) {
+    console.error("❌ Error during student account migration:", error);
+  }
+};
+
 // Student Authentication
 export const authenticateStudent = async (
   hallTicket: string,
@@ -103,6 +203,9 @@ export const authenticateStudent = async (
 ): Promise<Student | null> => {
   try {
     console.log(`🔍 Authenticating student: ${hallTicket}`);
+
+    // 0) First, try to migrate any existing local accounts to database
+    await migrateAllLocalStudentAccounts();
 
     // 1) Prefer Supabase for multi-device login
     const studentsTable = tables.students();
