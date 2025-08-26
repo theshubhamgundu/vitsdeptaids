@@ -37,6 +37,8 @@ const StudentRegistration = () => {
     fullName: "",
     email: "",
     year: "",
+    password: "",
+    confirmPassword: "",
   });
 
   const handleInputChange = (field: string, value: any) => {
@@ -45,8 +47,19 @@ const StudentRegistration = () => {
   };
 
   const validateForm = () => {
-    if (!formData.hallTicket || !formData.fullName || !formData.email || !formData.year) {
+    if (!formData.hallTicket || !formData.fullName || !formData.email || !formData.year || !formData.password || !formData.confirmPassword) {
       setError("Please fill in all required fields");
+      return false;
+    }
+
+    // Validate password
+    if (formData.password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return false;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
       return false;
     }
 
@@ -195,7 +208,7 @@ const StudentRegistration = () => {
         phone: "",
         year: formData.year,
         section: "A",
-        password: formData.hallTicket, // Default password is hall ticket
+        password: formData.password, // Use the password created by user
         createdAt: new Date().toISOString(),
         profileCompleted: false, // Flag to force profile completion
       };
@@ -227,7 +240,7 @@ const StudentRegistration = () => {
               year: formData.year,
               section: "A",
               is_active: true,
-              password: formData.hallTicket,
+              password: formData.password,
             },
           ]);
 
@@ -384,6 +397,39 @@ const StudentRegistration = () => {
               </div>
             </div>
 
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="password">Create Password *</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    handleInputChange("password", e.target.value)
+                  }
+                  placeholder="Create a strong password"
+                  required
+                />
+                <p className="text-xs text-gray-500">
+                  Password must be at least 6 characters long
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(e) =>
+                    handleInputChange("confirmPassword", e.target.value)
+                  }
+                  placeholder="Confirm your password"
+                  required
+                />
+              </div>
+            </div>
+
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h4 className="font-medium text-blue-900 mb-2">
                 What happens next?
@@ -392,7 +438,7 @@ const StudentRegistration = () => {
                 <li>• We'll verify your details against our records</li>
                 <li>• If found, you'll be taken to your dashboard</li>
                 <li>• Complete your profile to access all features</li>
-                <li>• Your initial password will be your hall ticket number</li>
+                <li>• Use your created password to login in the future</li>
               </ul>
             </div>
 

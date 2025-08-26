@@ -113,24 +113,12 @@ export const authenticateStudent = async (
       return null;
     }
 
-    // Try provided password first
-    let { data: student, error } = await studentsTable
-      .select("*")
-      .eq("hall_ticket", hallTicket)
-      .eq("password", password)
-      .single();
-
-    // If not found, allow default password = hall ticket
-    if ((error || !student) && password !== hallTicket) {
-      console.log("Trying with hall ticket as password...");
-      const result = await studentsTable
-        .select("*")
-        .eq("hall_ticket", hallTicket)
-        .eq("password", hallTicket)
-        .single();
-      student = result.data;
-      error = result.error;
-    }
+         // Try to authenticate with provided password
+     const { data: student, error } = await studentsTable
+       .select("*")
+       .eq("hall_ticket", hallTicket)
+       .eq("password", password)
+       .single();
 
     if (!error && student) {
       console.log("✅ Student authenticated from database");
@@ -145,7 +133,6 @@ export const authenticateStudent = async (
     }
 
          console.log("❌ Student authentication failed");
-     console.log("💡 Tip: The password column may not exist in your database. Run the ADD_PASSWORD_COLUMN.sql script in Supabase.");
      return null;
   } catch (error) {
     console.error("Error authenticating student:", error);

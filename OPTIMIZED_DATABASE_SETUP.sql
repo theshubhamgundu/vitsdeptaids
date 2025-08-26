@@ -62,7 +62,7 @@ CREATE TABLE students (
     phone VARCHAR(20),
     year academic_year NOT NULL,
     section VARCHAR(10),
-    password VARCHAR(255) NOT NULL DEFAULT '', -- For authentication
+         password VARCHAR(255) NOT NULL, -- For authentication (no default)
     father_name VARCHAR(255),
     mother_name VARCHAR(255),
     address TEXT,
@@ -410,7 +410,7 @@ INSERT INTO students (
     '+91 9876543211',
     '3rd Year',
     'A',
-          '20AI001', -- Default password is hall ticket
+          'demo123', -- Demo password for testing
     'Suresh Sharma',
     'Priya Sharma',
     '2002-05-15',
@@ -441,7 +441,7 @@ INSERT INTO student_data (ht_no, student_name, year) VALUES
 -- HOD: AIDS-HVS1 / @VSrinivas231
 -- Faculty: AIDS-ANK1 / @NMKrishna342
 -- Admin: AIDS-DKS1 / @KSomesh702
--- Student: Register with any hall ticket from student_data table
+-- Student: Register with any hall ticket from student_data table (create your own password)
 
 -- Environment Variables Already Set:
 -- VITE_SUPABASE_URL=https://plthigkzjkcxunifsptr.supabase.co

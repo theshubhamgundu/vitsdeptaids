@@ -194,7 +194,7 @@ const LoginPage = () => {
 
           return; // Exit early on success
                  } else {
-           setError("Invalid credentials. Please check your Hall Ticket number and password. Make sure both are entered correctly.");
+           setError("Invalid credentials. Please check your Hall Ticket number and password. If you haven't created an account yet, please register first.");
          }
       } catch (err) {
         console.error("Authentication error:", err);
