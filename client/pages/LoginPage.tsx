@@ -18,6 +18,7 @@ import {
   authenticateFaculty,
   authenticateStudent,
 } from "@/services/authService";
+import LoginPasswordChangeDialog from "@/components/LoginPasswordChangeDialog";
 import {
   User,
   GraduationCap,
@@ -44,6 +45,7 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [forceShowLogin, setForceShowLogin] = useState(false);
+  const [showPasswordChangeDialog, setShowPasswordChangeDialog] = useState(false);
 
 
 
@@ -191,9 +193,9 @@ const LoginPage = () => {
           navigate(from, { replace: true });
 
           return; // Exit early on success
-        } else {
-          setError("Invalid credentials. Tip: Hall Ticket and default password are UPPERCASE.");
-        }
+                 } else {
+           setError("Invalid credentials. Please check your Hall Ticket number and password. Make sure both are entered correctly.");
+         }
       } catch (err) {
         console.error("Authentication error:", err);
         setError("Authentication failed. Please try again.");
@@ -319,25 +321,25 @@ const LoginPage = () => {
           </form>
 
           <div className="text-center space-y-4">
-            <button
-              className="text-sm text-blue-600 hover:underline"
-              onClick={(e) => {
-                e.preventDefault();
-                if (type === "student") {
-                  const ht = (formData.identifier || "").toUpperCase().trim();
-                  if (!ht) {
-                    setError("Enter your Hall Ticket, then click Forgot password.");
-                    return;
-                  }
-                  setFormData((prev) => ({ ...prev, password: ht }));
-                  toast({ title: "Password reset", description: "Password set to your Hall Ticket (UPPERCASE)." });
-                } else {
-                  toast({ title: "Contact admin", description: "Please contact admin to reset your password." });
-                }
-              }}
-            >
-              Forgot password?
-            </button>
+                         <button
+               className="text-sm text-blue-600 hover:underline"
+               onClick={(e) => {
+                 e.preventDefault();
+                 if (type === "student") {
+                   const ht = (formData.identifier || "").toUpperCase().trim();
+                   if (!ht) {
+                     setError("Enter your Hall Ticket, then click Forgot password.");
+                     return;
+                   }
+                   // Open password change dialog instead of auto-reset
+                   setShowPasswordChangeDialog(true);
+                 } else {
+                   toast({ title: "Contact admin", description: "Please contact admin to reset your password." });
+                 }
+               }}
+             >
+               Forgot password?
+             </button>
 
             {type === "student" && (
               <div className="space-y-3">
@@ -399,15 +401,30 @@ const LoginPage = () => {
         </CardContent>
       </Card>
 
-      <Link
-        to="/"
-        className="absolute top-6 left-6 z-20 flex items-center space-x-2 text-white hover:text-gray-200 transition-colors"
-      >
-        <ArrowLeft className="h-5 w-5" />
-        <span>Back to Home</span>
-      </Link>
-    </div>
-  );
-};
+             <Link
+         to="/"
+         className="absolute top-6 left-6 z-20 flex items-center space-x-2 text-white hover:text-gray-200 transition-colors"
+       >
+         <ArrowLeft className="h-5 w-5" />
+         <span>Back to Home</span>
+       </Link>
+
+       {/* Password Change Dialog */}
+       {showPasswordChangeDialog && (
+         <LoginPasswordChangeDialog
+           hallTicket={formData.identifier.toUpperCase().trim()}
+           onClose={() => setShowPasswordChangeDialog(false)}
+           onSuccess={() => {
+             setShowPasswordChangeDialog(false);
+             toast({
+               title: "Password Updated",
+               description: "Your password has been updated successfully. You can now login with your new password.",
+             });
+           }}
+         />
+       )}
+     </div>
+   );
+ };
 
 export default LoginPage;

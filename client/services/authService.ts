@@ -144,8 +144,9 @@ export const authenticateStudent = async (
       };
     }
 
-    console.log("❌ Student authentication failed");
-    return null;
+         console.log("❌ Student authentication failed");
+     console.log("💡 Tip: The password column may not exist in your database. Run the ADD_PASSWORD_COLUMN.sql script in Supabase.");
+     return null;
   } catch (error) {
     console.error("Error authenticating student:", error);
     return null;
