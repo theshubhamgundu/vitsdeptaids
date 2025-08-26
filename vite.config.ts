@@ -5,7 +5,7 @@ import { createServer } from "./server";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: "./", // Use relative paths for assets
+  base: "/", // Use absolute paths for Vercel deployment
   server: {
     host: "::",
     port: 8080,
