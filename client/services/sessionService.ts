@@ -1,152 +1,206 @@
-import { User } from './authService';
+import { User } from "./authService";
 
-interface UserSession {
+export interface SessionData {
+  user: User;
+  lastActivity: number;
   sessionId: string;
-  userId: string;
-  userRole: string;
-  deviceInfo: string;
-  loginTime: string;
-  lastActivity: string;
-  isActive: boolean;
+  expiresAt: number;
 }
 
-// Generate a unique session ID
-const generateSessionId = (): string => {
-  return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-};
+export interface SessionManager {
+  createSession: (user: User) => void;
+  getSession: () => SessionData | null;
+  updateSession: (updates: Partial<User>) => void;
+  clearSession: () => void;
+  isSessionValid: () => boolean;
+  refreshSession: () => void;
+  getLastRoute: () => string | null;
+  setLastRoute: (route: string) => void;
+}
 
-// Get device information for identification
-const getDeviceInfo = (): string => {
-  const userAgent = navigator.userAgent;
-  const platform = navigator.platform || 'Unknown';
-  const language = navigator.language || 'Unknown';
-  return `${platform}_${language}_${userAgent.slice(0, 50)}`;
-};
+class SessionService implements SessionManager {
+  private readonly SESSION_KEY = "vitsdeptaids_session";
+  private readonly LAST_ROUTE_KEY = "vitsdeptaids_last_route";
+  private readonly SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
-// Store active sessions in localStorage (in a real app, this would be server-side)
-const SESSIONS_KEY = 'activeSessions';
+  createSession(user: User): void {
+    try {
+      const sessionData: SessionData = {
+        user,
+        lastActivity: Date.now(),
+        sessionId: this.generateSessionId(),
+        expiresAt: Date.now() + this.SESSION_DURATION,
+      };
 
-export const sessionService = {
-  // Create a new session for a user
-  createSession: (user: User): string => {
-    const sessionId = generateSessionId();
-    const deviceInfo = getDeviceInfo();
-    
-    const newSession: UserSession = {
-      sessionId,
-      userId: user.id,
-      userRole: user.role,
-      deviceInfo,
-      loginTime: new Date().toISOString(),
-      lastActivity: new Date().toISOString(),
-      isActive: true,
-    };
+      // Save to localStorage
+      localStorage.setItem(this.SESSION_KEY, JSON.stringify(sessionData));
+      
+      // Also save to sessionStorage for tab-specific persistence
+      sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(sessionData));
+      
+      // Save user separately for backward compatibility
+      localStorage.setItem("currentUser", JSON.stringify(user));
+      
+      console.log("✅ Session created successfully for:", user.name);
+    } catch (error) {
+      console.error("❌ Error creating session:", error);
+    }
+  }
 
-    // Get existing sessions
-    const activeSessions = sessionService.getAllSessions();
-    
-    // Add new session
-    activeSessions.push(newSession);
-    
-    // Store updated sessions
-    localStorage.setItem(SESSIONS_KEY, JSON.stringify(activeSessions));
-    
-    // Store current session ID for this device
-    localStorage.setItem('currentSessionId', sessionId);
-    
-    return sessionId;
-  },
+  getSession(): SessionData | null {
+    try {
+      // Try sessionStorage first (tab-specific)
+      let sessionData = sessionStorage.getItem(this.SESSION_KEY);
+      
+      if (!sessionData) {
+        // Fallback to localStorage
+        sessionData = localStorage.getItem(this.SESSION_KEY);
+      }
 
-  // Validate if a session is still active
-  validateSession: (sessionId: string): boolean => {
-    const activeSessions = sessionService.getAllSessions();
-    const session = activeSessions.find(s => s.sessionId === sessionId);
-    
-    if (!session || !session.isActive) {
+      if (!sessionData) {
+        return null;
+      }
+
+      const session: SessionData = JSON.parse(sessionData);
+      
+      // Check if session is expired
+      if (Date.now() > session.expiresAt) {
+        console.log("⚠️ Session expired, clearing...");
+        this.clearSession();
+        return null;
+      }
+
+      // Update last activity
+      session.lastActivity = Date.now();
+      this.updateSessionData(session);
+
+      return session;
+    } catch (error) {
+      console.error("❌ Error getting session:", error);
+      this.clearSession();
+      return null;
+    }
+  }
+
+  updateSession(updates: Partial<User>): void {
+    try {
+      const session = this.getSession();
+      if (session) {
+        session.user = { ...session.user, ...updates };
+        session.lastActivity = Date.now();
+        this.updateSessionData(session);
+        
+        // Also update currentUser for backward compatibility
+        localStorage.setItem("currentUser", JSON.stringify(session.user));
+        
+        console.log("✅ Session updated successfully");
+      }
+    } catch (error) {
+      console.error("❌ Error updating session:", error);
+    }
+  }
+
+  clearSession(): void {
+    try {
+      localStorage.removeItem(this.SESSION_KEY);
+      localStorage.removeItem("currentUser");
+      sessionStorage.removeItem(this.SESSION_KEY);
+      localStorage.removeItem(this.LAST_ROUTE_KEY);
+      console.log("✅ Session cleared successfully");
+    } catch (error) {
+      console.error("❌ Error clearing session:", error);
+    }
+  }
+
+  isSessionValid(): boolean {
+    try {
+      const session = this.getSession();
+      if (!session) return false;
+
+      // Check if session is expired
+      if (Date.now() > session.expiresAt) {
+        this.clearSession();
+        return false;
+      }
+
+      // Check if user data is valid
+      if (!session.user || !session.user.id || !session.user.role) {
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("❌ Error checking session validity:", error);
       return false;
     }
-
-    // Update last activity
-    session.lastActivity = new Date().toISOString();
-    localStorage.setItem(SESSIONS_KEY, JSON.stringify(activeSessions));
-    
-    return true;
-  },
-
-  // Get all active sessions
-  getAllSessions: (): UserSession[] => {
-    try {
-      const sessions = localStorage.getItem(SESSIONS_KEY);
-      if (!sessions) {
-        return [];
-      }
-      return JSON.parse(sessions);
-    } catch (error) {
-      console.error('Error loading sessions:', error);
-      return [];
-    }
-  },
-
-  // Get sessions for a specific user
-  getUserSessions: (userId: string): UserSession[] => {
-    const activeSessions = sessionService.getAllSessions();
-    return activeSessions.filter(s => s.userId === userId && s.isActive);
-  },
-
-  // Remove a specific session
-  removeSession: (sessionId: string): void => {
-    const activeSessions = sessionService.getAllSessions();
-    const updatedSessions = activeSessions.map(session => 
-      session.sessionId === sessionId ? { ...session, isActive: false } : session
-    );
-    localStorage.setItem(SESSIONS_KEY, JSON.stringify(updatedSessions));
-    
-    // If this is the current session, remove the session ID
-    const currentSessionId = localStorage.getItem('currentSessionId');
-    if (currentSessionId === sessionId) {
-      localStorage.removeItem('currentSessionId');
-    }
-  },
-
-  // Remove all sessions for a user (logout from all devices)
-  removeAllUserSessions: (userId: string): void => {
-    const activeSessions = sessionService.getAllSessions();
-    const updatedSessions = activeSessions.map(session => 
-      session.userId === userId ? { ...session, isActive: false } : session
-    );
-    localStorage.setItem(SESSIONS_KEY, JSON.stringify(updatedSessions));
-  },
-
-  // Get current session ID for this device
-  getCurrentSessionId: (): string | null => {
-    return localStorage.getItem('currentSessionId');
-  },
-
-  // Clean up old inactive sessions (older than 30 days)
-  cleanupOldSessions: (): void => {
-    const activeSessions = sessionService.getAllSessions();
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
-    const cleanedSessions = activeSessions.filter(session => {
-      const lastActivity = new Date(session.lastActivity);
-      return lastActivity > thirtyDaysAgo;
-    });
-    
-    localStorage.setItem(SESSIONS_KEY, JSON.stringify(cleanedSessions));
-  },
-
-  // Get session info for display
-  getSessionInfo: (sessionId: string): UserSession | null => {
-    const activeSessions = sessionService.getAllSessions();
-    return activeSessions.find(s => s.sessionId === sessionId) || null;
-  },
-
-  // Check if user has multiple active sessions
-  hasMultipleSessions: (userId: string): boolean => {
-    const userSessions = sessionService.getUserSessions(userId);
-    return userSessions.length > 1;
   }
-};
 
+  refreshSession(): void {
+    try {
+      const session = this.getSession();
+      if (session) {
+        session.expiresAt = Date.now() + this.SESSION_DURATION;
+        session.lastActivity = Date.now();
+        this.updateSessionData(session);
+        console.log("✅ Session refreshed successfully");
+      }
+    } catch (error) {
+      console.error("❌ Error refreshing session:", error);
+    }
+  }
+
+  getLastRoute(): string | null {
+    try {
+      return localStorage.getItem(this.LAST_ROUTE_KEY);
+    } catch (error) {
+      console.error("❌ Error getting last route:", error);
+      return null;
+    }
+  }
+
+  setLastRoute(route: string): void {
+    try {
+      localStorage.setItem(this.LAST_ROUTE_KEY, route);
+    } catch (error) {
+      console.error("❌ Error setting last route:", error);
+    }
+  }
+
+  private generateSessionId(): string {
+    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  private updateSessionData(session: SessionData): void {
+    try {
+      localStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
+      sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
+    } catch (error) {
+      console.error("❌ Error updating session data:", error);
+    }
+  }
+
+  // Auto-refresh session on user activity
+  setupAutoRefresh(): void {
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    
+    const refreshSession = () => {
+      if (this.isSessionValid()) {
+        this.refreshSession();
+      }
+    };
+
+    events.forEach(event => {
+      document.addEventListener(event, refreshSession, { passive: true });
+    });
+
+    // Cleanup function
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, refreshSession);
+      });
+    };
+  }
+}
+
+export const sessionService = new SessionService();
 export default sessionService;

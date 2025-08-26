@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { sessionService } from "@/services/sessionService";
 import {
   authenticateFaculty,
   authenticateStudent,
@@ -140,8 +141,9 @@ const LoginPage = () => {
             designation: faculty.designation,
           });
 
-          // Navigate immediately
-          const from = location.state?.from?.pathname || route;
+          // Navigate immediately - check for saved route first
+          const savedRoute = sessionService.getLastRoute();
+          const from = location.state?.from?.pathname || savedRoute || route;
           console.log("🔄 Navigating immediately to:", from);
           navigate(from, { replace: true });
 
@@ -183,8 +185,9 @@ const LoginPage = () => {
             section: student.section,
           });
 
-          // Navigate immediately
-          const from = location.state?.from?.pathname || "/dashboard/student";
+          // Navigate immediately - check for saved route first
+          const savedRoute = sessionService.getLastRoute();
+          const from = location.state?.from?.pathname || savedRoute || "/dashboard/student";
           console.log("🔄 Navigating immediately to:", from);
           navigate(from, { replace: true });
 

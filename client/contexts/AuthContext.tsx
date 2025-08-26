@@ -6,6 +6,7 @@ import React, {
   ReactNode,
 } from "react";
 import { User } from "@/services/authService";
+import { sessionService } from "@/services/sessionService";
 
 interface AuthContextType {
   user: User | null;
@@ -26,22 +27,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Simple initialization - check localStorage for existing user
+  // Enhanced initialization with session service
   useEffect(() => {
-    console.log("🔍 Checking for existing user...");
+    console.log("🔍 Checking for existing session...");
 
     try {
-      const existingUser = localStorage.getItem("currentUser");
-      if (existingUser) {
-        const userData = JSON.parse(existingUser);
-        console.log("✅ Found existing user:", userData.name);
-        setUser(userData);
+      // Try to get session from session service first
+      const session = sessionService.getSession();
+      
+      if (session && sessionService.isSessionValid()) {
+        console.log("✅ Found valid session for:", session.user.name);
+        setUser(session.user);
+        
+        // Setup auto-refresh for the session
+        const cleanup = sessionService.setupAutoRefresh();
+        
+        // Return cleanup function
+        return cleanup;
       } else {
-        console.log("ℹ️ No existing user found");
+        // Fallback to legacy localStorage check
+        const existingUser = localStorage.getItem("currentUser");
+        if (existingUser) {
+          const userData = JSON.parse(existingUser);
+          console.log("✅ Found existing user from localStorage:", userData.name);
+          
+          // Create new session from existing user data
+          sessionService.createSession(userData);
+          setUser(userData);
+        } else {
+          console.log("ℹ️ No existing session or user found");
+        }
       }
     } catch (error) {
-      console.warn("Failed to parse existing user data:", error);
-      localStorage.removeItem("currentUser");
+      console.warn("Failed to restore session:", error);
+      sessionService.clearSession();
     }
 
     // Always set loading to false after check
@@ -55,30 +74,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Set user immediately
     setUser(userData);
 
-    // Save to localStorage
-    localStorage.setItem("currentUser", JSON.stringify(userData));
+    // Create session using session service
+    sessionService.createSession(userData);
 
     // Ensure loading is false
     setIsLoading(false);
 
-    console.log("✅ Login complete - user set and loading disabled");
+    console.log("✅ Login complete - user set and session created");
   };
 
   const logout = () => {
     console.log("🔐 Logging out user");
 
     setUser(null);
-    localStorage.removeItem("currentUser");
-    localStorage.removeItem("currentSessionToken");
+    
+    // Clear session using session service
+    sessionService.clearSession();
 
-    console.log("✅ Logout complete");
+    console.log("✅ Logout complete - session cleared");
   };
 
   const updateUser = (userData: Partial<User>) => {
     if (user) {
       const updatedUser = { ...user, ...userData };
       setUser(updatedUser);
-      localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+      
+      // Update session
+      sessionService.updateSession(userData);
     }
   };
 

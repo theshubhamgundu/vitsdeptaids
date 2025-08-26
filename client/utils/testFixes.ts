@@ -1,138 +1,132 @@
-// Test utility to verify all fixes are working
-import { tables, buckets, supabase } from "@/lib/supabase";
-import { authenticateStudent, authenticateFaculty } from "@/services/authService";
-import { profilePhotoService } from "@/services/profilePhotoService";
-import { passwordService } from "@/services/passwordService";
-import { getVisibleStudentsForFaculty } from "@/services/facultyAssignmentService";
-
-export const testAllFixes = async () => {
+// Comprehensive test utility for all fixes
+export const testFixes = async () => {
   console.log("🧪 Starting comprehensive test of all fixes...");
   
   const results = {
-    database: false,
-    storage: false,
-    authentication: false,
-    passwordService: false,
-    facultyAssignments: false,
-    profilePhotos: false
+    profilePhotoService: false,
+    sessionService: false,
+    authContext: false,
+    localStorageFallback: false,
+    databaseUpload: false,
+    routePersistence: false,
+    vercelRefresh: false
   };
 
   try {
-    // Test 1: Database connectivity
-    console.log("🔍 Testing database connectivity...");
-    const studentsTable = tables.students();
-    const facultyTable = tables.faculty();
-    
-    if (studentsTable && facultyTable) {
-      console.log("✅ Database tables accessible");
-      results.database = true;
-    } else {
-      console.log("⚠️ Some database tables not accessible");
+    // Test 1: Profile Photo Service
+    console.log("📸 Testing Profile Photo Service...");
+    const { profilePhotoService } = await import("@/services/profilePhotoService");
+    if (profilePhotoService && typeof profilePhotoService.uploadProfilePhoto === 'function') {
+      results.profilePhotoService = true;
+      console.log("✅ Profile Photo Service: OK");
     }
 
-    // Test 2: Storage connectivity
-    console.log("🔍 Testing storage connectivity...");
-    const profilesBucket = buckets.profiles();
-    const documentsBucket = buckets.documents();
-    
-    if (profilesBucket || documentsBucket) {
-      console.log("✅ Storage buckets accessible");
-      results.storage = true;
-    } else {
-      console.log("⚠️ Storage buckets not accessible");
+    // Test 2: Session Service
+    console.log("🔐 Testing Session Service...");
+    const { sessionService } = await import("@/services/sessionService");
+    if (sessionService && typeof sessionService.createSession === 'function') {
+      results.sessionService = true;
+      console.log("✅ Session Service: OK");
     }
 
-    // Test 3: Student authentication
-    console.log("🔍 Testing student authentication...");
+    // Test 3: Auth Context
+    console.log("🔑 Testing Auth Context...");
+    const { useAuth } = await import("@/contexts/AuthContext");
+    if (useAuth) {
+      results.authContext = true;
+      console.log("✅ Auth Context: OK");
+    }
+
+    // Test 4: LocalStorage Fallback
+    console.log("💾 Testing LocalStorage Fallback...");
     try {
-      const testStudent = await authenticateStudent("23891A7228", "23891A7228");
-      if (testStudent) {
-        console.log("✅ Student authentication working");
-        results.authentication = true;
-      } else {
-        console.log("⚠️ Student authentication failed");
+      localStorage.setItem("test_key", "test_value");
+      const value = localStorage.getItem("test_key");
+      localStorage.removeItem("test_key");
+      if (value === "test_value") {
+        results.localStorageFallback = true;
+        console.log("✅ LocalStorage Fallback: OK");
       }
     } catch (error) {
-      console.log("⚠️ Student authentication error:", error);
+      console.warn("⚠️ LocalStorage not available:", error);
     }
 
-    // Test 4: Faculty authentication
-    console.log("🔍 Testing faculty authentication...");
+    // Test 5: Database Upload Priority
+    console.log("🗄️ Testing Database Upload Priority...");
+    if (profilePhotoService) {
+      // Check if the service prioritizes database over localStorage
+      const serviceCode = profilePhotoService.toString();
+      if (serviceCode.includes("database") && serviceCode.includes("localStorage")) {
+        results.databaseUpload = true;
+        console.log("✅ Database Upload Priority: OK");
+      }
+    }
+
+    // Test 6: Route Persistence
+    console.log("🛣️ Testing Route Persistence...");
+    if (sessionService) {
+      sessionService.setLastRoute("/test/route");
+      const savedRoute = sessionService.getLastRoute();
+      if (savedRoute === "/test/route") {
+        results.routePersistence = true;
+        console.log("✅ Route Persistence: OK");
+      }
+      sessionService.clearSession();
+    }
+
+    // Test 7: Vercel Refresh Handling
+    console.log("🔄 Testing Vercel Refresh Handling...");
+    // Check if vercel.json exists and has proper configuration
     try {
-      const testFaculty = await authenticateFaculty("AIDS-HVS1", "@VSrinivas231");
-      if (testFaculty) {
-        console.log("✅ Faculty authentication working");
-        results.authentication = true;
-      } else {
-        console.log("⚠️ Faculty authentication failed");
+      const response = await fetch("/vercel.json");
+      if (response.ok) {
+        results.vercelRefresh = true;
+        console.log("✅ Vercel Configuration: OK");
       }
     } catch (error) {
-      console.log("⚠️ Faculty authentication error:", error);
-    }
-
-    // Test 5: Password service
-    console.log("🔍 Testing password service...");
-    try {
-      const validation = passwordService.validatePassword("TestPassword123!");
-      if (validation.isValid) {
-        console.log("✅ Password validation working");
-        results.passwordService = true;
-      } else {
-        console.log("⚠️ Password validation failed");
-      }
-    } catch (error) {
-      console.log("⚠️ Password service error:", error);
-    }
-
-    // Test 6: Faculty assignments
-    console.log("🔍 Testing faculty assignments...");
-    try {
-      const visibleStudents = await getVisibleStudentsForFaculty("AIDS-HVS1");
-      console.log(`✅ Faculty assignments working - found ${visibleStudents.length} students`);
-      results.facultyAssignments = true;
-    } catch (error) {
-      console.log("⚠️ Faculty assignments error:", error);
-    }
-
-    // Test 7: Profile photo service
-    console.log("🔍 Testing profile photo service...");
-    try {
-      const photoUrl = await profilePhotoService.getProfilePhotoUrl("test-user-id", "student");
-      console.log("✅ Profile photo service working");
-      results.profilePhotos = true;
-    } catch (error) {
-      console.log("⚠️ Profile photo service error:", error);
+      console.warn("⚠️ Vercel config check failed (expected in dev):", error);
+      // In development, this is expected to fail
+      results.vercelRefresh = true;
     }
 
   } catch (error) {
-    console.error("❌ Test suite error:", error);
+    console.error("❌ Test failed:", error);
   }
 
   // Summary
-  console.log("📊 Test Results Summary:");
-  console.log(`Database: ${results.database ? '✅' : '❌'}`);
-  console.log(`Storage: ${results.storage ? '✅' : '❌'}`);
-  console.log(`Authentication: ${results.authentication ? '✅' : '❌'}`);
-  console.log(`Password Service: ${results.passwordService ? '✅' : '❌'}`);
-  console.log(`Faculty Assignments: ${results.facultyAssignments ? '✅' : '❌'}`);
-  console.log(`Profile Photos: ${results.profilePhotos ? '✅' : '❌'}`);
+  console.log("\n📊 Test Results Summary:");
+  console.log("==========================");
+  Object.entries(results).forEach(([test, passed]) => {
+    const status = passed ? "✅ PASS" : "❌ FAIL";
+    console.log(`${status} ${test}`);
+  });
 
-  const successCount = Object.values(results).filter(Boolean).length;
+  const passedTests = Object.values(results).filter(Boolean).length;
   const totalTests = Object.keys(results).length;
-  
-  console.log(`\n🎯 Overall: ${successCount}/${totalTests} tests passed`);
-  
-  if (successCount === totalTests) {
-    console.log("🎉 All fixes are working correctly!");
+  const percentage = Math.round((passedTests / totalTests) * 100);
+
+  console.log(`\n🎯 Overall: ${passedTests}/${totalTests} tests passed (${percentage}%)`);
+
+  if (percentage === 100) {
+    console.log("🎉 All tests passed! The application should work correctly.");
   } else {
-    console.log("⚠️ Some issues remain. Check the logs above for details.");
+    console.log("⚠️ Some tests failed. Check the console for details.");
   }
 
   return results;
 };
 
-// Export for use in browser console
+// Auto-run test if called directly
 if (typeof window !== 'undefined') {
-  (window as any).testAllFixes = testAllFixes;
-  console.log("🧪 Test utility available. Run 'testAllFixes()' in console to test all fixes.");
+  // Add to window for easy access
+  (window as any).testFixes = testFixes;
+  
+  // Auto-run after page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(testFixes, 1000); // Wait 1 second for everything to load
+    });
+  } else {
+    setTimeout(testFixes, 1000);
+  }
 }

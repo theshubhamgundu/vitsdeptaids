@@ -116,6 +116,7 @@ export const profilePhotoService = {
       // Compress image to ensure < 1MB
       const processedFile = await compressImage(file, 1024 * 1024);
 
+      // Try Supabase storage first (prioritize for cross-device access)
       if (supabase && buckets.profiles()) {
         try {
           console.log("📤 Attempting Supabase storage upload...");
@@ -144,11 +145,13 @@ export const profilePhotoService = {
             
             // Check if it's a bucket not found error
             if (uploadResult.error.message?.includes('bucket') || uploadResult.error.message?.includes('not found')) {
-              console.log("🔄 Storage bucket not configured, using localStorage fallback");
-              // Store in localStorage as fallback using base64
-              const photoUrl = await imageUtils.saveImageToLocalStorage(userId, processedFile);
+              console.log("🔄 Storage bucket not configured, trying database upload...");
               
-              // Also save to user profile
+              // Try to upload to database directly
+              const base64Data = await imageUtils.compressAndConvertToBase64(processedFile);
+              const photoUrl = `data:image/jpeg;base64,${base64Data.split(',')[1]}`;
+              
+              // Save to database
               await profilePhotoService.savePhotoUrlToProfile(
                 userId,
                 photoUrl,
@@ -158,12 +161,12 @@ export const profilePhotoService = {
               return { 
                 success: true, 
                 photoUrl: photoUrl,
-                isLocalStorage: true,
+                isLocalStorage: false,
                 error: null
               };
             }
             
-            // For any other error, return error instead of localStorage fallback
+            // For any other error, return error
             console.error("❌ Supabase storage error:", uploadResult.error);
             return { 
               success: false, 
@@ -176,11 +179,40 @@ export const profilePhotoService = {
         } catch (supabaseError) {
           console.warn("⚠️ Supabase storage error:", supabaseError);
           
-          // For any storage error, try localStorage fallback
-          console.log("🔄 Attempting to use localStorage fallback for profile photo");
-          const photoUrl = await imageUtils.saveImageToLocalStorage(userId, processedFile);
+          // Try database upload as fallback
+          console.log("🔄 Attempting database upload as fallback...");
+          try {
+            const base64Data = await imageUtils.compressAndConvertToBase64(processedFile);
+            const photoUrl = `data:image/jpeg;base64,${base64Data.split(',')[1]}`;
+            
+            // Save to database
+            await profilePhotoService.savePhotoUrlToProfile(
+              userId,
+              photoUrl,
+              userRole,
+            );
+            
+            return { 
+              success: true, 
+              photoUrl: photoUrl,
+              isLocalStorage: false,
+              error: null
+            };
+          } catch (dbError) {
+            console.warn("⚠️ Database upload failed, using localStorage as last resort:", dbError);
+            // Last resort: localStorage
+            const photoUrl = await imageUtils.saveImageToLocalStorage(userId, processedFile);
+            await profilePhotoService.savePhotoUrlToProfile(userId, photoUrl, userRole);
+            return { success: true, photoUrl: photoUrl, isLocalStorage: true, error: null };
+          }
+        }
+      } else {
+        console.warn("⚠️ Supabase not configured, trying database upload...");
+        try {
+          const base64Data = await imageUtils.compressAndConvertToBase64(processedFile);
+          const photoUrl = `data:image/jpeg;base64,${base64Data.split(',')[1]}`;
           
-          // Also save to user profile
+          // Save to database
           await profilePhotoService.savePhotoUrlToProfile(
             userId,
             photoUrl,
@@ -190,28 +222,16 @@ export const profilePhotoService = {
           return { 
             success: true, 
             photoUrl: photoUrl,
-            isLocalStorage: true,
+            isLocalStorage: false,
             error: null
           };
+        } catch (dbError) {
+          console.warn("⚠️ Database upload failed, using localStorage:", dbError);
+          // Fallback to localStorage
+          const photoUrl = await imageUtils.saveImageToLocalStorage(userId, processedFile);
+          await profilePhotoService.savePhotoUrlToProfile(userId, photoUrl, userRole);
+          return { success: true, photoUrl: photoUrl, isLocalStorage: true, error: null };
         }
-      } else {
-        console.warn("⚠️ Supabase not configured, using localStorage");
-        // Store in localStorage as fallback using base64
-        const photoUrl = await imageUtils.saveImageToLocalStorage(userId, processedFile);
-        
-        // Also save to user profile
-        await profilePhotoService.savePhotoUrlToProfile(
-          userId,
-          photoUrl,
-          userRole,
-        );
-        
-        return { 
-          success: true, 
-          photoUrl: photoUrl,
-          isLocalStorage: true,
-          error: null
-        };
       }
       
     } catch (error) {
@@ -230,7 +250,33 @@ export const profilePhotoService = {
     userRole: string,
   ): Promise<void> => {
     try {
-      // Always update localStorage for quick access (prioritize localStorage)
+      // Try to update database first (prioritize for cross-device access)
+      if (supabase) {
+        try {
+          if (userRole === "student") {
+            const studentsTable = tables.students();
+            if (studentsTable) {
+              await studentsTable
+                .update({ profile_photo_url: photoUrl })
+                .eq("id", userId);
+              console.log("✅ Profile photo URL saved to database");
+            }
+          } else {
+            const facultyTable = tables.faculty();
+            if (facultyTable) {
+              await facultyTable
+                .update({ profile_photo_url: photoUrl })
+                .eq("id", userId);
+              console.log("✅ Profile photo URL saved to database");
+            }
+          }
+        } catch (dbError) {
+          console.warn("⚠️ Database update failed:", dbError);
+          // Continue to localStorage as fallback
+        }
+      }
+
+      // Always update localStorage for quick access and offline support
       const currentUser = localStorage.getItem("currentUser");
       if (currentUser) {
         const userData = JSON.parse(currentUser);
@@ -245,30 +291,6 @@ export const profilePhotoService = {
         localUsers[userIndex].profilePhotoUrl = photoUrl;
         localStorage.setItem("localUsers", JSON.stringify(localUsers));
       }
-
-      // Try to update database as well (but don't fail if it doesn't work)
-      if (supabase) {
-        try {
-          if (userRole === "student") {
-            const studentsTable = tables.students();
-            if (studentsTable) {
-              await studentsTable
-                .update({ profile_photo_url: photoUrl })
-                .eq("id", userId);
-            }
-          } else {
-            const facultyTable = tables.faculty();
-            if (facultyTable) {
-              await facultyTable
-                .update({ profile_photo_url: photoUrl })
-                .eq("id", userId);
-            }
-          }
-        } catch (dbError) {
-          console.warn("⚠️ Database update failed (expected):", dbError);
-          // Don't throw error, just continue
-        }
-      }
     } catch (error) {
       console.error("Error saving photo URL to profile:", error);
     }
@@ -280,7 +302,42 @@ export const profilePhotoService = {
     userRole: string = "student",
   ): Promise<string | null> => {
     try {
-      // Check localStorage first (prioritize localStorage)
+      // Try database first for cross-device access
+      if (supabase) {
+        try {
+          let photoUrl = null;
+
+          if (userRole === "student") {
+            const studentsTable = tables.students();
+            if (studentsTable) {
+              const { data } = await studentsTable
+                .select("profile_photo_url")
+                .eq("id", userId)
+                .single();
+              photoUrl = data?.profile_photo_url;
+            }
+          } else {
+            const facultyTable = tables.faculty();
+            if (facultyTable) {
+              const { data } = await facultyTable
+                .select("profile_photo_url")
+                .eq("id", userId)
+                .single();
+              photoUrl = data?.profile_photo_url;
+            }
+          }
+
+          if (photoUrl) {
+            console.log("✅ Profile photo loaded from database");
+            return photoUrl;
+          }
+        } catch (dbError) {
+          console.warn("⚠️ Database query for profile photo failed:", dbError);
+          // Continue to localStorage fallback
+        }
+      }
+
+      // Check localStorage as fallback
       const localPhoto = imageUtils.getImageFromLocalStorage(userId);
       if (localPhoto) {
         console.log("📱 Profile photo loaded from localStorage");

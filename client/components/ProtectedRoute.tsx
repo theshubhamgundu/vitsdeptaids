@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { sessionService } from "@/services/sessionService";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -17,13 +18,20 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const location = useLocation();
   const [loadingTimeout, setLoadingTimeout] = useState(false);
 
+  // Save current route to session for refresh recovery
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      sessionService.setLastRoute(location.pathname);
+    }
+  }, [location.pathname, isAuthenticated, user]);
+
   // Set a timeout for loading state to prevent infinite loading
   useEffect(() => {
     if (isLoading) {
       const timer = setTimeout(() => {
         console.warn("⚠️ Loading timeout reached in ProtectedRoute");
         setLoadingTimeout(true);
-      }, 2000); // 2 second timeout
+      }, 3000); // Increased to 3 seconds for better session handling
 
       return () => clearTimeout(timer);
     }
@@ -33,6 +41,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     isLoading,
     isAuthenticated,
     user: user?.name,
+    currentPath: location.pathname,
   });
 
   // Show loading state only briefly
@@ -43,7 +52,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
           <p className="text-xs text-gray-400 mt-2">
-            Checking authentication...
+            Restoring your session...
           </p>
         </div>
       </div>
@@ -53,6 +62,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Redirect to login if not authenticated
   if (!isAuthenticated || !user) {
     console.log("🔄 Redirecting to login - not authenticated");
+    
+    // Save intended destination for after login
+    sessionService.setLastRoute(location.pathname);
+    
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
