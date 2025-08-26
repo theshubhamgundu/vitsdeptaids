@@ -96,107 +96,9 @@ export const authenticateFaculty = async (
   }
 };
 
-// Migrate all localStorage student accounts to database for multi-device access
-export const migrateAllLocalStudentAccounts = async (): Promise<void> => {
-  try {
-    console.log("🔄 Starting migration of all local student accounts...");
-    
-    const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
-    const studentAccounts = localUsers.filter((user: any) => user.role === "student");
-    
-    if (studentAccounts.length === 0) {
-      console.log("ℹ️ No local student accounts to migrate");
-      return;
-    }
-    
-    console.log(`📦 Found ${studentAccounts.length} local student accounts to migrate`);
-    
-    const userProfiles = tables.userProfiles?.();
-    const students = tables.students?.();
-    
-    if (!userProfiles || !students) {
-      console.warn("❌ Database tables not available for migration");
-      return;
-    }
-    
-    for (const localStudent of studentAccounts) {
-      try {
-        console.log(`🔄 Migrating student: ${localStudent.hallTicket} (${localStudent.name})`);
-        
-        // Check if account already exists in database
-        const { data: existingStudent, error: checkError } = await students
-          .select("id")
-          .eq("hall_ticket", localStudent.hallTicket)
-          .single();
-        
-        if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
-          console.warn(`⚠️ Error checking existing student ${localStudent.hallTicket}:`, checkError);
-        }
-        
-        if (existingStudent) {
-          console.log(`✅ Student ${localStudent.hallTicket} already exists in database`);
-          continue;
-        }
-        
-        // Create user profile first
-        const profileData = {
-          id: localStudent.id,
-          email: localStudent.email,
-          role: "student",
-          name: localStudent.name,
-          profile_completed: !!localStudent.profileCompleted,
-        };
-        
-        console.log("📝 Creating user profile:", profileData);
-        const { error: profileError } = await userProfiles.insert([profileData] as any);
-        
-        if (profileError) {
-          console.warn(`⚠️ Failed to create user profile for ${localStudent.hallTicket}:`, profileError);
-          // Try upsert instead
-          const { error: upsertError } = await userProfiles.upsert([profileData] as any);
-          if (upsertError) {
-            console.error(`❌ Failed to upsert user profile for ${localStudent.hallTicket}:`, upsertError);
-            continue;
-          }
-        }
-        
-        // Create student record
-        const studentData = {
-          user_id: localStudent.id,
-          hall_ticket: localStudent.hallTicket,
-          name: localStudent.name,
-          email: localStudent.email,
-          year: localStudent.year,
-          section: localStudent.section || "A",
-          is_active: true,
-        };
-        
-        console.log("📝 Creating student record:", studentData);
-        const { error: studentError } = await students.insert([studentData] as any);
-        
-        if (studentError) {
-          console.warn(`⚠️ Failed to create student record for ${localStudent.hallTicket}:`, studentError);
-          // Try upsert instead
-          const { error: upsertError } = await students.upsert([studentData] as any, { onConflict: "hall_ticket" } as any);
-          if (upsertError) {
-            console.error(`❌ Failed to upsert student record for ${localStudent.hallTicket}:`, upsertError);
-            continue;
-          }
-        }
-        
-        console.log(`✅ Successfully migrated student ${localStudent.hallTicket} to database`);
-      } catch (migrateErr) {
-        console.error(`❌ Failed to migrate student ${localStudent.hallTicket}:`, migrateErr);
-      }
-    }
-    
-    console.log("🎉 Student account migration completed");
-  } catch (error) {
-    console.error("❌ Error during student account migration:", error);
-  }
-};
 
-// Student Authentication
+
+// Student Authentication - Database Only
 export const authenticateStudent = async (
   hallTicket: string,
   password: string,
@@ -204,104 +106,41 @@ export const authenticateStudent = async (
   try {
     console.log(`🔍 Authenticating student: ${hallTicket}`);
 
-    // 0) First, try to migrate any existing local accounts to database
-    await migrateAllLocalStudentAccounts();
-
-    // 1) Prefer Supabase for multi-device login
+    // Database-only authentication
     const studentsTable = tables.students();
-    if (studentsTable) {
-      try {
-        // Try provided password first
-        let { data: student, error } = await studentsTable
-          .select("*")
-          .eq("hall_ticket", hallTicket)
-          .eq("password", password)
-          .single();
-
-        // If not found, allow default password = hall ticket
-        if ((error || !student) && password !== hallTicket) {
-          console.log("Trying with hall ticket as password...");
-          const result = await studentsTable
-            .select("*")
-            .eq("hall_ticket", hallTicket)
-            .eq("password", hallTicket)
-            .single();
-          student = result.data;
-          error = result.error;
-        }
-
-        if (!error && student) {
-          console.log("✅ Student authenticated from database");
-          return {
-            id: student.id,
-            name: student.name,
-            hallTicket: student.hall_ticket,
-            email: student.email,
-            year: student.year,
-            section: student.section || "A",
-          };
-        }
-      } catch (dbError) {
-        console.warn("Database authentication failed:", dbError);
-      }
+    if (!studentsTable) {
+      console.error("❌ Students table not available");
+      return null;
     }
 
-    // 2) Fallback to localStorage (legacy single-device accounts)
-    const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
-    const localStudent = localUsers.find(
-      (user: any) =>
-        user.hallTicket === hallTicket &&
-        (user.password === password || hallTicket === password) &&
-        user.role === "student",
-    );
+    // Try provided password first
+    let { data: student, error } = await studentsTable
+      .select("*")
+      .eq("hall_ticket", hallTicket)
+      .eq("password", password)
+      .single();
 
-    if (localStudent) {
-      console.log("✅ Student authenticated from local storage");
-      // Try to upsert this legacy account into DB so other devices can login
-      try {
-        const userProfiles = tables.userProfiles?.();
-        const students = tables.students?.();
-        if (userProfiles && students) {
-          // Ensure user_profile exists
-          const profileId = localStudent.id;
-          await userProfiles.upsert([
-            {
-              id: profileId,
-              email: localStudent.email,
-              role: "student",
-              hall_ticket: localStudent.hallTicket,
-              name: localStudent.name,
-              year: localStudent.year,
-              is_active: true,
-              profile_completed: !!localStudent.profileCompleted,
-            },
-          ] as any);
+    // If not found, allow default password = hall ticket
+    if ((error || !student) && password !== hallTicket) {
+      console.log("Trying with hall ticket as password...");
+      const result = await studentsTable
+        .select("*")
+        .eq("hall_ticket", hallTicket)
+        .eq("password", hallTicket)
+        .single();
+      student = result.data;
+      error = result.error;
+    }
 
-          // Ensure student row exists with default password policy
-          await students.upsert([
-            {
-              user_id: profileId,
-              hall_ticket: localStudent.hallTicket,
-              name: localStudent.name,
-              email: localStudent.email,
-              year: localStudent.year,
-              section: localStudent.section || "A",
-              is_active: true,
-              password: localStudent.password || localStudent.hallTicket,
-            },
-          ] as any, { onConflict: "hall_ticket" } as any);
-          console.log("☁️ Migrated legacy local student to database for multi-device login");
-        }
-      } catch (migrateErr) {
-        console.warn("Legacy student migration to DB failed (will continue using local):", migrateErr);
-      }
+    if (!error && student) {
+      console.log("✅ Student authenticated from database");
       return {
-        id: localStudent.id,
-        name: localStudent.name,
-        hallTicket: localStudent.hallTicket,
-        email: localStudent.email,
-        year: localStudent.year,
-        section: localStudent.section || "A",
+        id: student.id,
+        name: student.name,
+        hallTicket: student.hall_ticket,
+        email: student.email,
+        year: student.year,
+        section: student.section || "A",
       };
     }
 
@@ -657,43 +496,7 @@ export const getDepartmentEvents = async () => {
   }
 };
 
-export const resetStudentPassword = async (
-  hallTicket: string,
-  newPassword: string,
-): Promise<{ ok: boolean; message?: string }> => {
-  try {
-    const studentsTable = tables.students?.();
 
-    if (studentsTable) {
-      const { error } = await studentsTable
-        .update({ password: newPassword })
-        .eq("hall_ticket", hallTicket);
-
-      if (!error) {
-        console.log("✅ Password reset in database for", hallTicket);
-        return { ok: true };
-      }
-      console.warn("⚠️ DB password reset failed, will try fallback:", error);
-    }
-
-    // Fallback: update localStorage legacy accounts
-    const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
-    const idx = localUsers.findIndex(
-      (u: any) => u.role === "student" && u.hallTicket === hallTicket,
-    );
-    if (idx !== -1) {
-      localUsers[idx].password = newPassword;
-      localStorage.setItem("localUsers", JSON.stringify(localUsers));
-      console.log("📝 Password reset in localStorage for", hallTicket);
-      return { ok: true };
-    }
-
-    return { ok: false, message: "Student not found" };
-  } catch (err: any) {
-    console.error("❌ resetStudentPassword failed:", err);
-    return { ok: false, message: err?.message || "Unknown error" };
-  }
-};
 
 export default {
   authenticateFaculty,

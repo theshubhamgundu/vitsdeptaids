@@ -62,6 +62,7 @@ CREATE TABLE students (
     phone VARCHAR(20),
     year academic_year NOT NULL,
     section VARCHAR(10),
+    password VARCHAR(255) NOT NULL DEFAULT '', -- For authentication
     father_name VARCHAR(255),
     mother_name VARCHAR(255),
     address TEXT,
@@ -399,7 +400,7 @@ INSERT INTO user_profiles (id, email, role, hall_ticket, name, year, is_active) 
 -- Insert demo student record
 INSERT INTO students (
     id, user_id, hall_ticket, name, email, phone, year, section,
-    father_name, mother_name, date_of_birth, blood_group, is_active
+    password, father_name, mother_name, date_of_birth, blood_group, is_active
 ) VALUES (
     '30000000-0000-0000-0000-000000000001',
     '30000000-0000-0000-0000-000000000001',
@@ -409,6 +410,7 @@ INSERT INTO students (
     '+91 9876543211',
     '3rd Year',
     'A',
+          '20AI001', -- Default password is hall ticket
     'Suresh Sharma',
     'Priya Sharma',
     '2002-05-15',
