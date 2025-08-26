@@ -657,6 +657,44 @@ export const getDepartmentEvents = async () => {
   }
 };
 
+export const resetStudentPassword = async (
+  hallTicket: string,
+  newPassword: string,
+): Promise<{ ok: boolean; message?: string }> => {
+  try {
+    const studentsTable = tables.students?.();
+
+    if (studentsTable) {
+      const { error } = await studentsTable
+        .update({ password: newPassword })
+        .eq("hall_ticket", hallTicket);
+
+      if (!error) {
+        console.log("✅ Password reset in database for", hallTicket);
+        return { ok: true };
+      }
+      console.warn("⚠️ DB password reset failed, will try fallback:", error);
+    }
+
+    // Fallback: update localStorage legacy accounts
+    const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
+    const idx = localUsers.findIndex(
+      (u: any) => u.role === "student" && u.hallTicket === hallTicket,
+    );
+    if (idx !== -1) {
+      localUsers[idx].password = newPassword;
+      localStorage.setItem("localUsers", JSON.stringify(localUsers));
+      console.log("📝 Password reset in localStorage for", hallTicket);
+      return { ok: true };
+    }
+
+    return { ok: false, message: "Student not found" };
+  } catch (err: any) {
+    console.error("❌ resetStudentPassword failed:", err);
+    return { ok: false, message: err?.message || "Unknown error" };
+  }
+};
+
 export default {
   authenticateFaculty,
   authenticateStudent,
@@ -670,4 +708,5 @@ export default {
   addTimeSlot,
   getCourses,
   getDepartmentEvents,
+  resetStudentPassword,
 };

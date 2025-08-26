@@ -19,6 +19,7 @@ import {
   authenticateStudent,
   migrateAllLocalStudentAccounts,
 } from "@/services/authService";
+import passwordService from "@/services/passwordService";
 import {
   User,
   GraduationCap,
@@ -30,6 +31,7 @@ import {
   Cpu,
   ArrowLeft,
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 const LoginPage = () => {
   const { type } = useParams<{ type: string }>();
@@ -45,6 +47,8 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [forceShowLogin, setForceShowLogin] = useState(false);
+  const [showReset, setShowReset] = useState(false);
+  const [resetForm, setResetForm] = useState({ current: "", next: "", confirm: "" });
 
   // Migrate localStorage accounts to database on page load
   useEffect(() => {
@@ -340,21 +344,93 @@ const LoginPage = () => {
               className="text-sm text-blue-600 hover:underline"
               onClick={(e) => {
                 e.preventDefault();
-                if (type === "student") {
-                  const ht = (formData.identifier || "").toUpperCase().trim();
-                  if (!ht) {
-                    setError("Enter your Hall Ticket, then click Forgot password.");
-                    return;
-                  }
-                  setFormData((prev) => ({ ...prev, password: ht }));
-                  toast({ title: "Default password set", description: "We filled your Hall Ticket (UPPERCASE) as the password." });
-                } else {
+                if (type !== "student") {
                   toast({ title: "Contact admin", description: "Please contact admin to reset your password." });
+                  return;
                 }
+                const ht = (formData.identifier || "").toUpperCase().trim();
+                if (!ht) {
+                  setError("Enter your Hall Ticket, then click Forgot password.");
+                  return;
+                }
+                // Open reset dialog
+                setShowReset(true);
               }}
             >
               Forgot password?
             </button>
+
+            {type === "student" && (
+              <Dialog open={showReset} onOpenChange={setShowReset}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Reset Password</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="mb-1 block">Hall Ticket</Label>
+                      <Input value={(formData.identifier || "").toUpperCase()} disabled />
+                    </div>
+                    <div>
+                      <Label className="mb-1 block">Current Password</Label>
+                      <Input type="password" value={resetForm.current} onChange={(e) => setResetForm((p) => ({ ...p, current: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label className="mb-1 block">New Password</Label>
+                      <Input type="password" value={resetForm.next} onChange={(e) => setResetForm((p) => ({ ...p, next: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label className="mb-1 block">Confirm New Password</Label>
+                      <Input type="password" value={resetForm.confirm} onChange={(e) => setResetForm((p) => ({ ...p, confirm: e.target.value }))} />
+                    </div>
+                    {resetForm.next && resetForm.confirm && resetForm.next !== resetForm.confirm && (
+                      <Alert>
+                        <AlertDescription>New password and confirm password do not match.</AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowReset(false);
+                        setResetForm({ current: "", next: "", confirm: "" });
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={async () => {
+                        const ht = (formData.identifier || "").toUpperCase().trim();
+                        if (!ht) return;
+                        if (resetForm.next !== resetForm.confirm) {
+                          toast({ title: "Passwords do not match", variant: "destructive" });
+                          return;
+                        }
+                        const check = passwordService.validatePassword(resetForm.next);
+                        if (!check.isValid) {
+                          toast({ title: "Weak password", description: check.errors.join(", "), variant: "destructive" });
+                          return;
+                        }
+                        setLoading(true);
+                        const result = await passwordService.changeStudentPassword(ht, resetForm.current, resetForm.next);
+                        setLoading(false);
+                        if (result.success) {
+                          toast({ title: "Password updated", description: "You can now login with your new password." });
+                          setShowReset(false);
+                          setResetForm({ current: "", next: "", confirm: "" });
+                        } else {
+                          toast({ title: "Reset failed", description: result.error || "Invalid current password", variant: "destructive" });
+                        }
+                      }}
+                      disabled={loading}
+                    >
+                      {loading ? "Updating..." : "Update Password"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
 
             {type === "student" && (
               <div className="space-y-3">
