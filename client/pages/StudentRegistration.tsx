@@ -237,7 +237,6 @@ const StudentRegistration = () => {
               name: formData.fullName,
               year: formData.year,
               is_active: true,
-              profile_completed: false,
             },
           ]);
 
@@ -258,7 +257,6 @@ const StudentRegistration = () => {
               email: newUser.email,
               year: formData.year,
               section: "A",
-              is_active: true,
               password: formData.password,
             },
           ]);
