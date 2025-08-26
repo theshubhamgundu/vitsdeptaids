@@ -154,6 +154,44 @@ export const authenticateStudent = async (
 
     if (localStudent) {
       console.log("✅ Student authenticated from local storage");
+      // Try to upsert this legacy account into DB so other devices can login
+      try {
+        const userProfiles = tables.userProfiles?.();
+        const students = tables.students?.();
+        if (userProfiles && students) {
+          // Ensure user_profile exists
+          const profileId = localStudent.id;
+          await userProfiles.upsert([
+            {
+              id: profileId,
+              email: localStudent.email,
+              role: "student",
+              hall_ticket: localStudent.hallTicket,
+              name: localStudent.name,
+              year: localStudent.year,
+              is_active: true,
+              profile_completed: !!localStudent.profileCompleted,
+            },
+          ] as any);
+
+          // Ensure student row exists with default password policy
+          await students.upsert([
+            {
+              user_id: profileId,
+              hall_ticket: localStudent.hallTicket,
+              name: localStudent.name,
+              email: localStudent.email,
+              year: localStudent.year,
+              section: localStudent.section || "A",
+              is_active: true,
+              password: localStudent.password || localStudent.hallTicket,
+            },
+          ] as any, { onConflict: "hall_ticket" } as any);
+          console.log("☁️ Migrated legacy local student to database for multi-device login");
+        }
+      } catch (migrateErr) {
+        console.warn("Legacy student migration to DB failed (will continue using local):", migrateErr);
+      }
       return {
         id: localStudent.id,
         name: localStudent.name,
