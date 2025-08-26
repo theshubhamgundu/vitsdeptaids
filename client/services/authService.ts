@@ -39,6 +39,8 @@ export interface User {
   hallTicket?: string;
   email: string;
   designation?: string;
+  year?: string;
+  section?: string;
 }
 
 // Faculty Authentication
@@ -102,47 +104,25 @@ export const authenticateStudent = async (
   try {
     console.log(`🔍 Authenticating student: ${hallTicket}`);
 
-    // Check localStorage first for newly registered students
-    const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
-    const localStudent = localUsers.find(
-      (user: any) =>
-        user.hallTicket === hallTicket &&
-        (user.password === password || hallTicket === password) && // Allow hall ticket as password
-        user.role === "student",
-    );
-
-    if (localStudent) {
-      console.log("✅ Student authenticated from local storage");
-      return {
-        id: localStudent.id,
-        name: localStudent.name,
-        hallTicket: localStudent.hallTicket,
-        email: localStudent.email,
-        year: localStudent.year,
-        section: localStudent.section || "A",
-      };
-    }
-
-    // Check Supabase database if available
+    // 1) Prefer Supabase for multi-device login
     const studentsTable = tables.students();
     if (studentsTable) {
       try {
-        // First try with the provided password
+        // Try provided password first
         let { data: student, error } = await studentsTable
           .select("*")
           .eq("hall_ticket", hallTicket)
           .eq("password", password)
           .single();
 
-        // If that fails, try with hall ticket as password (default case)
-        if (error && password !== hallTicket) {
+        // If not found, allow default password = hall ticket
+        if ((error || !student) && password !== hallTicket) {
           console.log("Trying with hall ticket as password...");
           const result = await studentsTable
             .select("*")
             .eq("hall_ticket", hallTicket)
             .eq("password", hallTicket)
             .single();
-          
           student = result.data;
           error = result.error;
         }
@@ -161,6 +141,27 @@ export const authenticateStudent = async (
       } catch (dbError) {
         console.warn("Database authentication failed:", dbError);
       }
+    }
+
+    // 2) Fallback to localStorage (legacy single-device accounts)
+    const localUsers = JSON.parse(localStorage.getItem("localUsers") || "[]");
+    const localStudent = localUsers.find(
+      (user: any) =>
+        user.hallTicket === hallTicket &&
+        (user.password === password || hallTicket === password) &&
+        user.role === "student",
+    );
+
+    if (localStudent) {
+      console.log("✅ Student authenticated from local storage");
+      return {
+        id: localStudent.id,
+        name: localStudent.name,
+        hallTicket: localStudent.hallTicket,
+        email: localStudent.email,
+        year: localStudent.year,
+        section: localStudent.section || "A",
+      };
     }
 
     console.log("❌ Student authentication failed");

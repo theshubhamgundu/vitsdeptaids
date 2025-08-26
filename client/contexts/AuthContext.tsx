@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { User } from "@/services/authService";
 import { sessionService } from "@/services/sessionService";
+import { notificationsService } from "@/services/notificationsService";
 
 interface AuthContextType {
   user: User | null;
@@ -82,6 +83,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(false);
 
     console.log("✅ Login complete - user set and session created");
+
+    // Register device for push notifications (best-effort)
+    notificationsService
+      .registerDevice({ id: userData.id, role: userData.role, name: userData.name })
+      .then((res) => {
+        if (res.success) {
+          console.log("🔔 FCM token registered");
+        } else {
+          console.warn("🔕 FCM registration skipped:", res.error);
+        }
+      })
+      .catch((e) => console.warn("FCM registration error:", e));
   };
 
   const logout = () => {

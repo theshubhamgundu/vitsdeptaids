@@ -125,18 +125,49 @@ const StudentRegistration = () => {
 
       console.log("✅ Student validated successfully");
 
-      // Check if account already exists
+      // Check if account already exists (prefer Supabase)
+      if (tables.students()) {
+        try {
+          const { data: existingDbStudent } = await tables
+            .students()
+            .select("*")
+            .eq("hall_ticket", formData.hallTicket)
+            .single();
+
+          if (existingDbStudent) {
+            console.log("📋 Account exists in database, logging in...");
+            login({
+              id: existingDbStudent.user_id || existingDbStudent.id,
+              name: existingDbStudent.name,
+              role: "student",
+              hallTicket: existingDbStudent.hall_ticket,
+              email: existingDbStudent.email,
+              year: existingDbStudent.year,
+              section: existingDbStudent.section || "A",
+            });
+
+            toast({
+              title: "Welcome back!",
+              description: "Logging you into your existing account.",
+            });
+
+            navigate("/dashboard/student");
+            return;
+          }
+        } catch (_) {
+          // ignore and try local fallback
+        }
+      }
+
+      // Local fallback check for existing account
       const existingUsers = JSON.parse(
         localStorage.getItem("localUsers") || "[]",
       );
       const existingUser = existingUsers.find(
-        (u) => u.hallTicket === formData.hallTicket,
+        (u: any) => u.hallTicket === formData.hallTicket,
       );
-
       if (existingUser) {
-        // Account exists, login directly
-        console.log("📋 Account exists, logging in...");
-
+        console.log("📋 Account exists locally, logging in...");
         login({
           id: existingUser.id,
           name: existingUser.name,
@@ -146,12 +177,7 @@ const StudentRegistration = () => {
           year: existingUser.year,
           section: existingUser.section || "A",
         });
-
-        toast({
-          title: "Welcome back!",
-          description: "Logging you into your existing account.",
-        });
-
+        toast({ title: "Welcome back!", description: "Logging you in." });
         navigate("/dashboard/student");
         return;
       }
@@ -174,12 +200,9 @@ const StudentRegistration = () => {
         profileCompleted: false, // Flag to force profile completion
       };
 
-      // Store in localStorage
-      existingUsers.push(newUser);
-      localStorage.setItem("localUsers", JSON.stringify(existingUsers));
-
-      // Try to store in database if available
-      if (supabase && tables.userProfiles()) {
+      // Prefer storing in database; fall back to local only if DB fails
+      let dbStored = false;
+      if (supabase && tables.userProfiles() && tables.students()) {
         try {
           await tables.userProfiles().insert([
             {
@@ -208,13 +231,18 @@ const StudentRegistration = () => {
             },
           ]);
 
+          dbStored = true;
           console.log("✅ Account stored in database");
         } catch (dbError) {
-          console.warn(
-            "Database storage failed, local account created:",
-            dbError,
-          );
+          console.warn("Database storage failed:", dbError);
         }
+      }
+
+      if (!dbStored) {
+        // Store locally only if DB not available
+        existingUsers.push(newUser);
+        localStorage.setItem("localUsers", JSON.stringify(existingUsers));
+        console.log("💾 Account stored locally (DB unavailable)");
       }
 
       // Auto-login the new user

@@ -259,21 +259,64 @@ export const assignStudentsToCounsellors = async (year: string): Promise<boolean
   }
 };
 
+// Simplified model: exactly one coordinator and one counsellor per year
+export interface YearRoles { coordinator_id: string; counsellor_id: string; }
+
+export const setYearRoles = async (year: string, roles: YearRoles): Promise<boolean> => {
+  try {
+    const facultyAssignments = tables.facultyAssignments();
+    if (facultyAssignments) {
+      const upserts = [
+        { faculty_id: roles.coordinator_id, year, role: 'coordinator', updated_at: new Date().toISOString() },
+        { faculty_id: roles.counsellor_id, year, role: 'counsellor', updated_at: new Date().toISOString() },
+      ];
+      const { error } = await facultyAssignments.upsert(upserts as any, { onConflict: 'year,role' } as any);
+      if (!error) {
+        const cache = JSON.parse(localStorage.getItem('year_roles') || '{}');
+        cache[year] = roles;
+        localStorage.setItem('year_roles', JSON.stringify(cache));
+        return true;
+      }
+    }
+  } catch (e) {
+    console.warn('setYearRoles DB upsert failed:', e);
+  }
+  try {
+    const cache = JSON.parse(localStorage.getItem('year_roles') || '{}');
+    cache[year] = roles;
+    localStorage.setItem('year_roles', JSON.stringify(cache));
+    return true;
+  } catch {}
+  return false;
+};
+
+export const getYearRoles = async (): Promise<Record<string, YearRoles>> => {
+  const result: Record<string, YearRoles> = {};
+  try {
+    const facultyAssignments = tables.facultyAssignments();
+    if (facultyAssignments) {
+      const { data } = await facultyAssignments.select('faculty_id, year, role');
+      (data || []).forEach((row: any) => {
+        if (!result[row.year]) result[row.year] = { coordinator_id: '', counsellor_id: '' };
+        if (row.role === 'coordinator') result[row.year].coordinator_id = row.faculty_id;
+        if (row.role === 'counsellor') result[row.year].counsellor_id = row.faculty_id;
+      });
+    }
+  } catch (e) {
+    console.warn('getYearRoles DB read failed:', e);
+  }
+  try {
+    const cache = JSON.parse(localStorage.getItem('year_roles') || '{}');
+    for (const y of Object.keys(cache)) {
+      result[y] = { ...(result[y] || {}), ...cache[y] };
+    }
+  } catch {}
+  return result;
+};
+
 // Get students visible to a faculty member
 export const getVisibleStudentsForFaculty = async (facultyId: string): Promise<any[]> => {
   try {
-    const studentCounsellorAssignmentsTable = tables.studentCounsellorAssignments();
-    if (!studentCounsellorAssignmentsTable) {
-      console.warn("Supabase not configured - student_counsellor_assignments table unavailable");
-      return [];
-    }
-
-    // This will call the database function we created
-    const supabaseClient = tables.supabase();
-    if (!supabaseClient) {
-      console.warn("Supabase client not available");
-      return [];
-    }
     // Resolve human-readable faculty codes (e.g., AIDS-PGL1) to actual UUID from faculty table
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(facultyId);
     let facultyUuid = facultyId;
@@ -293,119 +336,61 @@ export const getVisibleStudentsForFaculty = async (facultyId: string): Promise<a
         // ignore and try with provided id
       }
     }
+    // Simplified model: year roles
+    const rolesByYear = await getYearRoles();
+    const coordYears = Object.keys(rolesByYear).filter(y => rolesByYear[y]?.coordinator_id === facultyUuid || rolesByYear[y]?.coordinator_id === facultyId);
+    const counsYears = Object.keys(rolesByYear).filter(y => rolesByYear[y]?.counsellor_id === facultyUuid || rolesByYear[y]?.counsellor_id === facultyId);
 
-    const { data, error } = await supabaseClient.rpc('get_visible_students_for_faculty', { faculty_uuid: facultyUuid });
+    if (coordYears.length === 0 && counsYears.length === 0) return [];
 
-    if (!error && data && data.length > 0) {
-      return data;
-    }
-
-    // Fallback: manually build visible students from assignments + student_data
-    console.warn("RPC get_visible_students_for_faculty returned empty or errored. Falling back to manual join.");
-
-    // 1) Pull student assignments for this faculty (as counsellor)
-    const { data: sa, error: saErr } = await studentCounsellorAssignmentsTable
-      .select('student_ht_no, year, assigned_at')
-      .eq('counsellor_id', facultyUuid);
-
-    const htNos: string[] = (sa || []).map((r: any) => r.student_ht_no).filter(Boolean);
-    const yearByHt: Record<string, string> = Object.fromEntries((sa || []).map((r: any) => [r.student_ht_no, r.year]));
-    const assignedAtByHt: Record<string, string> = Object.fromEntries((sa || []).map((r: any) => [r.student_ht_no, r.assigned_at]));
-
-    // 1b) Also include coordinator visibility: all students of assigned years
-    const facultyAssignmentsTable = tables.facultyAssignments();
-    let coordinatorYears: string[] = [];
-    let isCoordinator = false;
-    if (facultyAssignmentsTable) {
-      const { data: fa } = await facultyAssignmentsTable
-        .select('year, role')
-        .eq('faculty_id', facultyUuid);
-      coordinatorYears = (fa || [])
-        .filter((r: any) => r.role === 'coordinator')
-        .map((r: any) => r.year);
-      isCoordinator = coordinatorYears.length > 0;
-    }
-
-    // 2) Pull student details from department table (student_data)
+    // Pull students from department table (student_data)
     const studentDataTable = tables.studentsList?.();
     if (!studentDataTable) {
       console.warn("student_data table not available");
       return [];
     }
+    const targetYears = Array.from(new Set([...coordYears, ...counsYears]));
+    let { data: allYearStudents } = await studentDataTable
+      .select('ht_no, student_name, year, id')
+      .in('year', targetYears);
+    allYearStudents = allYearStudents || [];
 
-    // Build base query - get ALL students if coordinator, or just assigned ones if counsellor
-    let studentsData: any[] = [];
-    
-    if (isCoordinator && coordinatorYears.length > 0) {
-      // Coordinator: Get ALL students in assigned years
-      const { data: yearStudents } = await studentDataTable
-        .select('ht_no, student_name, year, id')
-        .in('year', coordinatorYears);
+    const normalizeYear = (v: string) => (v || '').toLowerCase().replace(/\s+/g, ' ').trim();
+    const result: any[] = [];
+    for (const year of targetYears) {
+      const yearStudents = allYearStudents
+        .filter((s: any) => normalizeYear(s.year) === normalizeYear(year))
+        .sort((a: any, b: any) => (a.ht_no || '').localeCompare(b.ht_no || ''));
 
-      let combinedYearStudents = yearStudents || [];
-
-      // Fallback for case/format mismatches ('4th Year' vs '4th year')
-      if (combinedYearStudents.length === 0) {
-        const { data: allStudents } = await studentDataTable
-          .select('ht_no, student_name, year, id')
-          .limit(1000); // Add limit to prevent timeout
-        if (allStudents && allStudents.length > 0) {
-          const normalize = (v: string) => (v || '').toLowerCase().replace(/\s+/g, ' ').trim();
-          const normalizedTargets = new Set(coordinatorYears.map(normalize));
-          combinedYearStudents = allStudents.filter((s: any) => normalizedTargets.has(normalize(s.year)));
-        }
-      }
-      
-      studentsData = combinedYearStudents || [];
-    } else if (htNos.length > 0) {
-      // Counsellor: Get only assigned students
-      const { data: counsellorStudents } = await studentDataTable
-        .select('ht_no, student_name, year, id')
-        .in('ht_no', htNos);
-      studentsData = counsellorStudents || [];
-    }
-
-    const byHt: Record<string, any> = {};
-    (studentsData || []).forEach((s: any) => {
-      byHt[s.ht_no] = s;
-    });
-
-    // 3) Merge counsellor and coordinator visibility
-    const mergedSet: Record<string, any> = {};
-    
-    if (isCoordinator) {
-      // Coordinator: All students in assigned years
-      (studentsData || []).forEach((s: any) => {
-        mergedSet[s.ht_no] = {
+      if (coordYears.includes(year)) {
+        yearStudents.forEach((s: any) => result.push({
           ht_no: s.ht_no,
           student_name: s.student_name,
           year: s.year,
-          assigned_at: new Date().toISOString(),
           id: s.id || s.ht_no,
           assignment_type: 'coordinator'
-        };
-      });
-    } else {
-      // Counsellor: Only assigned students
-      htNos.forEach((ht) => {
-        mergedSet[ht] = {
-          ht_no: ht,
-          student_name: byHt[ht]?.student_name || 'Unknown Student',
-          year: byHt[ht]?.year || yearByHt[ht] || '',
-          assigned_at: assignedAtByHt[ht] || new Date().toISOString(),
-          id: byHt[ht]?.id || ht,
+        }));
+      }
+
+      if (counsYears.includes(year)) {
+        const half = Math.ceil(yearStudents.length / 2);
+        const counsellorSet = yearStudents.slice(0, half);
+        counsellorSet.forEach((s: any) => result.push({
+          ht_no: s.ht_no,
+          student_name: s.student_name,
+          year: s.year,
+          id: s.id || s.ht_no,
           assignment_type: 'counsellor'
-        };
-      });
+        }));
+      }
     }
 
-    const merged = Object.values(mergedSet);
-    console.log(`🔍 Found ${merged.length} students for faculty ${facultyId}:`, merged.map(s => s.student_name));
-    console.log(`🔍 Faculty UUID: ${facultyUuid}, Is Coordinator: ${isCoordinator}, Coordinator Years: ${coordinatorYears.join(', ')}`);
-    console.log(`🔍 Counsellor HT Numbers: ${htNos.join(', ')}`);
-    console.log(`🔍 Students Data Count: ${studentsData.length}`);
-
-    return merged;
+    const dedup: Record<string, any> = {};
+    for (const s of result) {
+      const prev = dedup[s.ht_no];
+      if (!prev || prev.assignment_type === 'counsellor') dedup[s.ht_no] = s;
+    }
+    return Object.values(dedup);
   } catch (error) {
     console.error("Error in getVisibleStudentsForFaculty:", error);
     return [];
@@ -536,91 +521,67 @@ export const removeStudentAssignment = async (studentHtNo: string, year: string)
 export const getCounsellorForStudent = async (studentHtNo: string): Promise<any> => {
   try {
     console.log("🔍 Fetching counsellor for student:", studentHtNo);
-    
-    // Check localStorage first for assignments
-    const localAssignments = JSON.parse(localStorage.getItem("student_counsellor_assignments") || "[]");
-    const localAssignment = localAssignments.find((assignment: any) => assignment.student_ht_no === studentHtNo);
-    
-    if (localAssignment) {
-      console.log("📱 Counsellor assignment found in localStorage");
-      
-      // Get faculty info from localStorage
-      const localFaculty = JSON.parse(localStorage.getItem("localFaculty") || "[]");
-      const faculty = localFaculty.find((f: any) => f.faculty_id === localAssignment.counsellor_id);
-      
-      if (faculty) {
-        return {
-          ...localAssignment,
-          faculty: {
-            id: faculty.faculty_id,
-            name: faculty.name,
-            email: faculty.email,
-            designation: faculty.designation,
-            specialization: faculty.specialization || "Computer Science"
-          }
-        };
-      }
-    }
-    
-    // Try database as fallback (but don't fail if it doesn't work)
-    const studentCounsellorAssignmentsTable = tables.studentCounsellorAssignments();
-    const facultyTable = tables.faculty();
-    
-    if (studentCounsellorAssignmentsTable && facultyTable) {
-      try {
-        // First, get the assignment
-        const { data: assignment, error: assignmentError } = await studentCounsellorAssignmentsTable
-          .select("*")
-          .eq("student_ht_no", studentHtNo)
+
+    // Determine student's year
+    let year: string | null = null;
+    try {
+      const studentsTable = tables.students();
+      if (studentsTable) {
+        const { data } = await studentsTable
+          .select('year, hall_ticket')
+          .eq('hall_ticket', studentHtNo)
           .single();
-
-        if (!assignmentError && assignment) {
-          // Then, get the faculty information
-          const { data: faculty, error: facultyError } = await facultyTable
-            .select("id, name, email, designation, specialization")
-            .eq("id", assignment.counsellor_id)
-            .single();
-
-          if (!facultyError && faculty) {
-            console.log("✅ Counsellor data retrieved from database");
-            return {
-              ...assignment,
-              faculty
-            };
-          }
-        }
-      } catch (dbError) {
-        console.warn("⚠️ Database query failed (expected):", dbError);
+        year = data?.year || null;
       }
+    } catch {}
+    if (!year) {
+      try {
+        const studentData = tables.studentsList?.();
+        if (studentData) {
+          const { data } = await studentData
+            .select('year, ht_no')
+            .eq('ht_no', studentHtNo)
+            .single();
+          year = data?.year || null;
+        }
+      } catch {}
     }
 
-    // Return default counsellor assignment
-    console.log("📱 Using default counsellor assignment");
+    const roles = await getYearRoles();
+    const counsellorId = year ? roles[year]?.counsellor_id || '' : '';
+    let faculty: any = null;
+    if (counsellorId) {
+      const facultyTable = tables.faculty?.();
+      try {
+        if (facultyTable) {
+          const { data } = await facultyTable
+            .select('id, name, email, designation, specialization, faculty_id')
+            .or(`id.eq.${counsellorId},faculty_id.eq.${counsellorId}`)
+            .limit(1)
+            .single();
+          faculty = data;
+        }
+      } catch {}
+    }
     return {
       student_ht_no: studentHtNo,
-      counsellor_id: "AIDS-PGL1",
+      counsellor_id: counsellorId,
       assigned_date: new Date().toISOString(),
-      faculty: {
-        id: "AIDS-PGL1",
-        name: "Dr. Default Counsellor",
-        email: "default@college.com",
-        designation: "Assistant Professor",
-        specialization: "Computer Science"
-      }
+      faculty: faculty || { id: counsellorId, name: counsellorId ? 'Counsellor' : 'Not Assigned', email: '', designation: '', specialization: '' }
     };
   } catch (error) {
     console.error("❌ Error in getCounsellorForStudent:", error);
     // Return default data instead of null
     return {
       student_ht_no: studentHtNo,
-      counsellor_id: "AIDS-PGL1",
+      counsellor_id: '',
       assigned_date: new Date().toISOString(),
       faculty: {
-        id: "AIDS-PGL1",
-        name: "Dr. Default Counsellor",
-        email: "default@college.com",
-        designation: "Assistant Professor",
-        specialization: "Computer Science"
+        id: '',
+        name: "Not Assigned",
+        email: "",
+        designation: "",
+        specialization: ""
       }
     };
   }
@@ -638,5 +599,7 @@ export default {
   getYearAssignmentSummary,
   assignStudentToCounsellor,
   removeStudentAssignment,
-  getCounsellorForStudent
+  getCounsellorForStudent,
+  setYearRoles,
+  getYearRoles
 };

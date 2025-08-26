@@ -159,11 +159,10 @@ const LoginPage = () => {
       }
     } else if (type === "student") {
       try {
-        // Use student authentication service
-        const student = await authenticateStudent(
-          formData.identifier,
-          formData.password,
-        );
+        // Normalize hall ticket to uppercase for DB match
+        const ht = (formData.identifier || "").toUpperCase().trim();
+        const pwd = formData.password;
+        const student = await authenticateStudent(ht, pwd);
 
         if (student) {
           console.log("✅ Student authentication successful");
@@ -181,8 +180,6 @@ const LoginPage = () => {
             role: "student",
             hallTicket: student.hallTicket,
             email: student.email,
-            year: student.year,
-            section: student.section,
           });
 
           // Navigate immediately - check for saved route first
@@ -193,9 +190,7 @@ const LoginPage = () => {
 
           return; // Exit early on success
         } else {
-          setError(
-            "Invalid credentials. Please check your Hall Ticket Number and password.",
-          );
+          setError("Invalid credentials. Tip: Hall Ticket and default password are UPPERCASE.");
         }
       } catch (err) {
         console.error("Authentication error:", err);
@@ -322,7 +317,23 @@ const LoginPage = () => {
           </form>
 
           <div className="text-center space-y-4">
-            <button className="text-sm text-blue-600 hover:underline">
+            <button
+              className="text-sm text-blue-600 hover:underline"
+              onClick={(e) => {
+                e.preventDefault();
+                if (type === "student") {
+                  const ht = (formData.identifier || "").toUpperCase().trim();
+                  if (!ht) {
+                    setError("Enter your Hall Ticket, then click Forgot password.");
+                    return;
+                  }
+                  setFormData((prev) => ({ ...prev, password: ht }));
+                  toast({ title: "Default password set", description: "We filled your Hall Ticket (UPPERCASE) as the password." });
+                } else {
+                  toast({ title: "Contact admin", description: "Please contact admin to reset your password." });
+                }
+              }}
+            >
               Forgot password?
             </button>
 
