@@ -98,7 +98,7 @@ export const authenticateFaculty = async (
 
 
 
-// Student Authentication - Database Only
+// Student Authentication - Use user_profiles table (consistent with faculty)
 export const authenticateStudent = async (
   hallTicket: string,
   password: string,
@@ -106,34 +106,58 @@ export const authenticateStudent = async (
   try {
     console.log(`🔍 Authenticating student: ${hallTicket}`);
 
-    // Database-only authentication
-    const studentsTable = tables.students();
-    if (!studentsTable) {
-      console.error("❌ Students table not available");
+    // Use user_profiles table for authentication (consistent with faculty)
+    const userProfilesTable = tables.userProfiles();
+    if (!userProfilesTable) {
+      console.error("❌ User profiles table not available");
       return null;
     }
 
-         // Try to authenticate with provided password
-     const { data: student, error } = await studentsTable
-       .select("*")
-       .eq("hall_ticket", hallTicket)
-       .eq("password", password)
-       .single();
+    // First, find the user profile by hall ticket
+    const { data: userProfile, error: profileError } = await userProfilesTable
+      .select("*")
+      .eq("hall_ticket", hallTicket)
+      .eq("role", "student")
+      .single();
 
-    if (!error && student) {
-      console.log("✅ Student authenticated from database");
-      return {
-        id: student.id,
-        name: student.name,
-        hallTicket: student.hall_ticket,
-        email: student.email,
-        year: student.year,
-        section: student.section || "A",
-      };
+    if (profileError || !userProfile) {
+      console.log("❌ Student profile not found");
+      return null;
     }
 
-         console.log("❌ Student authentication failed");
-     return null;
+    // Now check the students table for password verification
+    const studentsTable = tables.students();
+    if (!studentsTable) {
+      console.error("❌ Students table not available for password check");
+      return null;
+    }
+
+    // Verify password from students table
+    const { data: student, error: studentError } = await studentsTable
+      .select("password")
+      .eq("user_id", userProfile.id)
+      .single();
+
+    if (studentError || !student) {
+      console.log("❌ Student password record not found");
+      return null;
+    }
+
+    // Check if password matches
+    if (student.password !== password) {
+      console.log("❌ Password mismatch");
+      return null;
+    }
+
+    console.log("✅ Student authenticated successfully");
+    return {
+      id: userProfile.id,
+      name: userProfile.name || "",
+      hallTicket: userProfile.hall_ticket || "",
+      email: userProfile.email,
+      year: userProfile.year || "",
+      section: "A", // Default section
+    };
   } catch (error) {
     console.error("Error authenticating student:", error);
     return null;

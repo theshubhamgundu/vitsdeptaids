@@ -217,7 +217,18 @@ const StudentRegistration = () => {
       let dbStored = false;
       if (supabase && tables.userProfiles() && tables.students()) {
         try {
-          await tables.userProfiles().insert([
+          console.log("🗄️ Attempting to store in database...");
+          console.log("📋 User Profile Data:", {
+            id: userProfileId,
+            email: formData.email,
+            role: "student",
+            hall_ticket: formData.hallTicket,
+            name: formData.fullName,
+            year: formData.year,
+          });
+
+          // Insert into user_profiles first
+          const userProfileResult = await tables.userProfiles().insert([
             {
               id: userProfileId,
               email: formData.email,
@@ -230,9 +241,17 @@ const StudentRegistration = () => {
             },
           ]);
 
-          await tables.students().insert([
+          if (userProfileResult.error) {
+            throw new Error(`User profile insert failed: ${userProfileResult.error.message}`);
+          }
+
+          console.log("✅ User profile created:", userProfileResult.data);
+
+          // Insert into students table
+          const studentId = crypto.randomUUID();
+          const studentResult = await tables.students().insert([
             {
-              id: crypto.randomUUID(),
+              id: studentId,
               user_id: userProfileId,
               hall_ticket: formData.hallTicket,
               name: formData.fullName,
@@ -244,11 +263,28 @@ const StudentRegistration = () => {
             },
           ]);
 
+          if (studentResult.error) {
+            throw new Error(`Student record insert failed: ${studentResult.error.message}`);
+          }
+
+          console.log("✅ Student record created:", studentResult.data);
+
           dbStored = true;
-          console.log("✅ Account stored in database");
+          console.log("✅ Account stored in database successfully");
         } catch (dbError) {
-          console.warn("Database storage failed:", dbError);
+          console.error("❌ Database storage failed:", dbError);
+          console.error("Error details:", {
+            message: dbError.message,
+            code: dbError.code,
+            details: dbError.details,
+          });
         }
+      } else {
+        console.warn("⚠️ Database not available:", {
+          supabase: !!supabase,
+          userProfiles: !!tables.userProfiles(),
+          students: !!tables.students(),
+        });
       }
 
       if (!dbStored) {
