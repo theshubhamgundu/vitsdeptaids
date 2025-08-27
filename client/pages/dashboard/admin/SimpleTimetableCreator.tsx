@@ -256,10 +256,23 @@ const SimpleTimetableCreator = () => {
       status: "Active",
       classCount,
       data: timetable,
-      timeSlots: timeSlots
+      timeSlots: timeSlots,
+      title: `${selectedYear} AI & DS Timetable`,
+      lastModified: new Date().toISOString().split('T')[0],
+      effectiveFrom: new Date().toISOString().split('T')[0],
+      type: "Generated",
+      facultyAssigned: false
     };
 
     setSavedTimetables(prev => [newTimetable, ...prev.map(t => ({ ...t, status: "Inactive" }))]);
+
+    // Persist for HOD view as well
+    try {
+      const adminTimetables = JSON.parse(localStorage.getItem('admin_timetables') || '[]');
+      localStorage.setItem('admin_timetables', JSON.stringify([newTimetable, ...adminTimetables]));
+      // Broadcast change
+      window.dispatchEvent(new StorageEvent('storage', { key: 'admin_timetables' }));
+    } catch {}
 
     toast({
       title: "🎉 Timetable Saved Successfully!",

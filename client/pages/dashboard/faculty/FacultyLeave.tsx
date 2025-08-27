@@ -141,6 +141,26 @@ const FacultyLeave = () => {
     
     // Save to localStorage (placeholder for database)
     localStorage.setItem(`faculty_leaves_${user?.id}`, JSON.stringify(updatedApplications));
+
+    // Notify HOD: append a minimal leave message for HOD dashboard
+    try {
+      const hodMessages = JSON.parse(localStorage.getItem('hod_faculty_leaves') || '[]');
+      const message = {
+        id: application.id,
+        facultyId: user?.id,
+        facultyName: user?.name || 'Faculty',
+        type: application.type,
+        reason: application.reason,
+        fromDate: application.fromDate,
+        toDate: application.toDate,
+        days: application.days,
+        status: application.status,
+        appliedDate: application.appliedDate,
+      };
+      localStorage.setItem('hod_faculty_leaves', JSON.stringify([message, ...hodMessages]));
+      // Broadcast change for listeners
+      window.dispatchEvent(new StorageEvent('storage', { key: 'hod_faculty_leaves' }));
+    } catch {}
     
     setShowApplyDialog(false);
     setNewApplication({

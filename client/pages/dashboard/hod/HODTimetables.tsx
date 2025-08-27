@@ -83,9 +83,9 @@ const HODTimetables = () => {
 
   const loadTimetableData = () => {
     try {
-      // Load timetables from localStorage (placeholder for database)
-      const savedTimetables = JSON.parse(localStorage.getItem('hod_timetables') || '[]');
-      setTimetables(savedTimetables);
+      // Load timetables created by admin only
+      const adminTimetables = JSON.parse(localStorage.getItem('admin_timetables') || '[]');
+      setTimetables(adminTimetables);
 
       // Load faculty assignments from localStorage (placeholder for database)
       const savedAssignments = JSON.parse(localStorage.getItem('hod_faculty_assignments') || '[]');
@@ -95,33 +95,9 @@ const HODTimetables = () => {
     }
   };
 
+  // Disable creation in HOD view; only admin timetables are displayed
   const handleCreateTimetable = () => {
-    if (!newTimetable.year || !newTimetable.semester) return;
-
-    const timetable = {
-      id: Date.now(),
-      title: newTimetable.title || `${newTimetable.year} AI & DS Timetable`,
-      year: newTimetable.year,
-      semester: newTimetable.semester,
-      status: "Draft",
-      effectiveFrom: newTimetable.effectiveFrom || new Date().toISOString().split('T')[0],
-      createdBy: (JSON.parse(localStorage.getItem("currentUser") || "{}")?.name || "HOD"),
-      createdDate: new Date().toISOString().split('T')[0],
-      lastModified: new Date().toISOString().split('T')[0],
-      studentsCount: 50,
-      type: newTimetable.type,
-      subjects: [],
-      facultyAssigned: false
-    };
-
-    const updatedTimetables = [timetable, ...timetables];
-    setTimetables(updatedTimetables);
-    
-    // Save to localStorage (placeholder for database)
-    localStorage.setItem('hod_timetables', JSON.stringify(updatedTimetables));
-    
     setShowTimetableDialog(false);
-    setNewTimetable({ title: "", year: "", semester: "", effectiveFrom: "", type: "Generated" });
   };
 
   const handleActivateTimetable = (id) => {

@@ -126,15 +126,15 @@ class SessionService implements SessionManager {
       // Check if session is expired
       if (Date.now() > session.expiresAt) {
         this.clearSession();
-        return false;
-      }
+      return false;
+    }
 
       // Check if user data is valid
       if (!session.user || !session.user.id || !session.user.role) {
         return false;
       }
-
-      return true;
+    
+    return true;
     } catch (error) {
       console.error("❌ Error checking session validity:", error);
       return false;

@@ -42,6 +42,7 @@ export const getAllStudents = async (): Promise<StudentRecord[]> => {
     // Try to fetch from Supabase first
     try {
       const studentsTable = tables.students();
+      const userProfilesTable = tables.userProfiles?.();
       if (studentsTable) {
         const { data, error } = await studentsTable
           .select("*")
@@ -72,6 +73,42 @@ export const getAllStudents = async (): Promise<StudentRecord[]> => {
             admissionDate: student.admission_date || student.admissionDate || "",
             createdAt: student.created_at || student.createdAt || "",
           }));
+        }
+      }
+
+      // Merge in minimal student records from user_profiles when students table lacks entries
+      if (userProfilesTable) {
+        try {
+          const { data: upData, error: upError } = await userProfilesTable
+            .select("id, name, email, hall_ticket, role, year")
+            .eq("role", "student");
+
+          if (!upError && upData && upData.length > 0) {
+            const existingIds = new Set(students.map((s) => s.id));
+            const merged = upData
+              .filter((u: any) => !existingIds.has(u.id))
+              .map((u: any) => ({
+                id: u.id,
+                hallTicket: u.hall_ticket,
+                fullName: u.name,
+                email: u.email || `${u.hall_ticket || ""}@vignan.ac.in`,
+                phone: "",
+                year: u.year || "",
+                section: "",
+                cgpa: 0,
+                attendance: 0,
+                status: "Active",
+                branch: "AI & DS",
+                semester: 1,
+                address: "",
+                emergencyContact: "",
+                admissionDate: "",
+                createdAt: new Date().toISOString(),
+              } as StudentRecord));
+            students = [...students, ...merged];
+          }
+        } catch (e) {
+          console.warn("user_profiles merge failed:", e);
         }
       }
     } catch (dbError) {
