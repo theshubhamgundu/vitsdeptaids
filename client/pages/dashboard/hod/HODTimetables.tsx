@@ -241,59 +241,12 @@ const HODTimetables = () => {
           </Dialog>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Timetables</CardTitle>
-              <Calendar className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{timetables.filter(t => t.status === "Active").length}</div>
-              <p className="text-xs text-muted-foreground">Currently active</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-              <Users className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{timetables.reduce((sum, t) => sum + t.studentsCount, 0)}</div>
-              <p className="text-xs text-muted-foreground">Across all years</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Faculty Assigned</CardTitle>
-              <CheckCircle className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{facultyAssignments.length}</div>
-              <p className="text-xs text-muted-foreground">Teaching assignments</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Conflicts</CardTitle>
-              <AlertCircle className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{conflicts.filter(c => c.status === "Unresolved").length}</div>
-              <p className="text-xs text-muted-foreground">Need resolution</p>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Simplified: no stats */}
 
         {/* Main Content */}
         <Tabs defaultValue="timetables" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-1">
             <TabsTrigger value="timetables">📅 Timetables</TabsTrigger>
-            <TabsTrigger value="assignments">👨‍🏫 Faculty Assignments</TabsTrigger>
-            <TabsTrigger value="conflicts">⚠️ Conflicts</TabsTrigger>
           </TabsList>
 
           {/* Timetables Tab */}
@@ -422,133 +375,7 @@ const HODTimetables = () => {
             </Card>
           </TabsContent>
 
-          {/* Faculty Assignments Tab */}
-          <TabsContent value="assignments" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Faculty Assignments</CardTitle>
-                    <CardDescription>Current teaching assignments and workload distribution</CardDescription>
-                  </div>
-                  <Button className="bg-purple-600 hover:bg-purple-700">
-                    <Plus className="h-4 w-4 mr-2" />
-                    New Assignment
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Faculty</TableHead>
-                      <TableHead>Subjects</TableHead>
-                      <TableHead>Years</TableHead>
-                      <TableHead>Hours/Week</TableHead>
-                      <TableHead>Classrooms</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {facultyAssignments.map((assignment) => (
-                      <TableRow key={assignment.id}>
-                        <TableCell className="font-medium">{assignment.facultyName}</TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {assignment.subjects.map((subject, index) => (
-                              <Badge key={index} variant="secondary" className="text-xs">
-                                {subject}
-                              </Badge>
-                            ))}
-                          </div>
-                        </TableCell>
-                        <TableCell>{assignment.year}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <span>{assignment.hoursPerWeek}</span>
-                            <div className={`w-2 h-2 rounded-full ${
-                              assignment.hoursPerWeek > 15 ? 'bg-red-500' : 
-                              assignment.hoursPerWeek > 12 ? 'bg-yellow-500' : 'bg-green-500'
-                            }`}></div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            {assignment.classrooms.join(", ")}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(assignment.status)}>
-                            {assignment.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button size="sm" variant="ghost">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="ghost">
-                              <Settings className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Conflicts Tab */}
-          <TabsContent value="conflicts" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Timetable Conflicts</CardTitle>
-                <CardDescription>Scheduling conflicts that need resolution</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {conflicts.map((conflict) => (
-                    <div key={conflict.id} className="border rounded-lg p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <AlertCircle className="h-5 w-5 text-red-600" />
-                            <h3 className="font-semibold">{conflict.type}</h3>
-                            <Badge className={getSeverityColor(conflict.severity)}>
-                              {conflict.severity}
-                            </Badge>
-                            <Badge className={getStatusColor(conflict.status)}>
-                              {conflict.status}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-gray-600 mb-2">
-                            {conflict.description}
-                          </p>
-                          <div className="text-sm">
-                            <span className="font-medium">Affected:</span> {conflict.affectedYear} • 
-                            <span className="font-medium"> Date:</span> {new Date(conflict.date).toLocaleDateString()}
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2 ml-4">
-                          <Button size="sm" variant="ghost">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          {conflict.status === "Unresolved" && (
-                            <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                              Resolve
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+          {/* Only Timetables tab remains */}
         </Tabs>
       </div>
     </DashboardLayout>

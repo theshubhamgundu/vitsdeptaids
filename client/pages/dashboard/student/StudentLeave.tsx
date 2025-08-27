@@ -61,22 +61,13 @@ const StudentLeave = () => {
   const [leaveApplications, setLeaveApplications] = useState([]);
 
   const [newApplication, setNewApplication] = useState({
-    type: "",
     startDate: "",
     endDate: "",
     reason: "",
-    documents: [],
   });
 
 
-  const leaveTypes = [
-    "Medical Leave",
-    "Personal Leave",
-    "Emergency Leave",
-    "Casual Leave",
-    "Bereavement Leave",
-    "Academic Leave",
-  ];
+  const leaveTypes: string[] = [];
 
   const calculateDays = (startDate, endDate) => {
     if (!startDate || !endDate) return 0;
@@ -114,12 +105,7 @@ const StudentLeave = () => {
   };
 
   const handleSubmitApplication = async () => {
-    if (
-      !newApplication.type ||
-      !newApplication.startDate ||
-      !newApplication.endDate ||
-      !newApplication.reason
-    ) {
+    if (!newApplication.startDate || !newApplication.endDate || !newApplication.reason) {
       alert("Please fill all required fields");
       return;
     }
@@ -130,7 +116,10 @@ const StudentLeave = () => {
     );
     const application = {
       id: leaveApplications.length + 1,
-      ...newApplication,
+      type: "",
+      startDate: newApplication.startDate,
+      endDate: newApplication.endDate,
+      reason: newApplication.reason,
       days,
       status: "Pending",
       appliedDate: new Date().toISOString().split("T")[0],
@@ -142,13 +131,7 @@ const StudentLeave = () => {
     };
 
     setLeaveApplications([...leaveApplications, application]);
-    setNewApplication({
-      type: "",
-      startDate: "",
-      endDate: "",
-      reason: "",
-      documents: [],
-    });
+    setNewApplication({ startDate: "", endDate: "", reason: "" });
     setShowApplicationDialog(false);
 
     try {
@@ -226,31 +209,10 @@ const StudentLeave = () => {
             <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>Apply for Leave</DialogTitle>
-                <DialogDescription>
-                  Fill in the details for your leave application
-                </DialogDescription>
+                <DialogDescription>From date, to date and reason</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
-                <div>
-                  <Label htmlFor="leaveType">Leave Type *</Label>
-                  <Select
-                    value={newApplication.type}
-                    onValueChange={(value) =>
-                      setNewApplication({ ...newApplication, type: value })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select leave type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {leaveTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="startDate">Start Date *</Label>
@@ -306,13 +268,7 @@ const StudentLeave = () => {
                     rows={3}
                   />
                 </div>
-                <div>
-                  <Label>Supporting Documents (Optional)</Label>
-                  <Input type="file" multiple className="mt-1" />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Upload medical certificates, invitation cards, etc.
-                  </p>
-                </div>
+                
                 <div className="flex space-x-2">
                   <Button onClick={handleSubmitApplication} className="flex-1">
                     <Send className="h-4 w-4 mr-2" />

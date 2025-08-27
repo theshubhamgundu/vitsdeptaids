@@ -77,11 +77,9 @@ const FacultyMessages = () => {
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
 
   const [newMessage, setNewMessage] = useState({
-    title: "",
     content: "",
-    type: "General" as const,
-    recipients: [] as string[],
-    sendToAll: true
+    year: "",
+    sendToAllInYear: true
   });
 
   useEffect(() => {
@@ -139,18 +137,19 @@ const FacultyMessages = () => {
   };
 
   const handleSendMessage = () => {
-    if (!newMessage.title || !newMessage.content) {
+    if (!newMessage.content) {
       toast({
         title: "Missing Information",
-        description: "Please fill in title and content",
+        description: "Please enter message content",
         variant: "destructive",
       });
       return;
     }
 
-    const recipients = newMessage.sendToAll 
-      ? assignedStudents.map(s => s.id)
-      : newMessage.recipients;
+    // pick recipients by year only
+    const recipients = assignedStudents
+      .filter(s => !newMessage.year || s.year === newMessage.year)
+      .map(s => s.id);
 
     if (recipients.length === 0) {
       toast({
@@ -161,16 +160,13 @@ const FacultyMessages = () => {
       return;
     }
 
-    const recipientNames = recipients.map(id => {
-      const student = assignedStudents.find(s => s.id === id);
-      return student?.name || 'Unknown';
-    });
+    const recipientNames = recipients.map(id => assignedStudents.find(s => s.id === id)?.name || 'Unknown');
 
     const message: Message = {
       id: Date.now().toString(),
-      title: newMessage.title,
+      title: `Message to ${newMessage.year || 'All Years'}`,
       content: newMessage.content,
-      type: newMessage.type,
+      type: 'General',
       recipients,
       recipientNames,
       sentDate: new Date().toISOString(),
@@ -186,13 +182,7 @@ const FacultyMessages = () => {
     });
 
     // Reset form
-    setNewMessage({
-      title: "",
-      content: "",
-      type: "General",
-      recipients: [],
-      sendToAll: true
-    });
+    setNewMessage({ content: "", year: "", sendToAllInYear: true });
     setShowComposeDialog(false);
   };
 
@@ -360,44 +350,7 @@ const FacultyMessages = () => {
           </Dialog>
         </div>
 
-        {/* Student Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Users className="h-5 w-5 text-blue-600" />
-                <div>
-                  <p className="text-sm text-gray-600">Total Students</p>
-                  <p className="text-2xl font-bold">{assignedStudents.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <UserCheck className="h-5 w-5 text-green-600" />
-                <div>
-                  <p className="text-sm text-gray-600">Coordinator</p>
-                  <p className="text-2xl font-bold">{coordinatorStudents.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Heart className="h-5 w-5 text-purple-600" />
-                <div>
-                  <p className="text-sm text-gray-600">Counsellor</p>
-                  <p className="text-2xl font-bold">{counsellorStudents.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Simplified: remove summary cards */}
 
         {assignedStudents.length === 0 ? (
           <Card>

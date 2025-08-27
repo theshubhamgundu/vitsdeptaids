@@ -68,13 +68,9 @@ const FacultyLeave = () => {
   const [filterType, setFilterType] = useState("all");
 
   const [newApplication, setNewApplication] = useState({
-    type: "Medical Leave",
     fromDate: "",
     toDate: "",
-    reason: "",
-    description: "",
-    emergencyContact: "",
-    documents: []
+    reason: ""
   });
 
   // Load leave data on component mount
@@ -103,14 +99,7 @@ const FacultyLeave = () => {
     }
   };
 
-  const leaveTypes = [
-    "Medical Leave",
-    "Personal Leave", 
-    "Conference Leave",
-    "Emergency Leave",
-    "Maternity Leave",
-    "Study Leave"
-  ];
+  const leaveTypes: string[] = [];
 
   const calculateDays = (fromDate, toDate) => {
     if (!fromDate || !toDate) return 0;
@@ -164,13 +153,10 @@ const FacultyLeave = () => {
     
     setShowApplyDialog(false);
     setNewApplication({
-      type: "Medical Leave",
       fromDate: "",
       toDate: "",
       reason: "",
-      description: "",
-      emergencyContact: "",
-      documents: []
+      
     });
   };
 
@@ -278,37 +264,13 @@ const FacultyLeave = () => {
                 Apply for Leave
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>Apply for Leave</DialogTitle>
-                <DialogDescription>Submit a new leave application</DialogDescription>
+                <DialogDescription>From date, to date and reason</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Leave Type</Label>
-                    <Select value={newApplication.type} onValueChange={(value) => setNewApplication(prev => ({ ...prev, type: value }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {leaveTypes.map(type => (
-                          <SelectItem key={type} value={type}>{type}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Emergency Contact</Label>
-                    <Input
-                      value={newApplication.emergencyContact}
-                      onChange={(e) => setNewApplication(prev => ({ ...prev, emergencyContact: e.target.value }))}
-                      placeholder="+91 9876543210"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label>From Date</Label>
                     <Input
@@ -325,14 +287,6 @@ const FacultyLeave = () => {
                       onChange={(e) => setNewApplication(prev => ({ ...prev, toDate: e.target.value }))}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Number of Days</Label>
-                    <Input
-                      value={calculateDays(newApplication.fromDate, newApplication.toDate)}
-                      readOnly
-                      className="bg-gray-50"
-                    />
-                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -342,29 +296,6 @@ const FacultyLeave = () => {
                     onChange={(e) => setNewApplication(prev => ({ ...prev, reason: e.target.value }))}
                     placeholder="Brief reason for leave"
                   />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Description</Label>
-                  <Textarea
-                    value={newApplication.description}
-                    onChange={(e) => setNewApplication(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Detailed description (optional)"
-                    rows={3}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Supporting Documents</Label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                    <div className="text-center">
-                      <Upload className="h-6 w-6 mx-auto text-gray-400 mb-2" />
-                      <div className="text-sm text-gray-600">
-                        Upload supporting documents (medical certificate, invitation letter, etc.)
-                      </div>
-                      <Button variant="outline" className="mt-2">Choose Files</Button>
-                    </div>
-                  </div>
                 </div>
 
                 <div className="flex space-x-2">

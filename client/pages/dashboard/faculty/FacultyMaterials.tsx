@@ -472,58 +472,7 @@ const FacultyMaterials = () => {
           </Dialog>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <BookOpen className="h-5 w-5 text-blue-600" />
-                <div>
-                  <p className="text-sm text-gray-600">Total Materials</p>
-                  <p className="text-2xl font-bold">{filteredMaterials.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Upload className="h-5 w-5 text-green-600" />
-                <div>
-                  <p className="text-sm text-gray-600">My Uploads</p>
-                  <p className="text-2xl font-bold">{myMaterials.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <BookOpen className="h-5 w-5 text-purple-600" />
-                <div>
-                  <p className="text-sm text-gray-600">Subjects</p>
-                  <p className="text-2xl font-bold">{subjects.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-2">
-                <Download className="h-5 w-5 text-orange-600" />
-                <div>
-                  <p className="text-sm text-gray-600">Total Downloads</p>
-                  <p className="text-2xl font-bold">
-                    {materials.reduce((sum, m) => sum + m.downloadCount, 0)}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Simplified: remove mock stats */}
 
         {/* Filters */}
         <Card>

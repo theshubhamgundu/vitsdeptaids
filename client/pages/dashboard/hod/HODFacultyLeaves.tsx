@@ -219,69 +219,11 @@ const HODFacultyLeaves = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
-              <FileText className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{facultyLeaveStats.totalApplications}</div>
-              <p className="text-xs text-muted-foreground">This academic year</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
-              <Clock className="h-4 w-4 text-orange-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{facultyLeaveStats.pendingApprovals}</div>
-              <p className="text-xs text-muted-foreground">Require action</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Approved This Month</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{facultyLeaveStats.approvedThisMonth}</div>
-              <p className="text-xs text-muted-foreground">December 2024</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Response Time</CardTitle>
-              <TrendingUp className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600">{facultyLeaveStats.averageResponseTime}</div>
-              <p className="text-xs text-muted-foreground">Processing time</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Common Type</CardTitle>
-              <CalendarDays className="h-4 w-4 text-indigo-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold text-indigo-600">{facultyLeaveStats.mostCommonLeaveType}</div>
-              <p className="text-xs text-muted-foreground">Most requested</p>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Simplified view: no stats */}
 
         <Tabs defaultValue="applications" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-1">
             <TabsTrigger value="applications">Leave Applications</TabsTrigger>
-            <TabsTrigger value="calendar">Faculty Calendar</TabsTrigger>
-            <TabsTrigger value="analytics">Leave Analytics</TabsTrigger>
           </TabsList>
 
           {/* Applications Tab */}
@@ -488,120 +430,7 @@ const HODFacultyLeaves = () => {
             </Card>
           </TabsContent>
 
-          {/* Calendar Tab */}
-          <TabsContent value="calendar" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Faculty Leave Calendar</CardTitle>
-                <CardDescription>Visual overview of faculty leave schedule</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="font-semibold mb-3">Current Leaves</h3>
-                      <div className="space-y-2">
-                        {leaveApplications
-                          .filter(app => {
-                            const today = new Date();
-                            const startDate = new Date(app.startDate);
-                            const endDate = new Date(app.endDate);
-                            return today >= startDate && today <= endDate && app.status === "Approved";
-                          })
-                          .map(app => (
-                            <div key={app.id} className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg">
-                              <User className="h-4 w-4 text-orange-600" />
-                              <div>
-                                <div className="font-medium">{app.facultyName}</div>
-                                <div className="text-sm text-gray-600">
-                                  {app.leaveType} • {new Date(app.startDate).toLocaleDateString()} - {new Date(app.endDate).toLocaleDateString()}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-3">Upcoming Leaves</h3>
-                      <div className="space-y-2">
-                        {leaveApplications
-                          .filter(app => new Date(app.startDate) > new Date() && app.status === "Approved")
-                          .slice(0, 3)
-                          .map(app => (
-                            <div key={app.id} className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
-                              <CalendarDays className="h-4 w-4 text-blue-600" />
-                              <div>
-                                <div className="font-medium">{app.facultyName}</div>
-                                <div className="text-sm text-gray-600">
-                                  {app.leaveType} • {new Date(app.startDate).toLocaleDateString()} - {new Date(app.endDate).toLocaleDateString()}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Analytics Tab */}
-          <TabsContent value="analytics" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Leave Types Distribution</CardTitle>
-                  <CardDescription>Most common types of leave requests</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {getLeaveTypeStats().map(({ type, count }) => (
-                      <div key={type} className="flex items-center justify-between">
-                        <span className="text-sm">{type}</span>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-20 bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-blue-600 h-2 rounded-full" 
-                              style={{ width: `${(count / leaveApplications.length) * 100}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-sm font-medium">{count}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Faculty Leave Summary</CardTitle>
-                  <CardDescription>Individual faculty leave utilization</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {Array.from(new Set(leaveApplications.map(app => app.facultyName)))
-                      .map(facultyName => {
-                        const facultyLeaves = leaveApplications.filter(app => app.facultyName === facultyName);
-                        const totalDays = facultyLeaves.reduce((sum, app) => sum + app.days, 0);
-                        return (
-                          <div key={facultyName} className="p-3 border rounded-lg">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="font-medium">{facultyName}</span>
-                              <Badge variant="outline">{totalDays} days</Badge>
-                            </div>
-                            <div className="text-sm text-gray-600">
-                              {facultyLeaves.length} applications • {facultyLeaves.filter(app => app.status === "Approved").length} approved
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+          {/* Only Applications tab remains */}
         </Tabs>
 
         {/* Approval Dialog */}
