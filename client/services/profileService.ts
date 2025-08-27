@@ -111,21 +111,18 @@ export const profileService = {
       const studentsTable = tables.students();
       if (studentsTable) {
         try {
-          // Sanitize date fields: convert "" to null to avoid invalid date errors
-          const sanitized: Partial<StudentProfileData> = {
-            ...profileData,
-          };
-          if (sanitized.date_of_birth === "") sanitized.date_of_birth = null as any;
-          if ((sanitized as any).admission_date === "") (sanitized as any).admission_date = null;
-          // Prevent enum errors: convert empty strings to null for enum/text fields
-          if (sanitized.year === "") sanitized.year = null as any;
-          if (sanitized.section === "") sanitized.section = null as any;
+          // Build payload by omitting empty-string fields to avoid NOT NULL/enum errors
+          const payload: Partial<StudentProfileData> = {};
+          for (const [key, value] of Object.entries(profileData)) {
+            if (value === "" || value === undefined) continue;
+            // Retain null only if explicitly passed as null
+            (payload as any)[key] = value;
+          }
+          // Always bump updated_at
+          (payload as any).updated_at = new Date().toISOString();
 
           const { error } = await studentsTable
-            .update({
-              ...sanitized,
-              updated_at: new Date().toISOString(),
-            })
+            .update(payload)
             .eq("user_id", userId);
 
           if (!error) {

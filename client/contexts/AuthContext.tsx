@@ -29,6 +29,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const normalizeYear = (raw: any): string | undefined => {
+    if (raw === null || raw === undefined) return undefined;
+    const text = String(raw).trim();
+    if (!text) return undefined;
+    const lower = text.toLowerCase();
+    const roman: Record<string, number> = { i: 1, ii: 2, iii: 3, iv: 4, v: 5, vi: 6, vii: 7, viii: 8 };
+    let n: number | null = null;
+    if (!isNaN(Number(lower))) n = Number(lower);
+    else if (roman[lower] != null) n = roman[lower];
+    else if (lower.includes("year")) {
+      const m = lower.match(/\d+/);
+      if (m) n = Number(m[0]);
+    }
+    if (!n || n < 1) return text;
+    const suffix = n === 1 ? "st" : n === 2 ? "nd" : n === 3 ? "rd" : "th";
+    return `${n}${suffix} Year`;
+  };
+
   // Enhanced initialization with session service
   useEffect(() => {
     console.log("🔍 Checking for existing session...");
@@ -50,6 +68,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const existingUser = localStorage.getItem("currentUser");
         if (existingUser) {
           const userData = JSON.parse(existingUser);
+          // Normalize year for students
+          if ((userData.role || "").toLowerCase() === "student") {
+            const normalizedYear = normalizeYear(userData.year);
+            if (normalizedYear) userData.year = normalizedYear;
+          }
           console.log("✅ Found existing user from localStorage:", userData.name);
           
           // Create new session from existing user data
@@ -72,11 +95,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = (userData: User) => {
     console.log("🔐 Logging in user:", userData.name);
 
+    // Normalize year for students before persisting
+    const normalized: User = { ...userData };
+    if ((normalized.role || "").toLowerCase() === "student") {
+      const ny = normalizeYear((normalized as any).year);
+      if (ny) (normalized as any).year = ny;
+    }
+
     // Set user immediately
-    setUser(userData);
+    setUser(normalized);
 
     // Create session using session service
-    sessionService.createSession(userData);
+    sessionService.createSession(normalized);
 
     // Setup auto-refresh if not already setup
     if (!sessionService.isAutoRefreshSetup()) {
