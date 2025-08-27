@@ -549,12 +549,12 @@ const SimpleTimetableCreator = () => {
               
               <div className="space-y-2">
                 <Label>Faculty</Label>
-                <Select value={cellData.faculty} onValueChange={(value) => setCellData(prev => ({ ...prev, faculty: value }))}>
+                <Select value={cellData.faculty || "none"} onValueChange={(value) => setCellData(prev => ({ ...prev, faculty: value === "none" ? "" : value }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select faculty (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No faculty selected</SelectItem>
+                    <SelectItem value="none">No faculty selected</SelectItem>
                     {facultyList.map(faculty => (
                       <SelectItem key={faculty} value={faculty}>{faculty}</SelectItem>
                     ))}
