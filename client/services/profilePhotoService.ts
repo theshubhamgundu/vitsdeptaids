@@ -302,11 +302,27 @@ export const profilePhotoService = {
     userRole: string = "student",
   ): Promise<string | null> => {
     try {
-      // Try database first for cross-device access
+      // Prefer locally cached value first to avoid DB noise on load
+      const currentUser = localStorage.getItem("currentUser");
+      if (currentUser) {
+        const userData = JSON.parse(currentUser);
+        if (userData.id === userId && userData.profilePhotoUrl) {
+          console.log("📱 Profile photo loaded from current user data");
+          return userData.profilePhotoUrl;
+        }
+      }
+
+      // Check local image cache
+      const localPhoto = imageUtils.getImageFromLocalStorage(userId);
+      if (localPhoto) {
+        console.log("📱 Profile photo loaded from localStorage");
+        return localPhoto;
+      }
+
+      // Try database next for cross-device access
       if (supabase) {
         try {
-          let photoUrl = null;
-
+          let photoUrl: string | null = null;
           if (userRole === "student") {
             const studentsTable = tables.students();
             if (studentsTable) {
@@ -314,7 +330,7 @@ export const profilePhotoService = {
                 .select("profile_photo_url")
                 .eq("user_id", userId)
                 .single();
-              photoUrl = data?.profile_photo_url;
+              photoUrl = data?.profile_photo_url ?? null;
             }
           } else {
             const facultyTable = tables.faculty();
@@ -323,34 +339,16 @@ export const profilePhotoService = {
                 .select("profile_photo_url")
                 .eq("id", userId)
                 .single();
-              photoUrl = data?.profile_photo_url;
+              photoUrl = data?.profile_photo_url ?? null;
             }
           }
-
           if (photoUrl) {
             console.log("✅ Profile photo loaded from database");
             return photoUrl;
           }
         } catch (dbError) {
-          console.warn("⚠️ Database query for profile photo failed:", dbError);
-          // Continue to localStorage fallback
-        }
-      }
-
-      // Check localStorage as fallback
-      const localPhoto = imageUtils.getImageFromLocalStorage(userId);
-      if (localPhoto) {
-        console.log("📱 Profile photo loaded from localStorage");
-        return localPhoto;
-      }
-
-      // Check current user data
-      const currentUser = localStorage.getItem("currentUser");
-      if (currentUser) {
-        const userData = JSON.parse(currentUser);
-        if (userData.id === userId && userData.profilePhotoUrl) {
-          console.log("📱 Profile photo loaded from current user data");
-          return userData.profilePhotoUrl;
+          // Swallow 400 noise and fall back silently
+          console.warn("⚠️ Profile photo DB lookup failed; using fallback");
         }
       }
 

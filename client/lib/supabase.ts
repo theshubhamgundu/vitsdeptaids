@@ -299,20 +299,14 @@ export const fileHelpers = {
         // Try to create the bucket or use a different approach
         try {
           const { data: bucketData, error: bucketError } = await storage.getBucket('profiles');
-          if (bucketError) {
+          if (bucketError || !bucketData) {
             console.warn("⚠️ Cannot access profiles bucket:", bucketError);
-            // Return error but don't crash
-            return { 
-              data: null, 
-              error: { message: "Storage bucket not configured. Please contact administrator." } 
-            };
+            // Graceful fallback: skip storage and let caller save data URI in DB/local cache
+            return { data: null, error: { message: "bucket-missing" } };
           }
         } catch (bucketCheckError) {
           console.warn("⚠️ Bucket check failed:", bucketCheckError);
-          return { 
-            data: null, 
-            error: { message: "Storage not accessible. Please contact administrator." } 
-          };
+          return { data: null, error: { message: "bucket-missing" } };
         }
       }
 

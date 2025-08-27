@@ -117,6 +117,9 @@ export const profileService = {
           };
           if (sanitized.date_of_birth === "") sanitized.date_of_birth = null as any;
           if ((sanitized as any).admission_date === "") (sanitized as any).admission_date = null;
+          // Prevent enum errors: convert empty strings to null for enum/text fields
+          if (sanitized.year === "") sanitized.year = null as any;
+          if (sanitized.section === "") sanitized.section = null as any;
 
           const { error } = await studentsTable
             .update({
