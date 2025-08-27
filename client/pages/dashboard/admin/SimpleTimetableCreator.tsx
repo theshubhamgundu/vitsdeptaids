@@ -99,6 +99,7 @@ const SimpleTimetableCreator = () => {
   const [selectedCell, setSelectedCell] = useState({ day: "", timeIndex: -1 });
   const [cellData, setCellData] = useState({
     subject: "",
+    subjectManual: "",
     faculty: "",
     facultyManual: "",
     room: "",
@@ -140,6 +141,7 @@ const SimpleTimetableCreator = () => {
     } else {
       setCellData({
         subject: "",
+        subjectManual: "",
         faculty: "",
         facultyManual: "",
         room: "",
@@ -151,17 +153,25 @@ const SimpleTimetableCreator = () => {
   };
 
   const handleSaveCell = () => {
-    if (!cellData.subject) {
+    const subjectFinal = cellData.subject === "__manual__" ? (cellData.subjectManual || "") : cellData.subject;
+    const facultyFinal = cellData.faculty === "__manual__" ? (cellData.facultyManual || "") : cellData.faculty;
+
+    if (!subjectFinal) {
       toast({
         title: "Error",
-        description: "Please select a subject",
+        description: "Please enter a subject",
         variant: "destructive"
       });
       return;
     }
 
     const newTimetable = { ...timetable };
-    newTimetable[selectedCell.day][selectedCell.timeIndex] = { ...cellData };
+    newTimetable[selectedCell.day][selectedCell.timeIndex] = { 
+      subject: subjectFinal,
+      faculty: facultyFinal,
+      room: cellData.room,
+      type: cellData.type
+    };
     setTimetable(newTimetable);
 
     toast({
@@ -566,7 +576,7 @@ const SimpleTimetableCreator = () => {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Subject</Label>
-                <Select value={cellData.subject} onValueChange={(value) => setCellData(prev => ({ ...prev, subject: value }))}>
+                <Select value={cellData.subject} onValueChange={(value) => setCellData(prev => ({ ...prev, subject: value, subjectManual: value === "__manual__" ? prev.subjectManual : "" }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select subject" />
                   </SelectTrigger>
@@ -574,8 +584,18 @@ const SimpleTimetableCreator = () => {
                     {subjectsByYear[selectedYear]?.map(subject => (
                       <SelectItem key={subject} value={subject}>{subject}</SelectItem>
                     ))}
+                    <SelectItem value="__manual__">Manual Entry (New Subject)</SelectItem>
                   </SelectContent>
                 </Select>
+                {cellData.subject === "__manual__" && (
+                  <div className="mt-2">
+                    <Input
+                      placeholder="Enter new subject name"
+                      value={cellData.subjectManual}
+                      onChange={(e) => setCellData(prev => ({ ...prev, subjectManual: e.target.value }))}
+                    />
+                  </div>
+                )}
               </div>
               
               <div className="space-y-2">
