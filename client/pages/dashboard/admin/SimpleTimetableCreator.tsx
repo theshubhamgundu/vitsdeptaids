@@ -49,19 +49,28 @@ const SimpleTimetableCreator = () => {
   
   const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const years = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
+  const semesters = [
+    "1st Semester",
+    "2nd Semester",
+    "3rd Semester",
+    "4th Semester",
+    "5th Semester",
+    "6th Semester",
+    "7th Semester",
+    "8th Semester",
+  ];
 
-  // Dynamic time slots that admin can customize
+  // Fixed time slots per requirement
   const [timeSlots, setTimeSlots] = useState([
-    "9:00 - 9:50",
-    "9:50 - 10:40",
-    "10:40 - 11:00", // Break
-    "11:00 - 11:50",
-    "11:50 - 12:40",
-    "12:40 - 1:30", // Lunch
-    "1:30 - 2:20",
-    "2:20 - 3:10",
-    "3:10 - 4:00",
-    "4:00 - 4:50"
+    "8:45 - 9:35",
+    "9:35 - 10:25",
+    "10:25 - 10:40", // Short Break
+    "10:40 - 11:30",
+    "11:30 - 12:20",
+    "12:20 - 1:10",
+    "1:10 - 2:00", // Lunch Break
+    "2:00 - 2:45",
+    "2:45 - 3:30",
   ]);
 
   const [showTimeSlotDialog, setShowTimeSlotDialog] = useState(false);
@@ -85,11 +94,13 @@ const SimpleTimetableCreator = () => {
   ];
 
   const [selectedYear, setSelectedYear] = useState("3rd Year");
+  const [selectedSemester, setSelectedSemester] = useState("6th Semester");
   const [showCellDialog, setShowCellDialog] = useState(false);
   const [selectedCell, setSelectedCell] = useState({ day: "", timeIndex: -1 });
   const [cellData, setCellData] = useState({
     subject: "",
     faculty: "",
+    facultyManual: "",
     room: "",
     type: "Theory"
   });
@@ -117,7 +128,7 @@ const SimpleTimetableCreator = () => {
     const timeSlot = timeSlots[timeIndex];
     
     // Skip if it's a break
-    if (timeSlot.includes("Break") || timeSlot === "10:40 - 11:00" || timeSlot === "12:40 - 1:30") {
+    if (timeSlot === "10:25 - 10:40" || timeSlot === "1:10 - 2:00") {
       return;
     }
 
@@ -130,6 +141,7 @@ const SimpleTimetableCreator = () => {
       setCellData({
         subject: "",
         faculty: "",
+        facultyManual: "",
         room: "",
         type: "Theory"
       });
@@ -252,12 +264,13 @@ const SimpleTimetableCreator = () => {
     const newTimetable = {
       id: Date.now(),
       year: selectedYear,
+      semester: selectedSemester,
       createdDate: new Date().toISOString().split('T')[0],
       status: "Active",
       classCount,
       data: timetable,
       timeSlots: timeSlots,
-      title: `${selectedYear} AI & DS Timetable`,
+      title: `${selectedYear} ${selectedSemester} AI & DS Timetable`,
       lastModified: new Date().toISOString().split('T')[0],
       effectiveFrom: new Date().toISOString().split('T')[0],
       type: "Generated",
@@ -269,7 +282,8 @@ const SimpleTimetableCreator = () => {
     // Persist for HOD view as well
     try {
       const adminTimetables = JSON.parse(localStorage.getItem('admin_timetables') || '[]');
-      localStorage.setItem('admin_timetables', JSON.stringify([newTimetable, ...adminTimetables]));
+      const filtered = adminTimetables.filter((t: any) => !(t.year === newTimetable.year && t.semester === newTimetable.semester));
+      localStorage.setItem('admin_timetables', JSON.stringify([newTimetable, ...filtered]));
       // Broadcast change
       window.dispatchEvent(new StorageEvent('storage', { key: 'admin_timetables' }));
     } catch {}
@@ -337,22 +351,37 @@ const SimpleTimetableCreator = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Select Academic Year</CardTitle>
-              <CardDescription>Choose the year for which you want to create the timetable</CardDescription>
+              <CardTitle className="text-lg">Select Year & Semester</CardTitle>
+              <CardDescription>Choose the year and semester for this timetable</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <Label>Academic Year</Label>
-                <Select value={selectedYear} onValueChange={setSelectedYear}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {years.map(year => (
-                      <SelectItem key={year} value={year}>{year}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Academic Year</Label>
+                  <Select value={selectedYear} onValueChange={setSelectedYear}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {years.map(year => (
+                        <SelectItem key={year} value={year}>{year}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Semester</Label>
+                  <Select value={selectedSemester} onValueChange={setSelectedSemester}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {semesters.map(sem => (
+                        <SelectItem key={sem} value={sem}>{sem}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -485,7 +514,7 @@ const SimpleTimetableCreator = () => {
                     <TableRow key={timeIndex}>
                       <TableCell className="font-medium text-xs sm:text-sm p-2">{time}</TableCell>
                       {weekDays.map((day) => {
-                        const isBreak = time === "10:40 - 11:00" || time === "12:40 - 1:30";
+                        const isBreak = time === "10:25 - 10:40" || time === "1:10 - 2:00";
                         const cell = timetable[day][timeIndex];
                         
                         return (
@@ -551,7 +580,7 @@ const SimpleTimetableCreator = () => {
               
               <div className="space-y-2">
                 <Label>Faculty</Label>
-                <Select value={cellData.faculty} onValueChange={(value) => setCellData(prev => ({ ...prev, faculty: value }))}>
+                <Select value={cellData.faculty} onValueChange={(value) => setCellData(prev => ({ ...prev, faculty: value, facultyManual: value === "__manual__" ? prev.facultyManual : "" }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select faculty" />
                   </SelectTrigger>
@@ -559,22 +588,36 @@ const SimpleTimetableCreator = () => {
                     {facultyList.map(faculty => (
                       <SelectItem key={faculty} value={faculty}>{faculty}</SelectItem>
                     ))}
+                    <SelectItem value="__manual__">Manual Entry (External)</SelectItem>
                   </SelectContent>
                 </Select>
+                {cellData.faculty === "__manual__" && (
+                  <div className="mt-2">
+                    <Input
+                      placeholder="Enter external faculty name"
+                      value={cellData.facultyManual}
+                      onChange={(e) => setCellData(prev => ({ ...prev, facultyManual: e.target.value }))}
+                    />
+                  </div>
+                )}
               </div>
               
               <div className="space-y-2">
-                <Label>Room</Label>
-                <Select value={cellData.room} onValueChange={(value) => setCellData(prev => ({ ...prev, room: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select room" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {roomList.map(room => (
-                      <SelectItem key={room} value={room}>{room}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {cellData.type === "Lab" && (
+                  <>
+                    <Label>Room/Lab No.</Label>
+                    <Select value={cellData.room} onValueChange={(value) => setCellData(prev => ({ ...prev, room: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select room/lab" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {roomList.map(room => (
+                          <SelectItem key={room} value={room}>{room}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </>
+                )}
               </div>
               
               <div className="space-y-2">
