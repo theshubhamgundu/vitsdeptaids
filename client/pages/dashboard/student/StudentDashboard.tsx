@@ -48,6 +48,24 @@ interface StudentStats {
 }
 
 const StudentDashboard = () => {
+  // Normalize student year display (e.g., 3 -> "3rd Year")
+  const formatYear = (yearValue: any): string => {
+    if (!yearValue && yearValue !== 0) return "";
+    const raw = String(yearValue).toLowerCase().trim();
+    const mapRoman: Record<string, number> = { i: 1, ii: 2, iii: 3, iv: 4, v: 5, vi: 6, vii: 7, viii: 8 };
+    let n: number | null = null;
+    if (!isNaN(Number(raw))) {
+      n = Number(raw);
+    } else if (mapRoman[raw] != null) {
+      n = mapRoman[raw];
+    } else if (raw.includes("year")) {
+      const digits = raw.match(/\d+/);
+      if (digits) n = Number(digits[0]);
+    }
+    if (!n || n < 1) return raw.replace(/\s+/g, " ").replace(/^\s|\s$/g, "");
+    const suffix = n === 1 ? "st" : n === 2 ? "nd" : n === 3 ? "rd" : "th";
+    return `${n}${suffix} Year`;
+  };
   const [studentData, setStudentData] = useState<StudentData | null>(null);
   const [stats, setStats] = useState<StudentStats>({
     certificates: 0,
@@ -220,8 +238,7 @@ const StudentDashboard = () => {
                 Welcome back, {studentData.name}!
               </h1>
               <p className="text-blue-100">
-                {studentData.hallTicket} • {studentData.year} • AI & DS •
-                Section {studentData.section}
+                {studentData.hallTicket} • {formatYear(studentData.year)} • AI & DS
               </p>
             </div>
           </div>
@@ -275,201 +292,7 @@ const StudentDashboard = () => {
           </Card>
         )}
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Quick Actions */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-              <CardDescription>Frequently used features</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {quickActions.map((action, index) => (
-                  <Link key={index} to={action.link}>
-                    <div className="p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer">
-                      <div className="flex items-center space-x-3">
-                        <div className={`p-2 rounded-md ${action.color}`}>
-                          <action.icon className="h-5 w-5 text-white" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold">{action.title}</h3>
-                          <p className="text-sm text-gray-600">
-                            {action.description}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Upcoming Events */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Upcoming Events</CardTitle>
-              <CardDescription>Important dates and deadlines</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {upcomingEvents.length === 0 ? (
-                <div className="text-center py-8">
-                  <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 text-sm">No upcoming events</p>
-                  <p className="text-gray-400 text-xs">
-                    Events will appear here when available
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {upcomingEvents.map((event, index) => (
-                    <div
-                      key={index}
-                      className="border-l-4 border-blue-500 pl-4"
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-medium text-sm">{event.title}</h3>
-                        <Badge
-                          variant={
-                            event.priority === "high"
-                              ? "destructive"
-                              : "default"
-                          }
-                        >
-                          {event.priority}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        {event.date} at {event.time}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Recent Activities */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activities</CardTitle>
-            <CardDescription>
-              Your latest updates and notifications
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {recentActivities.length === 0 ? (
-              <div className="text-center py-8">
-                <Bell className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 text-sm">No recent activities</p>
-                <p className="text-gray-400 text-xs">
-                  Your activities will appear here
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {recentActivities.map((activity) => {
-                  const IconComponent = activity.icon === "Award" ? Award :
-                    activity.icon === "BarChart3" ? BarChart3 :
-                    activity.icon === "Plane" ? Plane : Bell;
-                  
-                  return (
-                    <div
-                      key={activity.id}
-                      className="flex items-center space-x-4 p-3 border rounded-lg"
-                    >
-                      <div
-                        className={`p-2 rounded-full ${
-                          activity.status === "success"
-                            ? "bg-green-50"
-                            : activity.status === "warning"
-                              ? "bg-orange-50"
-                              : "bg-blue-50"
-                        }`}
-                      >
-                        <IconComponent
-                          className={`h-5 w-5 ${
-                            activity.status === "success"
-                              ? "text-green-600"
-                              : activity.status === "warning"
-                                ? "text-orange-600"
-                                : "text-blue-600"
-                          }`}
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium">{activity.title}</h3>
-                        <p className="text-sm text-gray-600">
-                          {activity.description}
-                        </p>
-                      </div>
-                      <span className="text-xs text-gray-500">
-                        {activity.time}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Academic Progress */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Academic Progress</CardTitle>
-            <CardDescription>
-              Your academic performance overview
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {stats.cgpa > 0 || stats.attendance > 0 ? (
-              <div className="space-y-6">
-                {stats.attendance > 0 && (
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="text-sm font-medium">Attendance</span>
-                      <span className="text-sm text-gray-600">{stats.attendance}%</span>
-                    </div>
-                    <Progress value={stats.attendance} className="h-2" />
-                    <div className="flex justify-between text-xs text-gray-500 mt-1">
-                      <span>Poor (&lt;75%)</span>
-                      <span>Good (75-85%)</span>
-                      <span>Excellent (&gt;85%)</span>
-                    </div>
-                  </div>
-                )}
-                
-                {stats.cgpa > 0 && (
-                  <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="text-sm font-medium">CGPA Progress</span>
-                      <span className="text-sm text-gray-600">{stats.cgpa.toFixed(2)}/10.0</span>
-                    </div>
-                    <Progress value={stats.cgpa * 10} className="h-2" />
-                    <div className="flex justify-between text-xs text-gray-500 mt-1">
-                      <span>6.0</span>
-                      <span>7.5</span>
-                      <span>9.0+</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <BarChart3 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 text-sm">
-                  No academic data available
-                </p>
-                <p className="text-gray-400 text-xs">
-                  Performance data will appear once grades are posted
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* Simplified dashboard: remove extra sections as requested */}
       </div>
     </DashboardLayout>
   );

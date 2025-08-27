@@ -34,10 +34,12 @@ import {
 
 const StudentTimetable = () => {
   const [currentWeek, setCurrentWeek] = useState(0);
-  const [timetableData, setTimetableData] = useState(null);
+  const [timetableData, setTimetableData] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [studentInfo, setStudentInfo] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [studentInfo, setStudentInfo] = useState<any | null>(null);
+  const [availableSemesters, setAvailableSemesters] = useState<string[]>([]);
+  const [selectedSemester, setSelectedSemester] = useState<string>("");
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
@@ -45,25 +47,24 @@ const StudentTimetable = () => {
       setStudentInfo({
         name: user.name || "Student",
         hallTicket: user.hallTicket || "N/A",
-        year: user.year || "1st Year",
-        semester: "6th Semester", // Could be derived from year
+        year: user.year || "",
+        semester: "",
         branch: user.branch || "AI & DS",
       });
     }
   }, []);
 
-  const timeSlots = [
-    "9:00 - 9:50",
-    "9:50 - 10:40",
-    "10:40 - 11:00", // Break
-    "11:00 - 11:50",
-    "11:50 - 12:40",
-    "12:40 - 1:30", // Lunch
-    "1:30 - 2:20",
-    "2:20 - 3:10",
-    "3:10 - 4:00",
-    "4:00 - 4:50",
-  ];
+  const [timeSlots, setTimeSlots] = useState<string[]>([
+    "8:45 - 9:35",
+    "9:35 - 10:25",
+    "10:25 - 10:40", // Short Break
+    "10:40 - 11:30",
+    "11:30 - 12:20",
+    "12:20 - 1:10",
+    "1:10 - 2:00", // Lunch Break
+    "2:00 - 2:45",
+    "2:45 - 3:30",
+  ]);
 
   const weekDays = [
     "Monday",
@@ -74,35 +75,61 @@ const StudentTimetable = () => {
     "Saturday",
   ];
 
-  // Empty timetable - will be populated from admin uploads
-  const timetableByYear = {};
-
+  // Load timetable saved by admin for the student's year/semester
   useEffect(() => {
-    // Simulate fetching timetable data based on student's year
-    const fetchTimetable = async () => {
-      if (!studentInfo) return;
-
+    const load = async () => {
+      if (!studentInfo || !studentInfo.year) return;
       setLoading(true);
       try {
-        // In real app, this would be an API call to fetch timetable based on student's year and semester
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API delay
+        const adminTimetables = JSON.parse(
+          localStorage.getItem("admin_timetables") || "[]"
+        );
 
-        const yearTimetable = timetableByYear[studentInfo.year];
-        if (yearTimetable) {
-          setTimetableData(yearTimetable);
-          setError(null);
-        } else {
-          setError(`No timetable available for ${studentInfo.year}`);
+        const forYear = adminTimetables.filter((t: any) => t.year === studentInfo.year);
+        const semesters = Array.from(new Set(forYear.map((t: any) => t.semester)));
+        setAvailableSemesters(semesters);
+
+        // Select an active timetable if present, otherwise most recently modified
+        let chosen = forYear.find((t: any) => t.status === "Active");
+        if (!chosen) {
+          chosen = forYear.sort((a: any, b: any) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime())[0];
         }
-      } catch (err) {
+
+        if (chosen) {
+          setSelectedSemester(chosen.semester);
+          setTimeSlots(Array.isArray(chosen.timeSlots) && chosen.timeSlots.length > 0 ? chosen.timeSlots : timeSlots);
+          setTimetableData(chosen.data || null);
+          setError(null);
+          setStudentInfo((prev: any) => ({ ...prev, year: chosen.year, semester: chosen.semester }));
+        } else {
+          setTimetableData(null);
+          setError(`No timetable available for ${studentInfo.year}`);
+          setStudentInfo((prev: any) => ({ ...prev, semester: "" }));
+        }
+      } catch (e) {
         setError("Failed to load timetable");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTimetable();
-  }, [studentInfo]);
+    load();
+  }, [studentInfo?.year]);
+
+  // When semester is changed by user, load that timetable
+  useEffect(() => {
+    if (!studentInfo || !studentInfo.year || !selectedSemester) return;
+    try {
+      const adminTimetables = JSON.parse(localStorage.getItem("admin_timetables") || "[]");
+      const match = adminTimetables.find((t: any) => t.year === studentInfo.year && t.semester === selectedSemester);
+      if (match) {
+        setTimeSlots(Array.isArray(match.timeSlots) && match.timeSlots.length > 0 ? match.timeSlots : timeSlots);
+        setTimetableData(match.data || null);
+        setStudentInfo((prev: any) => ({ ...prev, semester: match.semester }));
+        setError(null);
+      }
+    } catch {}
+  }, [selectedSemester]);
 
   const getSubjectColor = (type) => {
     switch (type) {
@@ -219,7 +246,7 @@ const StudentTimetable = () => {
                 </div>
               </div>
               <Badge variant="outline" className="px-3 py-1">
-                {studentInfo.semester}
+                {studentInfo.semester || (availableSemesters[0] || "Semester not set")}
               </Badge>
             </div>
           </CardContent>
@@ -270,6 +297,22 @@ const StudentTimetable = () => {
             <TabsTrigger value="daily">Today's Classes</TabsTrigger>
             <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
           </TabsList>
+
+          {/* Semester Selector (if multiple) */}
+          {availableSemesters.length > 1 && (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Semester:</span>
+              <select
+                value={selectedSemester}
+                onChange={(e) => setSelectedSemester(e.target.value)}
+                className="border rounded px-2 py-1 text-sm"
+              >
+                {availableSemesters.map((sem) => (
+                  <option key={sem} value={sem}>{sem}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Weekly View Tab */}
           <TabsContent value="weekly" className="space-y-6">
