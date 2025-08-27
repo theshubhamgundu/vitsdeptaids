@@ -19,14 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { getAllFaculty } from "@/data/facultyData";
@@ -76,22 +69,8 @@ const SimpleTimetableCreator = () => {
   const [showTimeSlotDialog, setShowTimeSlotDialog] = useState(false);
   const [newTimeSlot, setNewTimeSlot] = useState({ startTime: "", endTime: "", isBreak: false, breakType: "Tea Break" });
 
-  // Sample subjects for each year
-  const subjectsByYear = {
-    "1st Year": ["Mathematics I", "Programming Fundamentals", "Physics", "English", "Chemistry", "Engineering Drawing"],
-    "2nd Year": ["Data Structures", "Database Systems", "Computer Networks", "Statistics", "Mathematics II", "Operating Systems"],
-    "3rd Year": ["Machine Learning", "Computer Vision", "Data Mining", "Python Programming", "Big Data Analytics", "AI Ethics"],
-    "4th Year": ["Advanced AI", "Research Methodology", "Capstone Project", "Industry Training", "Thesis Work", "Internship"]
-  };
-
   // Get faculty list from real data
   const facultyList = getAllFaculty().map(faculty => faculty.name);
-
-  // Sample rooms
-  const roomList = [
-    "CSE-101", "CSE-102", "CSE-201", "CSE-202", "Lab-101", "Lab-102", 
-    "ML Lab-301", "CV Lab-302", "DB Lab-303", "AI Lab-401", "Conference Room", "Auditorium"
-  ];
 
   const [selectedYear, setSelectedYear] = useState("3rd Year");
   const [selectedSemester, setSelectedSemester] = useState("6th Semester");
@@ -99,9 +78,7 @@ const SimpleTimetableCreator = () => {
   const [selectedCell, setSelectedCell] = useState({ day: "", timeIndex: -1 });
   const [cellData, setCellData] = useState({
     subject: "",
-    subjectManual: "",
     faculty: "",
-    facultyManual: "",
     room: "",
     type: "Theory"
   });
@@ -115,15 +92,7 @@ const SimpleTimetableCreator = () => {
     return initialTimetable;
   });
 
-  const [savedTimetables, setSavedTimetables] = useState([
-    {
-      id: 1,
-      year: "3rd Year",
-      createdDate: "2025-01-15",
-      status: "Active",
-      classCount: 35
-    }
-  ]);
+  const [savedTimetables, setSavedTimetables] = useState([]);
 
   const handleCellClick = (day, timeIndex) => {
     const timeSlot = timeSlots[timeIndex];
@@ -141,9 +110,7 @@ const SimpleTimetableCreator = () => {
     } else {
       setCellData({
         subject: "",
-        subjectManual: "",
         faculty: "",
-        facultyManual: "",
         room: "",
         type: "Theory"
       });
@@ -153,10 +120,7 @@ const SimpleTimetableCreator = () => {
   };
 
   const handleSaveCell = () => {
-    const subjectFinal = cellData.subject === "__manual__" ? (cellData.subjectManual || "") : cellData.subject;
-    const facultyFinal = cellData.faculty === "__manual__" ? (cellData.facultyManual || "") : cellData.faculty;
-
-    if (!subjectFinal) {
+    if (!cellData.subject.trim()) {
       toast({
         title: "Error",
         description: "Please enter a subject",
@@ -167,9 +131,9 @@ const SimpleTimetableCreator = () => {
 
     const newTimetable = { ...timetable };
     newTimetable[selectedCell.day][selectedCell.timeIndex] = { 
-      subject: subjectFinal,
-      faculty: facultyFinal,
-      room: cellData.room,
+      subject: cellData.subject.trim(),
+      faculty: cellData.faculty.trim(),
+      room: cellData.room.trim(),
       type: cellData.type
     };
     setTimetable(newTimetable);
@@ -205,9 +169,7 @@ const SimpleTimetableCreator = () => {
       return;
     }
 
-    const timeSlotString = newTimeSlot.isBreak
-      ? `${newTimeSlot.startTime} - ${newTimeSlot.endTime}`
-      : `${newTimeSlot.startTime} - ${newTimeSlot.endTime}`;
+    const timeSlotString = `${newTimeSlot.startTime} - ${newTimeSlot.endTime}`;
 
     setTimeSlots(prev => [...prev, timeSlotString]);
 
@@ -227,7 +189,7 @@ const SimpleTimetableCreator = () => {
     setNewTimeSlot({ startTime: "", endTime: "", isBreak: false, breakType: "Tea Break" });
   };
 
-  const handleRemoveTimeSlot = (index: number) => {
+  const handleRemoveTimeSlot = (index) => {
     if (timeSlots.length <= 1) {
       toast({
         title: "Cannot Remove",
@@ -292,7 +254,7 @@ const SimpleTimetableCreator = () => {
     // Persist for HOD view as well
     try {
       const adminTimetables = JSON.parse(localStorage.getItem('admin_timetables') || '[]');
-      const filtered = adminTimetables.filter((t: any) => !(t.year === newTimetable.year && t.semester === newTimetable.semester));
+      const filtered = adminTimetables.filter((t) => !(t.year === newTimetable.year && t.semester === newTimetable.semester));
       localStorage.setItem('admin_timetables', JSON.stringify([newTimetable, ...filtered]));
       // Broadcast change
       window.dispatchEvent(new StorageEvent('storage', { key: 'admin_timetables' }));
@@ -322,17 +284,17 @@ const SimpleTimetableCreator = () => {
   };
 
   const getBreakCell = (timeSlot) => {
-    if (timeSlot === "10:40 - 11:00") {
+    if (timeSlot === "10:25 - 10:40") {
       return (
-        <div className="bg-orange-100 text-orange-800 text-center py-3 rounded border-2 border-orange-200">
-          <strong>Tea Break</strong>
+        <div className="bg-orange-100 text-orange-800 text-center py-4 rounded border-2 border-orange-200 font-semibold text-sm">
+          SHORT BREAK
         </div>
       );
     }
-    if (timeSlot === "12:40 - 1:30") {
+    if (timeSlot === "1:10 - 2:00") {
       return (
-        <div className="bg-red-100 text-red-800 text-center py-3 rounded border-2 border-red-200">
-          <strong>Lunch Break</strong>
+        <div className="bg-red-100 text-red-800 text-center py-4 rounded border-2 border-red-200 font-semibold text-sm">
+          LUNCH BREAK
         </div>
       );
     }
@@ -469,34 +431,36 @@ const SimpleTimetableCreator = () => {
         </div>
 
         {/* Active Timetables */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Saved Timetables</CardTitle>
-            <CardDescription>Previously created timetables</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {savedTimetables.map((tt) => (
-                <div key={tt.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg gap-3">
-                  <div className="flex-1">
-                    <div className="font-medium">{tt.year}</div>
-                    <div className="text-sm text-gray-600">
-                      Created: {new Date(tt.createdDate).toLocaleDateString()} • {tt.classCount} classes
+        {savedTimetables.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Saved Timetables</CardTitle>
+              <CardDescription>Previously created timetables</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {savedTimetables.map((tt) => (
+                  <div key={tt.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded-lg gap-3">
+                    <div className="flex-1">
+                      <div className="font-medium">{tt.year} - {tt.semester}</div>
+                      <div className="text-sm text-gray-600">
+                        Created: {new Date(tt.createdDate).toLocaleDateString()} • {tt.classCount} classes
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={tt.status === "Active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
+                        {tt.status}
+                      </Badge>
+                      <Button size="sm" variant="ghost">
+                        <Eye className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className={tt.status === "Active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
-                      {tt.status}
-                    </Badge>
-                    <Button size="sm" variant="ghost">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Timetable Grid */}
         <Card>
@@ -508,27 +472,27 @@ const SimpleTimetableCreator = () => {
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
-              <Table className="min-w-full">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-20 sm:w-24">Time</TableHead>
+              <table className="min-w-full border-collapse border border-gray-200">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="w-20 sm:w-24 border border-gray-200 p-2 text-left">Time</th>
                     {weekDays.map((day) => (
-                      <TableHead key={day} className="text-center min-w-28 sm:min-w-32">
+                      <th key={day} className="text-center min-w-28 sm:min-w-32 border border-gray-200 p-2">
                         <div className="font-semibold text-xs sm:text-sm">{day}</div>
-                      </TableHead>
+                      </th>
                     ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+                  </tr>
+                </thead>
+                <tbody>
                   {timeSlots.map((time, timeIndex) => (
-                    <TableRow key={timeIndex}>
-                      <TableCell className="font-medium text-xs sm:text-sm p-2">{time}</TableCell>
+                    <tr key={timeIndex}>
+                      <td className="font-medium text-xs sm:text-sm p-2 border border-gray-200">{time}</td>
                       {weekDays.map((day) => {
                         const isBreak = time === "10:25 - 10:40" || time === "1:10 - 2:00";
                         const cell = timetable[day][timeIndex];
                         
                         return (
-                          <TableCell key={day} className="p-1">
+                          <td key={day} className="p-1 border border-gray-200">
                             {isBreak ? (
                               getBreakCell(time)
                             ) : (
@@ -539,8 +503,8 @@ const SimpleTimetableCreator = () => {
                                 {cell ? (
                                   <div className="space-y-1">
                                     <div className="font-semibold line-clamp-1">{cell.subject}</div>
-                                    <div className="text-xs opacity-80">{cell.faculty}</div>
-                                    <div className="text-xs opacity-80">{cell.room}</div>
+                                    {cell.faculty && <div className="text-xs opacity-80">{cell.faculty}</div>}
+                                    {cell.room && <div className="text-xs opacity-80">{cell.room}</div>}
                                     <Badge variant="outline" className="text-xs">{cell.type}</Badge>
                                   </div>
                                 ) : (
@@ -551,13 +515,13 @@ const SimpleTimetableCreator = () => {
                                 )}
                               </div>
                             )}
-                          </TableCell>
+                          </td>
                         );
                       })}
-                    </TableRow>
+                    </tr>
                   ))}
-                </TableBody>
-              </Table>
+                </tbody>
+              </table>
             </div>
           </CardContent>
         </Card>
@@ -575,69 +539,36 @@ const SimpleTimetableCreator = () => {
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Subject</Label>
-                <Select value={cellData.subject} onValueChange={(value) => setCellData(prev => ({ ...prev, subject: value, subjectManual: value === "__manual__" ? prev.subjectManual : "" }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select subject" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {subjectsByYear[selectedYear]?.map(subject => (
-                      <SelectItem key={subject} value={subject}>{subject}</SelectItem>
-                    ))}
-                    <SelectItem value="__manual__">Manual Entry (New Subject)</SelectItem>
-                  </SelectContent>
-                </Select>
-                {cellData.subject === "__manual__" && (
-                  <div className="mt-2">
-                    <Input
-                      placeholder="Enter new subject name"
-                      value={cellData.subjectManual}
-                      onChange={(e) => setCellData(prev => ({ ...prev, subjectManual: e.target.value }))}
-                    />
-                  </div>
-                )}
+                <Label>Subject *</Label>
+                <Input
+                  placeholder="Enter subject name"
+                  value={cellData.subject}
+                  onChange={(e) => setCellData(prev => ({ ...prev, subject: e.target.value }))}
+                />
               </div>
               
               <div className="space-y-2">
                 <Label>Faculty</Label>
-                <Select value={cellData.faculty} onValueChange={(value) => setCellData(prev => ({ ...prev, faculty: value, facultyManual: value === "__manual__" ? prev.facultyManual : "" }))}>
+                <Select value={cellData.faculty} onValueChange={(value) => setCellData(prev => ({ ...prev, faculty: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select faculty" />
+                    <SelectValue placeholder="Select faculty (optional)" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="">No faculty selected</SelectItem>
                     {facultyList.map(faculty => (
                       <SelectItem key={faculty} value={faculty}>{faculty}</SelectItem>
                     ))}
-                    <SelectItem value="__manual__">Manual Entry (External)</SelectItem>
                   </SelectContent>
                 </Select>
-                {cellData.faculty === "__manual__" && (
-                  <div className="mt-2">
-                    <Input
-                      placeholder="Enter external faculty name"
-                      value={cellData.facultyManual}
-                      onChange={(e) => setCellData(prev => ({ ...prev, facultyManual: e.target.value }))}
-                    />
-                  </div>
-                )}
               </div>
               
               <div className="space-y-2">
-                {cellData.type === "Lab" && (
-                  <>
-                    <Label>Room/Lab No.</Label>
-                    <Select value={cellData.room} onValueChange={(value) => setCellData(prev => ({ ...prev, room: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select room/lab" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {roomList.map(room => (
-                          <SelectItem key={room} value={room}>{room}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </>
-                )}
+                <Label>Room/Location</Label>
+                <Input
+                  placeholder="Enter room number or location"
+                  value={cellData.room}
+                  onChange={(e) => setCellData(prev => ({ ...prev, room: e.target.value }))}
+                />
               </div>
               
               <div className="space-y-2">
