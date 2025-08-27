@@ -41,11 +41,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log("✅ Found valid session for:", session.user.name);
         setUser(session.user);
         
-        // Setup auto-refresh for the session
-        const cleanup = sessionService.setupAutoRefresh();
-        
-        // Return cleanup function
-        return cleanup;
+        // Setup auto-refresh for the session (only once)
+        if (!sessionService.isAutoRefreshSetup()) {
+          sessionService.setupAutoRefresh();
+        }
       } else {
         // Fallback to legacy localStorage check
         const existingUser = localStorage.getItem("currentUser");
@@ -78,6 +77,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Create session using session service
     sessionService.createSession(userData);
+
+    // Setup auto-refresh if not already setup
+    if (!sessionService.isAutoRefreshSetup()) {
+      sessionService.setupAutoRefresh();
+    }
 
     // Ensure loading is false
     setIsLoading(false);

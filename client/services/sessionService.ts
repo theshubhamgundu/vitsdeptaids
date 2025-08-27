@@ -19,12 +19,14 @@ export interface SessionManager {
   hasMultipleSessions: (userId: string) => boolean;
   logoutAllDevices: (userId: string) => void;
   setupAutoRefresh: () => (() => void) | undefined;
+  isAutoRefreshSetup: () => boolean;
 }
 
 class SessionService implements SessionManager {
   private readonly SESSION_KEY = "vitsdeptaids_session";
   private readonly LAST_ROUTE_KEY = "vitsdeptaids_last_route";
   private readonly SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+  private autoRefreshSetup = false;
 
   createSession(user: User): void {
     try {
@@ -109,6 +111,7 @@ class SessionService implements SessionManager {
       localStorage.removeItem("currentUser");
       sessionStorage.removeItem(this.SESSION_KEY);
       localStorage.removeItem(this.LAST_ROUTE_KEY);
+      this.autoRefreshSetup = false; // Reset auto-refresh flag
       console.log("✅ Session cleared successfully");
     } catch (error) {
       console.error("❌ Error clearing session:", error);
@@ -174,7 +177,6 @@ class SessionService implements SessionManager {
     // In a real application, you would query your backend or local storage
     // to check if there are multiple sessions for the given user.
     // For now, we'll just return false as a default.
-    console.warn("hasMultipleSessions is a placeholder and always returns false.");
     return false;
   }
 
@@ -182,7 +184,7 @@ class SessionService implements SessionManager {
     // This is a placeholder implementation.
     // In a real application, you would send a request to your backend
     // to invalidate all sessions for the given user.
-    console.warn("logoutAllDevices is a placeholder and does nothing.");
+    // Currently does nothing - implement when backend supports it
   }
 
   private generateSessionId(): string {
@@ -200,6 +202,11 @@ class SessionService implements SessionManager {
 
   // Auto-refresh session on user activity
   setupAutoRefresh(): (() => void) | undefined {
+    if (this.autoRefreshSetup) {
+      return undefined; // Already setup
+    }
+    
+    this.autoRefreshSetup = true;
     const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
     
     const refreshSession = () => {
@@ -214,10 +221,16 @@ class SessionService implements SessionManager {
 
     // Cleanup function
     return () => {
+      this.autoRefreshSetup = false;
       events.forEach(event => {
         document.removeEventListener(event, refreshSession);
       });
     };
+  }
+
+  // Check if auto-refresh is already setup
+  isAutoRefreshSetup(): boolean {
+    return this.autoRefreshSetup;
   }
 }
 

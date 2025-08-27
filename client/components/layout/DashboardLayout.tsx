@@ -389,7 +389,8 @@ const DashboardLayout = ({
                     <span className="text-xs sm:text-sm">Settings</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  {user && sessionService.hasMultipleSessions(user.id) && (
+                  {/* Multi-device logout - currently disabled until backend supports it */}
+                  {/* {user && sessionService.hasMultipleSessions(user.id) && (
                     <DropdownMenuItem
                       onClick={() => logoutAllDevices()}
                       className="cursor-pointer"
@@ -399,7 +400,7 @@ const DashboardLayout = ({
                         Log out all devices
                       </span>
                     </DropdownMenuItem>
-                  )}
+                  )} */}
                   <DropdownMenuItem
                     onClick={handleLogout}
                     className="cursor-pointer"
