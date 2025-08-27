@@ -111,9 +111,16 @@ export const profileService = {
       const studentsTable = tables.students();
       if (studentsTable) {
         try {
+          // Sanitize date fields: convert "" to null to avoid invalid date errors
+          const sanitized: Partial<StudentProfileData> = {
+            ...profileData,
+          };
+          if (sanitized.date_of_birth === "") sanitized.date_of_birth = null as any;
+          if ((sanitized as any).admission_date === "") (sanitized as any).admission_date = null;
+
           const { error } = await studentsTable
             .update({
-              ...profileData,
+              ...sanitized,
               updated_at: new Date().toISOString(),
             })
             .eq("user_id", userId);

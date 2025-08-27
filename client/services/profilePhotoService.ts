@@ -258,7 +258,7 @@ export const profilePhotoService = {
             if (studentsTable) {
               await studentsTable
                 .update({ profile_photo_url: photoUrl })
-                .eq("id", userId);
+                .eq("user_id", userId);
               console.log("✅ Profile photo URL saved to database");
             }
           } else {
@@ -312,7 +312,7 @@ export const profilePhotoService = {
             if (studentsTable) {
               const { data } = await studentsTable
                 .select("profile_photo_url")
-                .eq("id", userId)
+                .eq("user_id", userId)
                 .single();
               photoUrl = data?.profile_photo_url;
             }
@@ -393,7 +393,7 @@ export const profilePhotoService = {
             await supabase
               .from("students")
               .update({ profile_photo_url: null })
-              .eq("id", userId);
+              .eq("user_id", userId);
           } else {
             await supabase
               .from("faculty")
