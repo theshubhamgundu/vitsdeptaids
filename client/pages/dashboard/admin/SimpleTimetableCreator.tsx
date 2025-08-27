@@ -549,17 +549,11 @@ const SimpleTimetableCreator = () => {
               
               <div className="space-y-2">
                 <Label>Faculty</Label>
-                <Select value={cellData.faculty || "none"} onValueChange={(value) => setCellData(prev => ({ ...prev, faculty: value === "none" ? "" : value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select faculty (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No faculty selected</SelectItem>
-                    {facultyList.map(faculty => (
-                      <SelectItem key={faculty} value={faculty}>{faculty}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  placeholder="Enter faculty name"
+                  value={cellData.faculty}
+                  onChange={(e) => setCellData(prev => ({ ...prev, faculty: e.target.value }))}
+                />
               </div>
               
               <div className="space-y-2">
