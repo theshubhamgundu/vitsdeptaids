@@ -77,11 +77,14 @@ const StudentMaterials = () => {
     filterMaterials();
   }, [materials, searchTerm, selectedSubject, selectedYear, selectedFileType]);
 
-  const loadMaterials = () => {
+  const loadMaterials = async () => {
+    if (!user?.year) return;
+    
     setLoading(true);
     try {
-      const allMaterials = materialsService.getAllMaterials();
-      setMaterials(allMaterials);
+      // Load materials for the student's specific year
+      const yearMaterials = materialsService.getMaterialsByYear(user.year);
+      setMaterials(yearMaterials);
     } catch (error) {
       console.error('Error loading materials:', error);
       toast({
@@ -98,11 +101,21 @@ const StudentMaterials = () => {
     let filtered = materials;
 
     // Apply search and filters
-    filtered = materialsService.searchMaterials(searchTerm, {
-      subject: selectedSubject !== "all" ? selectedSubject : undefined,
-      year: selectedYear !== "all" ? selectedYear : undefined,
-      fileType: selectedFileType !== "all" ? selectedFileType : undefined
-    });
+    if (searchTerm) {
+      filtered = filtered.filter(material =>
+        material.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        material.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        material.subject.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (selectedSubject !== "all") {
+      filtered = filtered.filter(material => material.subject === selectedSubject);
+    }
+
+    if (selectedFileType !== "all") {
+      filtered = filtered.filter(material => material.fileType === selectedFileType);
+    }
 
     setFilteredMaterials(filtered);
   };

@@ -389,10 +389,6 @@ const DashboardLayout = ({
                       <span className="text-xs sm:text-sm">Profile</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Settings className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="text-xs sm:text-sm">Settings</span>
-                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   {/* Multi-device logout - currently disabled until backend supports it */}
                   {/* {user && sessionService.hasMultipleSessions(user.id) && (

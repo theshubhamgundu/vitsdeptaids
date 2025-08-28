@@ -174,7 +174,11 @@ const AdminTools = () => {
   const checkStorageStatus = async () => {
     try {
       const status = await storageSetupService.checkStorageBuckets();
-      setStorageStatus(status);
+      setStorageStatus({
+        exists: status.exists,
+        buckets: status.buckets || [],
+        message: "Storage status checked"
+      });
     } catch (error) {
       console.error("Error checking storage status:", error);
     }

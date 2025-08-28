@@ -41,6 +41,7 @@ export interface User {
   designation?: string;
   year?: string;
   section?: string;
+  profileCompleted?: boolean;
 }
 
 // Faculty Authentication

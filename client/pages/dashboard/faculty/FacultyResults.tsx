@@ -40,6 +40,9 @@ const FacultyResults = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showBulkUploadDialog, setShowBulkUploadDialog] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [csvData, setCsvData] = useState<any[]>([]);
+  const [uploading, setUploading] = useState(false);
   
   const [newResult, setNewResult] = useState({
     studentId: "",
@@ -179,6 +182,102 @@ const FacultyResults = () => {
       title: "Export Started",
       description: "Results export in progress...",
     });
+  };
+
+  const handleCsvUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type === "text/csv") {
+      setCsvFile(file);
+      parseCsvFile(file);
+    } else {
+      toast({
+        title: "Invalid file",
+        description: "Please select a valid CSV file",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const parseCsvFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string;
+      const lines = text.split('\n');
+      const headers = lines[0].split(',').map(h => h.trim());
+      
+      const data = lines.slice(1).map(line => {
+        const values = line.split(',').map(v => v.trim());
+        const row: any = {};
+        headers.forEach((header, index) => {
+          row[header] = values[index] || '';
+        });
+        return row;
+      }).filter(row => row['H.T No'] && row['Subject']); // Filter out empty rows
+      
+      setCsvData(data);
+    };
+    reader.readAsText(file);
+  };
+
+  const uploadBulkResults = async () => {
+    if (csvData.length === 0) return;
+    
+    setUploading(true);
+    try {
+      const resultsToAdd = csvData.map(row => ({
+        studentId: row['H.T No'],
+        studentName: row['Student Name'] || '',
+        hallTicket: row['H.T No'], // Use H.T No as hallTicket
+        subject: row['Subject'],
+        examType: 'End-term' as const, // Default exam type
+        marks: parseInt(row['Received Marks']) || 0,
+        maxMarks: parseInt(row['Total Marks']) || 100,
+        examDate: new Date().toISOString(),
+        year: user?.year || '3rd Year',
+        semester: '1st Semester',
+        grade: calculateGrade(parseInt(row['Received Marks']) || 0, parseInt(row['Total Marks']) || 100),
+        publishedDate: new Date().toISOString(),
+        uploadedBy: user?.id || '',
+        uploadedByName: user?.name || '',
+        published: true
+      }));
+
+      // Add results to the service
+      resultsToAdd.forEach(result => {
+        resultsService.addResult(result);
+      });
+
+      toast({
+        title: "Success",
+        description: `Uploaded ${resultsToAdd.length} results successfully`,
+      });
+
+      setShowBulkUploadDialog(false);
+      setCsvFile(null);
+      setCsvData([]);
+      loadData(); // Reload data
+      
+    } catch (error) {
+      console.error("Error uploading bulk results:", error);
+      toast({
+        title: "Error",
+        description: "Failed to upload results",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const calculateGrade = (marks: number, maxMarks: number): string => {
+    const percentage = (marks / maxMarks) * 100;
+    if (percentage >= 90) return "A+";
+    if (percentage >= 80) return "A";
+    if (percentage >= 70) return "B+";
+    if (percentage >= 60) return "B";
+    if (percentage >= 50) return "C";
+    if (percentage >= 40) return "D";
+    return "F";
   };
 
   const filteredResults = results.filter(result => {

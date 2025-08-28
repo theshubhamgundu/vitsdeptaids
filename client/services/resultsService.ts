@@ -99,6 +99,52 @@ class ResultsService {
     return results.filter(result => result.subject === subject);
   }
 
+  // Get results by hall ticket number
+  async getStudentResultsByHallTicket(hallTicket: string): Promise<StudentResult[]> {
+    try {
+      // First try to get from Supabase if available
+      const resultsTable = tables.results();
+      if (resultsTable) {
+        const { data, error } = await resultsTable
+          .select("*")
+          .eq("hall_ticket", hallTicket)
+          .order("exam_date", { ascending: false });
+        
+        if (error) {
+          console.log("Supabase error, falling back to localStorage:", error);
+        } else if (data) {
+          return data.map(result => ({
+            id: result.id,
+            studentId: result.student_id,
+            studentName: result.student_name,
+            hallTicket: result.hall_ticket,
+            examType: result.exam_type,
+            subject: result.subject,
+            year: result.year,
+            semester: result.semester,
+            marks: result.marks,
+            maxMarks: result.max_marks,
+            grade: result.grade,
+            examDate: result.exam_date,
+            publishedDate: result.published_date,
+            uploadedBy: result.uploaded_by,
+            uploadedByName: result.uploaded_by_name,
+            published: result.published
+          }));
+        }
+      }
+      
+      // Fallback to localStorage
+      const results = this.getResults();
+      return results.filter(result => result.hallTicket === hallTicket);
+    } catch (error) {
+      console.error('Error getting results by hall ticket:', error);
+      // Fallback to localStorage
+      const results = this.getResults();
+      return results.filter(result => result.hallTicket === hallTicket);
+    }
+  }
+
   // Get results by year
   getResultsByYear(year: string): StudentResult[] {
     const results = this.getResults();

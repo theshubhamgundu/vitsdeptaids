@@ -220,13 +220,6 @@ const AdminDashboard = () => {
       link: "/dashboard/admin/content",
       icon: Globe,
       color: "bg-purple-600"
-    },
-    {
-      title: "System Settings",
-      description: "Configure system parameters",
-      link: "/dashboard/admin/settings",
-      icon: Settings,
-      color: "bg-orange-600"
     }
   ];
 

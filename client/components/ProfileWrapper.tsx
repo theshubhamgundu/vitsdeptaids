@@ -17,11 +17,9 @@ const ProfileWrapper: React.FC<ProfileWrapperProps> = ({ children }) => {
   if (needsProfileCompletion) {
     return (
       <ProfileCompletion
-        onComplete={(profileData) => {
+        onComplete={() => {
           updateUser({
-            ...profileData,
-            profileCompleted: true,
-            profileCompletedAt: new Date().toISOString()
+            profileCompleted: true
           });
         }}
       />
