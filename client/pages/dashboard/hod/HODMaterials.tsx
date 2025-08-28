@@ -270,7 +270,7 @@ const HODMaterials = () => {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout userType="hod" userName={user?.name || "HOD"}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
