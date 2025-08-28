@@ -117,37 +117,73 @@ export const profilePhotoService = {
       const processedFile = await compressImage(file, 1024 * 1024);
 
       // Try Supabase storage first (prioritize for cross-device access)
-      if (supabase && buckets.profiles()) {
-        try {
-          console.log("📤 Attempting Supabase storage upload...");
+      if (supabase) {
+        const profilesBucket = await buckets.profiles();
+        if (profilesBucket) {
+          try {
+            console.log("📤 Attempting Supabase storage upload...");
 
-          const uploadResult = await fileHelpers.uploadProfilePhoto(
-            userId,
-            processedFile,
-          );
-
-          if (uploadResult.data && uploadResult.data.publicUrl) {
-            // Save URL to user profile in database
-            await profilePhotoService.savePhotoUrlToProfile(
+            const uploadResult = await fileHelpers.uploadProfilePhoto(
               userId,
-              uploadResult.data.publicUrl,
-              userRole,
+              processedFile,
             );
 
-            console.log("✅ Photo uploaded to Supabase storage successfully");
-            return {
-              success: true,
-              photoUrl: uploadResult.data.publicUrl,
-              isLocalStorage: false,
-            };
-          } else if (uploadResult.error) {
-            console.warn("⚠️ Supabase storage error:", uploadResult.error);
-            
-            // Check if it's a bucket not found error
-            if (uploadResult.error.message?.includes('bucket') || uploadResult.error.message?.includes('not found') || uploadResult.error.message === 'bucket-missing') {
-              console.log("🔄 Storage bucket not configured, trying database upload...");
+            if (uploadResult.data && uploadResult.data.publicUrl) {
+              // Save URL to user profile in database
+              await profilePhotoService.savePhotoUrlToProfile(
+                userId,
+                uploadResult.data.publicUrl,
+                userRole,
+              );
+
+              console.log("✅ Photo uploaded to Supabase storage successfully");
+              return {
+                success: true,
+                photoUrl: uploadResult.data.publicUrl,
+                isLocalStorage: false,
+              };
+            } else if (uploadResult.error) {
+              console.warn("⚠️ Supabase storage error:", uploadResult.error);
               
-              // Try to upload to database directly
+              // Check if it's a bucket not found error
+              if (uploadResult.error.message?.includes('bucket') || uploadResult.error.message?.includes('not found') || uploadResult.error.message === 'bucket-missing') {
+                console.log("🔄 Storage bucket not configured, trying database upload...");
+                
+                // Try to upload to database directly
+                const base64Data = await imageUtils.compressAndConvertToBase64(processedFile);
+                const photoUrl = `data:image/jpeg;base64,${base64Data.split(',')[1]}`;
+                
+                // Save to database
+                await profilePhotoService.savePhotoUrlToProfile(
+                  userId,
+                  photoUrl,
+                  userRole,
+                );
+                
+                return { 
+                  success: true, 
+                  photoUrl: photoUrl,
+                  isLocalStorage: false,
+                  error: null
+                };
+              }
+              
+              // For any other error, return error
+              console.error("❌ Supabase storage error:", uploadResult.error);
+              return { 
+                success: false, 
+                error: "Storage upload failed. Please try again or contact administrator.",
+                isLocalStorage: false
+              };
+            } else {
+              throw new Error("Upload failed");
+            }
+          } catch (supabaseError) {
+            console.warn("⚠️ Supabase storage error:", supabaseError);
+            
+            // Try database upload as fallback
+            console.log("🔄 Attempting database upload as fallback...");
+            try {
               const base64Data = await imageUtils.compressAndConvertToBase64(processedFile);
               const photoUrl = `data:image/jpeg;base64,${base64Data.split(',')[1]}`;
               
@@ -164,23 +200,16 @@ export const profilePhotoService = {
                 isLocalStorage: false,
                 error: null
               };
+            } catch (dbError) {
+              console.warn("⚠️ Database upload failed, using localStorage as last resort:", dbError);
+              // Last resort: localStorage
+              const photoUrl = await imageUtils.saveImageToLocalStorage(userId, processedFile);
+              await profilePhotoService.savePhotoUrlToProfile(userId, photoUrl, userRole);
+              return { success: true, photoUrl: photoUrl, isLocalStorage: true, error: null };
             }
-            
-            // For any other error, return error
-            console.error("❌ Supabase storage error:", uploadResult.error);
-            return { 
-              success: false, 
-              error: "Storage upload failed. Please try again or contact administrator.",
-              isLocalStorage: false
-            };
-          } else {
-            throw new Error("Upload failed");
           }
-        } catch (supabaseError) {
-          console.warn("⚠️ Supabase storage error:", supabaseError);
-          
-          // Try database upload as fallback
-          console.log("🔄 Attempting database upload as fallback...");
+        } else {
+          console.warn("⚠️ Profiles bucket not available, trying database upload...");
           try {
             const base64Data = await imageUtils.compressAndConvertToBase64(processedFile);
             const photoUrl = `data:image/jpeg;base64,${base64Data.split(',')[1]}`;
@@ -199,38 +228,12 @@ export const profilePhotoService = {
               error: null
             };
           } catch (dbError) {
-            console.warn("⚠️ Database upload failed, using localStorage as last resort:", dbError);
-            // Last resort: localStorage
+            console.warn("⚠️ Database upload failed, using localStorage:", dbError);
+            // Fallback to localStorage
             const photoUrl = await imageUtils.saveImageToLocalStorage(userId, processedFile);
             await profilePhotoService.savePhotoUrlToProfile(userId, photoUrl, userRole);
             return { success: true, photoUrl: photoUrl, isLocalStorage: true, error: null };
           }
-        }
-      } else {
-        console.warn("⚠️ Supabase not configured, trying database upload...");
-        try {
-          const base64Data = await imageUtils.compressAndConvertToBase64(processedFile);
-          const photoUrl = `data:image/jpeg;base64,${base64Data.split(',')[1]}`;
-          
-          // Save to database
-          await profilePhotoService.savePhotoUrlToProfile(
-            userId,
-            photoUrl,
-            userRole,
-          );
-          
-          return { 
-            success: true, 
-            photoUrl: photoUrl,
-            isLocalStorage: false,
-            error: null
-          };
-        } catch (dbError) {
-          console.warn("⚠️ Database upload failed, using localStorage:", dbError);
-          // Fallback to localStorage
-          const photoUrl = await imageUtils.saveImageToLocalStorage(userId, processedFile);
-          await profilePhotoService.savePhotoUrlToProfile(userId, photoUrl, userRole);
-          return { success: true, photoUrl: photoUrl, isLocalStorage: true, error: null };
         }
       }
       
@@ -375,10 +378,13 @@ export const profilePhotoService = {
   ): Promise<boolean> => {
     try {
       // Remove from Supabase storage if exists
-      if (supabase && buckets.profiles()) {
+      if (supabase) {
         try {
-          const fileName = `${userId}/profile.jpg`; // Assuming jpg extension
-          await buckets.profiles().remove([fileName]);
+          const profilesBucket = await buckets.profiles();
+          if (profilesBucket) {
+            const fileName = `${userId}/profile.jpg`; // Assuming jpg extension
+            await profilesBucket.remove([fileName]);
+          }
         } catch (storageError) {
           console.warn("Storage deletion failed:", storageError);
         }

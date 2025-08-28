@@ -181,33 +181,85 @@ export const tables = {
 
 // Storage bucket helpers with null checks and error handling
 export const buckets = {
-  profiles: () => {
+  profiles: async () => {
     try {
-      return storage?.from("profiles") || null;
+      let bucket = storage?.from("profiles");
+      if (!bucket) {
+        console.log("🔄 Profiles bucket not found, attempting to create...");
+        try {
+          await storage?.createBucket("profiles", {
+            public: true,
+            allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
+            fileSizeLimit: 5242880, // 5MB
+          });
+          bucket = storage?.from("profiles");
+          console.log("✅ Profiles bucket created successfully");
+        } catch (createError) {
+          console.warn("⚠️ Could not create profiles bucket:", createError);
+          return null;
+        }
+      }
+      return bucket;
     } catch (error) {
       console.warn("profiles bucket not available:", error);
       return null;
     }
   },
-  documents: () => {
+  documents: async () => {
     try {
-      return storage?.from("documents") || null;
+      let bucket = storage?.from("documents");
+      if (!bucket) {
+        console.log("🔄 Documents bucket not found, attempting to create...");
+        try {
+          await storage?.createBucket("documents", { public: true });
+          bucket = storage?.from("documents");
+          console.log("✅ Documents bucket created successfully");
+        } catch (createError) {
+          console.warn("⚠️ Could not create documents bucket:", createError);
+          return null;
+        }
+      }
+      return bucket;
     } catch (error) {
       console.warn("documents bucket not available:", error);
       return null;
     }
   },
-  materials: () => {
+  materials: async () => {
     try {
-      return storage?.from("materials") || null;
+      let bucket = storage?.from("materials");
+      if (!bucket) {
+        console.log("🔄 Materials bucket not found, attempting to create...");
+        try {
+          await storage?.createBucket("materials", { public: true });
+          bucket = storage?.from("materials");
+          console.log("✅ Materials bucket created successfully");
+        } catch (createError) {
+          console.warn("⚠️ Could not create materials bucket:", createError);
+          return null;
+        }
+      }
+      return bucket;
     } catch (error) {
       console.warn("materials bucket not available:", error);
       return null;
     }
   },
-  timetables: () => {
+  timetables: async () => {
     try {
-      return storage?.from("timetables") || null;
+      let bucket = storage?.from("timetables");
+      if (!bucket) {
+        console.log("🔄 Timetables bucket not found, attempting to create...");
+        try {
+          await storage?.createBucket("timetables", { public: true });
+          bucket = storage?.from("timetables");
+          console.log("✅ Timetables bucket created successfully");
+        } catch (createError) {
+          console.warn("⚠️ Could not create timetables bucket:", createError);
+          return null;
+        }
+      }
+      return bucket;
     } catch (error) {
       console.warn("timetables bucket not available:", error);
       return null;
@@ -292,7 +344,7 @@ export const fileHelpers = {
       }
 
       // Check if profiles bucket exists
-      const profilesBucket = buckets.profiles();
+      const profilesBucket = await buckets.profiles();
       if (!profilesBucket) {
         console.warn("⚠️ Profiles bucket not available, using fallback");
         // Graceful fallback: skip storage and let caller save data URI in DB/local cache
@@ -336,7 +388,10 @@ export const fileHelpers = {
     const fileExt = file.name.split(".").pop();
     const fileName = `${userId}/${folder}/${Date.now()}.${fileExt}`;
 
-    const { data, error } = await buckets.documents().upload(fileName, file, {
+    const bucket = await buckets.documents();
+    if (!bucket) return { data: null, error: { message: "Documents bucket not configured" } };
+
+    const { data, error } = await bucket.upload(fileName, file, {
       cacheControl: "3600",
     });
 
@@ -344,7 +399,7 @@ export const fileHelpers = {
 
     const {
       data: { publicUrl },
-    } = buckets.documents().getPublicUrl(fileName);
+    } = bucket.getPublicUrl(fileName);
 
     return { data: { ...data, publicUrl }, error: null };
   },
@@ -354,7 +409,10 @@ export const fileHelpers = {
     const fileExt = file.name.split(".").pop();
     const fileName = `${courseId}/${Date.now()}-${title}.${fileExt}`;
 
-    const { data, error } = await buckets.materials().upload(fileName, file, {
+    const bucket = await buckets.materials();
+    if (!bucket) return { data: null, error: { message: "Materials bucket not configured" } };
+
+    const { data, error } = await bucket.upload(fileName, file, {
       cacheControl: "3600",
     });
 
@@ -363,7 +421,7 @@ export const fileHelpers = {
     // Get public URL
     const {
       data: { publicUrl },
-    } = buckets.materials().getPublicUrl(fileName);
+    } = bucket.getPublicUrl(fileName);
 
     return { data: { ...data, publicUrl }, error: null };
   },
