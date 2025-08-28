@@ -183,16 +183,18 @@ export const tables = {
 export const buckets = {
   profiles: async () => {
     try {
-      let bucket = storage?.from("profiles");
+      // Use a single, consistent bucket name for profile photos
+      const BUCKET_NAME = "avatars";
+      let bucket = storage?.from(BUCKET_NAME);
       if (!bucket) {
-        console.log("🔄 Profiles bucket not found, attempting to create...");
+        console.log("🔄 Profiles bucket not found, attempting to create...", BUCKET_NAME);
         try {
-          await storage?.createBucket("profiles", {
+          await storage?.createBucket(BUCKET_NAME, {
             public: true,
             allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
             fileSizeLimit: 5242880, // 5MB
           });
-          bucket = storage?.from("profiles");
+          bucket = storage?.from(BUCKET_NAME);
           console.log("✅ Profiles bucket created successfully");
         } catch (createError) {
           console.warn("⚠️ Could not create profiles bucket:", createError);
