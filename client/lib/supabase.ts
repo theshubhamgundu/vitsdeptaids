@@ -294,20 +294,9 @@ export const fileHelpers = {
       // Check if profiles bucket exists
       const profilesBucket = buckets.profiles();
       if (!profilesBucket) {
-        console.warn("⚠️ Profiles bucket not available, trying to create or use fallback");
-        
-        // Try to create the bucket or use a different approach
-        try {
-          const { data: bucketData, error: bucketError } = await storage.getBucket('profiles');
-          if (bucketError || !bucketData) {
-            console.warn("⚠️ Cannot access profiles bucket:", bucketError);
-            // Graceful fallback: skip storage and let caller save data URI in DB/local cache
-            return { data: null, error: { message: "bucket-missing" } };
-          }
-        } catch (bucketCheckError) {
-          console.warn("⚠️ Bucket check failed:", bucketCheckError);
-          return { data: null, error: { message: "bucket-missing" } };
-        }
+        console.warn("⚠️ Profiles bucket not available, using fallback");
+        // Graceful fallback: skip storage and let caller save data URI in DB/local cache
+        return { data: null, error: { message: "bucket-missing" } };
       }
 
       console.log("✅ Storage accessible, uploading file...");

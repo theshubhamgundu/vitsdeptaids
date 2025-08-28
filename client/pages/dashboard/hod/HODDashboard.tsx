@@ -731,6 +731,21 @@ const HODDashboard = () => {
                 </Button>
               </Link>
 
+              <Link to="/dashboard/hod/materials">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start h-auto p-4"
+                >
+                  <div className="text-left">
+                    <BookOpen className="h-5 w-5 mb-2" />
+                    <div className="font-medium">Study Materials</div>
+                    <div className="text-xs text-gray-600">
+                      Upload and share materials
+                    </div>
+                  </div>
+                </Button>
+              </Link>
+
               <Button
                 variant="outline"
                 className="w-full justify-start h-auto p-4"

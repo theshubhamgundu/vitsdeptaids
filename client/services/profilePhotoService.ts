@@ -144,7 +144,7 @@ export const profilePhotoService = {
             console.warn("⚠️ Supabase storage error:", uploadResult.error);
             
             // Check if it's a bucket not found error
-            if (uploadResult.error.message?.includes('bucket') || uploadResult.error.message?.includes('not found')) {
+            if (uploadResult.error.message?.includes('bucket') || uploadResult.error.message?.includes('not found') || uploadResult.error.message === 'bucket-missing') {
               console.log("🔄 Storage bucket not configured, trying database upload...");
               
               // Try to upload to database directly

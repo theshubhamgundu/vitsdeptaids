@@ -55,6 +55,7 @@ import HODFacultyLeaves from "./pages/dashboard/hod/HODFacultyLeaves";
 import HODMessages from "./pages/dashboard/hod/HODMessages";
 import HODTimetables from "./pages/dashboard/hod/HODTimetables";
 import HODAnalytics from "./pages/dashboard/hod/HODAnalytics";
+import HODMaterials from "./pages/dashboard/hod/HODMaterials";
 
 import PlaceholderPage from "./pages/PlaceholderPage";
 import StudentRegistration from "./pages/StudentRegistration";
@@ -334,6 +335,14 @@ const App = () => (
               element={
                 <HODRoute>
                   <HODTimetables />
+                </HODRoute>
+              }
+            />
+            <Route
+              path="/dashboard/hod/materials"
+              element={
+                <HODRoute>
+                  <HODMaterials />
                 </HODRoute>
               }
             />
