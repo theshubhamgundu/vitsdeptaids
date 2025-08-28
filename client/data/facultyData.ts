@@ -151,7 +151,21 @@ export const facultyDatabase: FacultyMember[] = [
     qualification: "M.Tech in CSE",
     canChangePassword: true
   },
-  
+  {
+    id: "10",
+    name: "Mr. Admin User",
+    designation: "System Administrator",
+    facultyId: "AIDS-ADM1",
+    role: "Admin",
+    defaultPassword: "@Admin123",
+    email: "admin@vignan.ac.in",
+    phone: "+91 9876543210",
+    department: "AI & Data Science",
+    specialization: "System Administration, User Management",
+    experience: 8,
+    qualification: "M.Tech in Computer Science",
+    canChangePassword: true
+  }
 ];
 
 // Function to authenticate faculty
