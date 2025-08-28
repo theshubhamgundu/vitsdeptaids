@@ -56,6 +56,7 @@ const HODTimetables = () => {
 
   const [conflicts, setConflicts] = useState([]);
 
+  // View-only screen for HOD; no creation dialogs
   const [showTimetableDialog, setShowTimetableDialog] = useState(false);
   const [showAssignmentDialog, setShowAssignmentDialog] = useState(false);
   const [selectedTimetable, setSelectedTimetable] = useState(null);
@@ -158,87 +159,9 @@ const HODTimetables = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Timetable Management</h1>
-            <p className="text-gray-600">Manage department timetables and faculty assignments</p>
+            <h1 className="text-2xl font-bold text-gray-900">Timetables</h1>
+            <p className="text-gray-600">View department timetables created by Admin</p>
           </div>
-          <Dialog open={showTimetableDialog} onOpenChange={setShowTimetableDialog}>
-            <DialogTrigger asChild>
-              <Button className="bg-purple-600 hover:bg-purple-700">
-                <Plus className="h-4 w-4 mr-2" />
-                Create Timetable
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Timetable</DialogTitle>
-                <DialogDescription>Create timetable for a specific year and semester</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Academic Year</Label>
-                    <Select value={newTimetable.year} onValueChange={(value) => setNewTimetable(prev => ({ ...prev, year: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select year" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {years.map(year => (
-                          <SelectItem key={year} value={year}>{year}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Semester</Label>
-                    <Select value={newTimetable.semester} onValueChange={(value) => setNewTimetable(prev => ({ ...prev, semester: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select semester" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {semesters.map(semester => (
-                          <SelectItem key={semester} value={semester}>{semester}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Timetable Title (Optional)</Label>
-                  <Input
-                    value={newTimetable.title}
-                    onChange={(e) => setNewTimetable(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="Will auto-generate if empty"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Effective From</Label>
-                  <Input
-                    type="date"
-                    value={newTimetable.effectiveFrom}
-                    onChange={(e) => setNewTimetable(prev => ({ ...prev, effectiveFrom: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Creation Type</Label>
-                  <Select value={newTimetable.type} onValueChange={(value) => setNewTimetable(prev => ({ ...prev, type: value }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Generated">Generated Template</SelectItem>
-                      <SelectItem value="Uploaded">Upload Existing</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex space-x-2">
-                  <Button onClick={handleCreateTimetable} className="flex-1 bg-purple-600 hover:bg-purple-700">
-                    Create Timetable
-                  </Button>
-                  <Button variant="outline" onClick={() => setShowTimetableDialog(false)}>Cancel</Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
         </div>
 
         {/* Simplified: no stats */}

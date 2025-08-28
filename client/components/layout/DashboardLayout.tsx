@@ -196,6 +196,11 @@ const DashboardLayout = ({
           href: "/dashboard/hod/faculty-leaves",
           icon: FileText,
         },
+        {
+          name: "Study Materials",
+          href: "/dashboard/hod/materials",
+          icon: BookOpen,
+        },
         { name: "Timetables", href: "/dashboard/hod/timetables", icon: Clock },
         {
           name: "Messages",
