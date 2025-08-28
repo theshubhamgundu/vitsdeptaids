@@ -71,119 +71,120 @@ const FacultyMessages = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [assignedStudents, setAssignedStudents] = useState<AssignedStudent[]>([]);
-  const [showComposeDialog, setShowComposeDialog] = useState(false);
-  const [showViewDialog, setShowViewDialog] = useState(false);
-  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [messageText, setMessageText] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("compose");
 
-  const [newMessage, setNewMessage] = useState({
-    content: "",
-    year: "",
-    sendToAllInYear: true
-  });
+  const years = ["1st Year", "2nd Year", "3rd Year", "4th Year"];
 
   useEffect(() => {
-    loadAssignedStudents();
     loadMessages();
-  }, [user]);
+  }, []);
 
-  const loadAssignedStudents = () => {
-    if (!user?.id) return;
-
+  const loadMessages = async () => {
     try {
-      // Get mappings for this faculty member
-      const mappings = mappingService.getFacultyStudents(user.id);
+      setLoading(true);
       
-      // Get student details from localStorage
-      const storedStudents = localStorage.getItem('students');
-      const students = storedStudents ? JSON.parse(storedStudents) : [];
-
-      // Combine mapping data with student details
-      const assignedStudentsList = mappings.map(mapping => {
-        const student = students.find(s => s.id === mapping.studentId);
-        return {
-          id: student?.id || mapping.studentId,
-          name: student?.name || student?.fullName || 'Unknown Student',
-          hallTicket: student?.hallTicket || '',
-          email: student?.email || '',
-          mappingType: mapping.mappingType
-        };
-      });
-
-      setAssignedStudents(assignedStudentsList);
+      // Load messages from localStorage
+      const allMessages = JSON.parse(localStorage.getItem("faculty_messages") || "[]");
+      const hodMessages = JSON.parse(localStorage.getItem("hod_messages") || "[]");
+      const adminMessages = JSON.parse(localStorage.getItem("admin_messages") || "[]");
+      
+      // Combine all messages and filter by current faculty
+      const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+      const facultyId = currentUser.facultyId || currentUser.id;
+      
+      const facultyMessages = allMessages.filter((msg: Message) => 
+        msg.senderId === facultyId || msg.recipientId === facultyId
+      );
+      
+      const hodMessagesForFaculty = hodMessages.filter((msg: Message) => 
+        msg.recipientId === facultyId || msg.recipientId === "all_faculty"
+      );
+      
+      const adminMessagesForFaculty = adminMessages.filter((msg: Message) => 
+        msg.recipientId === facultyId || msg.recipientId === "all_faculty"
+      );
+      
+      // Combine and sort by date
+      const allFacultyMessages = [
+        ...facultyMessages,
+        ...hodMessagesForFaculty,
+        ...adminMessagesForFaculty
+      ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      
+      setMessages(allFacultyMessages);
+      
     } catch (error) {
-      console.error('Error loading assigned students:', error);
+      console.error("Error loading messages:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const loadMessages = () => {
-    try {
-      const storedMessages = localStorage.getItem(`facultyMessages_${user?.id}`);
-      if (storedMessages) {
-        setMessages(JSON.parse(storedMessages));
-      }
-    } catch (error) {
-      console.error('Error loading messages:', error);
-    }
-  };
-
-  const saveMessages = (updatedMessages: Message[]) => {
-    try {
-      localStorage.setItem(`facultyMessages_${user?.id}`, JSON.stringify(updatedMessages));
-      setMessages(updatedMessages);
-    } catch (error) {
-      console.error('Error saving messages:', error);
-    }
-  };
-
-  const handleSendMessage = () => {
-    if (!newMessage.content) {
-      toast({
-        title: "Missing Information",
-        description: "Please enter message content",
-        variant: "destructive",
-      });
+  const sendMessageToYear = async () => {
+    if (!messageText.trim() || !selectedYear) {
+      alert("Please select a year and enter a message");
       return;
     }
 
-    // pick recipients by year only
-    const recipients = assignedStudents
-      .filter(s => !newMessage.year || s.year === newMessage.year)
-      .map(s => s.id);
+    try {
+      const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+      const facultyId = currentUser.facultyId || currentUser.id;
+      
+      const newMessage: Message = {
+        id: crypto.randomUUID(),
+        senderId: facultyId,
+        senderName: currentUser.name || "Faculty Member",
+        senderRole: "faculty",
+        recipientId: `year_${selectedYear}`,
+        recipientName: `${selectedYear} Students`,
+        message: messageText,
+        timestamp: new Date().toISOString(),
+        read: false,
+        messageType: "year_broadcast"
+      };
 
-    if (recipients.length === 0) {
-      toast({
-        title: "No Recipients",
-        description: "Please select at least one student",
-        variant: "destructive",
-      });
-      return;
+      // Save to localStorage
+      const existingMessages = JSON.parse(localStorage.getItem("faculty_messages") || "[]");
+      existingMessages.push(newMessage);
+      localStorage.setItem("faculty_messages", JSON.stringify(existingMessages));
+
+      // Also save to year-specific storage for students to access
+      const yearMessages = JSON.parse(localStorage.getItem(`year_messages_${selectedYear}`) || "[]");
+      yearMessages.push(newMessage);
+      localStorage.setItem(`year_messages_${selectedYear}`, JSON.stringify(yearMessages));
+
+      // Update local state
+      setMessages(prev => [newMessage, ...prev]);
+      setMessageText("");
+      setSelectedYear("");
+      
+      alert("Message sent successfully to all students in " + selectedYear);
+      
+    } catch (error) {
+      console.error("Error sending message:", error);
+      alert("Failed to send message");
     }
+  };
 
-    const recipientNames = recipients.map(id => assignedStudents.find(s => s.id === id)?.name || 'Unknown');
-
-    const message: Message = {
-      id: Date.now().toString(),
-      title: `Message to ${newMessage.year || 'All Years'}`,
-      content: newMessage.content,
-      type: 'General',
-      recipients,
-      recipientNames,
-      sentDate: new Date().toISOString(),
-      status: 'Sent'
-    };
-
-    const updatedMessages = [message, ...messages];
-    saveMessages(updatedMessages);
-
-    toast({
-      title: "Message Sent",
-      description: `Message sent to ${recipients.length} students`,
-    });
-
-    // Reset form
-    setNewMessage({ content: "", year: "", sendToAllInYear: true });
-    setShowComposeDialog(false);
+  const markAsRead = (messageId: string) => {
+    setMessages(prev => 
+      prev.map(msg => 
+        msg.id === messageId ? { ...msg, read: true } : msg
+      )
+    );
+    
+    // Update in localStorage
+    const allMessages = JSON.parse(localStorage.getItem("faculty_messages") || "[]");
+    const hodMessages = JSON.parse(localStorage.getItem("hod_messages") || "[]");
+    const adminMessages = JSON.parse(localStorage.getItem("admin_messages") || "[]");
+    
+    const updatedMessages = allMessages.map((msg: Message) => 
+      msg.id === messageId ? { ...msg, read: true } : msg
+    );
+    localStorage.setItem("faculty_messages", JSON.stringify(updatedMessages));
   };
 
   const handleDeleteMessage = (messageId: string) => {

@@ -1006,7 +1006,7 @@ const AdminStudents = () => {
                       onValueChange={(value) =>
                         setSelectedStudent((prev) => ({
                           ...prev,
-                          year: parseInt(value),
+                          year: value, // Keep as string to match interface
                         }))
                       }
                     >

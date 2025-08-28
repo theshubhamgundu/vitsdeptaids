@@ -27,7 +27,6 @@ import {
   Search,
   Filter,
   Save,
-  Eye,
   Calculator
 } from "lucide-react";
 
@@ -110,6 +109,104 @@ const AdminTools = () => {
       }
     } catch (error) {
       console.error('Error loading attendance:', error);
+    }
+  };
+
+  // CSV Upload for Attendance
+  const [csvAttendanceFile, setCsvAttendanceFile] = useState<File | null>(null);
+  const [csvAttendanceData, setCsvAttendanceData] = useState<any[]>([]);
+  const [showAttendanceUpload, setShowAttendanceUpload] = useState(false);
+  const [uploadingAttendance, setUploadingAttendance] = useState(false);
+
+  // Handle CSV attendance file upload
+  const handleAttendanceCsvUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setCsvAttendanceFile(file);
+      parseAttendanceCsvFile(file);
+    }
+  };
+
+  // Parse CSV attendance file
+  const parseAttendanceCsvFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const csv = e.target.result as string;
+      const lines = csv.split('\n');
+      const headers = lines[0].split(',').map(h => h.trim());
+      
+      // Extract subject columns (excluding S.No, H.T No, Student Name, Total, Percentage)
+      const subjectColumns = headers.filter(h => 
+        !['S.No', 'H.T No', 'Student Name', 'Total', 'Percentage(%)'].includes(h)
+      );
+      
+      const data = lines.slice(1).filter(line => line.trim()).map(line => {
+        const values = line.split(',').map(v => v.trim());
+        const row: any = {};
+        headers.forEach((header, index) => {
+          row[header] = values[index] || '';
+        });
+        
+        // Add subject attendance data
+        row.subjects = {};
+        subjectColumns.forEach(subject => {
+          row.subjects[subject] = parseInt(row[subject]) || 0;
+        });
+        
+        return row;
+      });
+      
+      setCsvAttendanceData(data);
+    };
+    reader.readAsText(file);
+  };
+
+  // Upload bulk attendance data
+  const uploadBulkAttendance = async () => {
+    if (csvAttendanceData.length === 0) {
+      alert("No attendance data to upload");
+      return;
+    }
+
+    try {
+      setUploadingAttendance(true);
+      
+      const attendanceRecords = csvAttendanceData.map(row => ({
+        id: crypto.randomUUID(),
+        htNo: row['H.T No'],
+        studentName: row['Student Name'],
+        subjects: row.subjects,
+        total: parseInt(row['Total']) || 0,
+        percentage: parseFloat(row['Percentage(%)']) || 0,
+        uploadDate: new Date().toISOString(),
+        uploadedBy: "admin"
+      }));
+
+      // Save to localStorage
+      const existingAttendance = JSON.parse(localStorage.getItem('adminAttendance') || '[]');
+      const updatedAttendance = [...existingAttendance, ...attendanceRecords];
+      localStorage.setItem('adminAttendance', JSON.stringify(updatedAttendance));
+
+      // Update state
+      setAttendanceRecords(updatedAttendance);
+      setCsvAttendanceData([]);
+      setCsvAttendanceFile(null);
+      setShowAttendanceUpload(false);
+
+      toast({
+        title: "Success",
+        description: `${attendanceRecords.length} attendance records uploaded successfully`,
+      });
+
+    } catch (error) {
+      console.error('Error uploading attendance:', error);
+      toast({
+        title: "Error",
+        description: "Failed to upload attendance data",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingAttendance(false);
     }
   };
 

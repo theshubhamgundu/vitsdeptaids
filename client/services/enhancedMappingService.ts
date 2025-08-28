@@ -58,7 +58,7 @@ class EnhancedMappingService {
       const formattedRegisteredStudents: Student[] = registeredStudents.map(
         (student) => ({
           id: student.id,
-          name: student.fullName || student.name,
+          name: student.fullName || student.name || "Unknown",
           hallTicket: student.hallTicket,
           year: student.year,
           section: student.section,

@@ -257,7 +257,7 @@ export const databaseSessionService = {
                 if (student) {
                   userData = {
                     id: student.id,
-                    name: student.name,
+                    name: student.full_name || student.name || "Unknown",
                     role: "student",
                     hallTicket: student.hall_ticket,
                     email: student.email,

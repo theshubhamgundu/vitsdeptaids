@@ -512,7 +512,8 @@ const HomePage = () => {
                       alt={item.title}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.src = "/api/placeholder/300/200";
+                        const target = e.target as HTMLImageElement;
+                        target.src = "/api/placeholder/300/200";
                       }}
                     />
                   </div>

@@ -27,6 +27,7 @@ import {
   Upload,
   Globe
 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 const AdminDashboard = () => {
   const [systemStats, setSystemStats] = useState({
@@ -48,6 +49,8 @@ const AdminDashboard = () => {
     placementRecords: 0
   });
   const [loading, setLoading] = useState(true);
+
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchSystemData();
@@ -76,6 +79,12 @@ const AdminDashboard = () => {
         return total + studentCertificates.filter((c: any) => c.status === "pending").length;
       }, 0);
 
+      // Calculate real content statistics
+      const events = JSON.parse(localStorage.getItem("events") || "[]").length;
+      const gallery = JSON.parse(localStorage.getItem("gallery") || "[]").length;
+      const announcements = JSON.parse(localStorage.getItem("announcements") || "[]").length;
+      const placementRecords = JSON.parse(localStorage.getItem("placements") || "[]").length;
+
       setSystemStats({
         totalStudents,
         totalFaculty,
@@ -87,10 +96,10 @@ const AdminDashboard = () => {
 
       // Set real content statistics
       setContentStats({
-        events: 0, // Will be populated when events are added
-        gallery: 0, // Will be populated when gallery items are added
-        announcements: 0, // Will be populated when announcements are added
-        placementRecords: 0 // Will be populated when placement data is added
+        events,
+        gallery,
+        announcements,
+        placementRecords
       });
 
       // Generate real recent activities based on actual data
@@ -99,9 +108,9 @@ const AdminDashboard = () => {
       if (totalStudents > 0) {
         activities.push({
           id: 1,
-          type: "user",
-          title: "Student data loaded",
-          description: `${students.length} registered students + ${studentsListData.length} database students found`,
+          type: "student",
+          title: "Students Loaded",
+          description: `${totalStudents} students found in system`,
           time: "Just now",
           icon: Users,
           status: "success"
@@ -111,8 +120,8 @@ const AdminDashboard = () => {
       if (totalFaculty > 0) {
         activities.push({
           id: 2,
-          type: "user",
-          title: "Faculty data loaded",
+          type: "faculty",
+          title: "Faculty Loaded",
           description: `${totalFaculty} faculty members found`,
           time: "Just now",
           icon: UserCheck,
@@ -124,69 +133,70 @@ const AdminDashboard = () => {
         activities.push({
           id: 3,
           type: "approval",
-          title: "Certificate approvals pending",
-          description: `${pendingCertificates} certificates awaiting review`,
+          title: "Pending Approvals",
+          description: `${pendingCertificates} certificates need approval`,
           time: "Just now",
-          icon: FileText,
+          icon: AlertCircle,
           status: "warning"
+        });
+      }
+
+      if (events > 0) {
+        activities.push({
+          id: 4,
+          type: "content",
+          title: "Events Available",
+          description: `${events} events published`,
+          time: "Just now",
+          icon: Calendar,
+          status: "info"
         });
       }
 
       setRecentActivities(activities);
 
-      // Set system alerts based on real data
+      // Generate real system alerts
       const alerts = [];
       
-      if (totalStudents === 0) {
+      if (pendingCertificates > 5) {
         alerts.push({
           id: 1,
           type: "warning",
-          title: "No Students Found",
-          message: "No students found in database or registered users.",
-          priority: "high"
+          title: "High Pending Approvals",
+          description: `${pendingCertificates} certificates awaiting approval`,
+          time: "Just now"
         });
-      } else if (students.length === 0 && studentsListData.length > 0) {
+      }
+
+      if (totalStudents === 0) {
         alerts.push({
           id: 2,
-          type: "info",
-          title: "Students Available in Database",
-          message: `${studentsListData.length} students found in database but not yet registered as users.`,
-          priority: "medium"
+          type: "error",
+          title: "No Students Found",
+          description: "Student database appears to be empty",
+          time: "Just now"
         });
       }
 
       if (totalFaculty === 0) {
         alerts.push({
-          id: 2,
-          type: "warning",
+          id: 3,
+          type: "error",
           title: "No Faculty Found",
-          message: "No faculty members are currently registered in the system.",
-          priority: "high"
+          description: "Faculty database appears to be empty",
+          time: "Just now"
         });
       }
 
       setSystemAlerts(alerts);
 
     } catch (error) {
-      console.error('Error fetching system data:', error);
-      
-      // Set error state
-      setSystemStats({
-        totalStudents: 0,
-        totalFaculty: 0,
-        pendingApprovals: 0,
-        systemHealth: 0,
-        activeUsers: 0,
-        storageUsed: 0
+      console.error("Error fetching system data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load system data",
+        variant: "destructive",
       });
-      
-      setSystemAlerts([{
-        id: 1,
-        type: "warning",
-        title: "Data Loading Error",
-        message: "Failed to load system data. Please check your connection.",
-        priority: "high"
-      }]);
     } finally {
       setLoading(false);
     }

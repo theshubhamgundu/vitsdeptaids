@@ -80,7 +80,7 @@ const CreateFacultyProfile = () => {
   const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
   const employmentTypes = ["Permanent", "Contract", "Visiting"];
 
-  const handleInputChange = (section, field, value) => {
+  const handleInputChange = (section: keyof typeof facultyData, field: string, value: any) => {
     setFacultyData(prev => ({
       ...prev,
       [section]: {
