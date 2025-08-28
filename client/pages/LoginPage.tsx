@@ -371,9 +371,6 @@ const LoginPage = () => {
                   <div>
                     <strong>Faculty:</strong> AIDS-ANK1 / @NMKrishna342
                   </div>
-                  <div>
-                    <strong>Admin:</strong> AIDS-DKS1 / @KSomesh702
-                  </div>
                 </div>
               </div>
             )}

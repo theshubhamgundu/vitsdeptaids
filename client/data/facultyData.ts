@@ -151,21 +151,7 @@ export const facultyDatabase: FacultyMember[] = [
     qualification: "M.Tech in CSE",
     canChangePassword: true
   },
-  {
-    id: "10",
-    name: "Mr. K. Somesh",
-    designation: "DTP Operator",
-    facultyId: "AIDS-DKS1",
-    role: "Admin",
-    defaultPassword: "@KSomesh702",
-    email: "ksomesh@vignan.ac.in",
-    phone: "+91 9876543210",
-    department: "AI & Data Science",
-    specialization: "Administrative Support, Data Entry",
-    experience: 5,
-    qualification: "Diploma in Computer Applications",
-    canChangePassword: true
-  }
+  
 ];
 
 // Function to authenticate faculty
