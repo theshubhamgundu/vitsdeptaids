@@ -1,8 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 
-// Supabase configuration with actual database credentials
-const supabaseUrl = "https://plthigkzjkcxunifsptr.supabase.co";
-const supabaseAnonKey = "sb_publishable_Fycw0l0nn80UBgrO75xcZg_kdA5-3Nl";
+// Supabase configuration via Vite env (set in Vercel):
+// VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY
+const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || "";
+const supabaseAnonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || "";
 
 // Check if Supabase is configured and key is valid
 const isKeyValid = (key: string) => {
